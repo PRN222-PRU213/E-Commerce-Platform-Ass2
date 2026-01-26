@@ -361,3 +361,22 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ============================================
+# ASP.NET Core / Entity Framework
+# ============================================
+
+# User-specific appsettings files (contain sensitive data like connection strings, API keys)
+# Ignore all appsettings files (including base template)
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/appsettings.Staging.json
+**/appsettings.Local.json
+# But keep example files as templates
+!**/appsettings.*.example.json
+
+# Entity Framework Migrations
+# NOTE: Migrations are usually committed to version control for database schema tracking
+# Uncomment the line below if you want to ignore migrations (not recommended for most projects)
+# **/Migrations/
