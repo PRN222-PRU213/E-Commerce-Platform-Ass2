@@ -1,0 +1,67 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Authentication.VerificationPendingModel
+@{
+    ViewData["Title"] = "Chờ xác thực Email";
+    Layout = "~/Pages/Shared/_EmailVerificationLayout.cshtml";
+}
+
+<div class="text-center">
+    @if (Model.EmailSent)
+    {
+        <div class="mb-4">
+            <i class="fas fa-envelope verification-icon"></i>
+        </div>
+        <h2 class="verification-title">Kiểm tra hộp thư của bạn!</h2>
+        <p class="verification-text">
+            Chúng tôi đã gửi một email xác thực đến địa chỉ email của bạn.
+        </p>
+        
+        @if (!string.IsNullOrEmpty(Model.Email))
+        {
+            <div class="email-address">
+                <i class="fas fa-envelope mr-2"></i>@Model.Email
+            </div>
+        }
+        
+        <p class="verification-text">
+            Vui lòng kiểm tra hộp thư (và thư mục Spam) để tìm email từ chúng tôi và click vào link xác thực để hoàn tất đăng ký.
+        </p>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>Lưu ý:</strong> Link xác thực sẽ hết hạn sau <strong>24 giờ</strong>.
+        </div>
+    }
+    else
+    {
+        <div class="mb-4">
+            <i class="fas fa-exclamation-triangle verification-icon" style="color: #ff9800;"></i>
+        </div>
+        <h2 class="verification-title">Không thể gửi email xác thực</h2>
+        <p class="verification-text">
+            Tài khoản của bạn đã được tạo thành công, nhưng chúng tôi không thể gửi email xác thực.
+            Vui lòng yêu cầu gửi lại email xác thực.
+        </p>
+        
+        <a asp-page="/Authentication/ResendVerification" asp-route-email="@Model.Email" class="btn btn-verification mt-3">
+            <i class="fas fa-redo mr-2"></i>Gửi lại email xác thực
+        </a>
+    }
+    
+    <hr class="my-4">
+    
+    <div class="mt-4">
+        <p class="verification-text mb-3">
+            <i class="fas fa-question-circle mr-2"></i>Không nhận được email?
+        </p>
+        <a asp-page="/Authentication/ResendVerification" asp-route-email="@Model.Email" class="btn btn-outline-verification">
+            <i class="fas fa-paper-plane mr-2"></i>Gửi lại email xác thực
+        </a>
+    </div>
+    
+    <div class="mt-4 pt-3">
+        <a asp-page="/Authentication/Login" class="back-link">
+            <i class="fas fa-arrow-left mr-1"></i>Quay lại đăng nhập
+        </a>
+    </div>
+</div>

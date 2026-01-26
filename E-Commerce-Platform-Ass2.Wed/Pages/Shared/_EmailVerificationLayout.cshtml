@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EShopper</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #EDF1FF 0%, #D19C97 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .verification-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 3rem;
+            max-width: 600px;
+            width: 100%;
+            margin: 2rem;
+        }
+        .verification-icon {
+            font-size: 100px;
+            color: #D19C97;
+            margin-bottom: 2rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @@keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.15);
+                opacity: 0.9;
+            }
+        }
+        .verification-title {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        .verification-text {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+        .email-address {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #D19C97;
+            margin: 1.5rem 0;
+            font-weight: 600;
+            color: #333;
+        }
+        .btn-verification {
+            background: linear-gradient(135deg, #D19C97 0%, #c88a84 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(209, 156, 151, 0.4);
+        }
+        .btn-verification:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(209, 156, 151, 0.6);
+            background: linear-gradient(135deg, #c88a84 0%, #c5837c 100%);
+            color: white;
+        }
+        .btn-outline-verification {
+            border: 2px solid #D19C97;
+            color: #D19C97;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-outline-verification:hover {
+            background: #D19C97;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .alert-info {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
+        .back-link {
+            color: #D19C97;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .back-link:hover {
+            color: #c88a84;
+            text-decoration: underline;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .logo h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #D19C97 0%, #c88a84 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="verification-container">
+        <div class="logo">
+            <h1><span class="text-primary font-weight-bold border px-3 mr-1" style="border-color: #D19C97 !important; color: #D19C97 !important;">E</span>Shopper</h1>
+        </div>
+        @RenderBody()
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,57 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Authentication.VerifyEmailModel
+@{
+    ViewData["Title"] = "Xác thực Email";
+    Layout = "~/Pages/Shared/_EmailVerificationLayout.cshtml";
+}
+
+<div class="text-center">
+    @if (Model.Success)
+    {
+        <div class="mb-4">
+            <i class="fas fa-check-circle verification-icon" style="color: #28a745;"></i>
+        </div>
+        <h2 class="verification-title text-success">Xác thực thành công!</h2>
+        
+        @if (!string.IsNullOrEmpty(Model.UserName))
+        {
+            <p class="verification-text lead">
+                Chào mừng <strong>@Model.UserName</strong>! 🎉
+            </p>
+        }
+        
+        <p class="verification-text">
+            Email của bạn đã được xác thực thành công. Bây giờ bạn có thể đăng nhập và khám phá hàng ngàn sản phẩm tuyệt vời!
+        </p>
+        
+        <a asp-page="/Authentication/Login" class="btn btn-verification mt-3">
+            <i class="fas fa-sign-in-alt mr-2"></i>Đăng nhập ngay
+        </a>
+    }
+    else
+    {
+        <div class="mb-4">
+            <i class="fas fa-times-circle verification-icon" style="color: #dc3545;"></i>
+        </div>
+        <h2 class="verification-title text-danger">Xác thực thất bại</h2>
+        
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            @(Model.ErrorMessage ?? "Đã có lỗi xảy ra trong quá trình xác thực.")
+        </div>
+        
+        <p class="verification-text">
+            Bạn có thể yêu cầu gửi lại email xác thực nếu link đã hết hạn.
+        </p>
+        
+        <a asp-page="/Authentication/ResendVerification" class="btn btn-verification mt-3">
+            <i class="fas fa-redo mr-2"></i>Gửi lại email xác thực
+        </a>
+    }
+    
+    <div class="mt-4 pt-3">
+        <a asp-page="/Authentication/Login" class="back-link">
+            <i class="fas fa-arrow-left mr-1"></i>Quay lại đăng nhập
+        </a>
+    </div>
+</div>

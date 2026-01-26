@@ -1,0 +1,418 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Product.DetailModel
+@{
+    ViewData["Title"] = Model.ViewModel.Name;
+    Layout = "~/Pages/Shared/_EShopperLayout.cshtml";
+}
+
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-3 position-relative">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 100px">
+
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Shop Detail</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Index">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Shop Detail</p>
+        </div>
+    </div>
+    <div style="position: absolute; bottom: 10px; left: 20px;">
+        <a asp-page="/Index" class="btn btn-primary btn-sm px-3" style="background-color: #D19C97; border-color: #D19C97; color: #fff;">
+            <i class="fa fa-arrow-left mr-2"></i>QUAY LẠI TRANG CHỦ
+        </a>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<!-- Shop Detail Start -->
+<div class="container-fluid py-5">
+    <div class="row px-xl-5">
+        <div class="col-lg-5 pb-5">
+            <div id="product-carousel" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner border">
+                    <div class="carousel-item active">
+                        <img class="w-100 h-100" src="@(string.IsNullOrEmpty(Model.ViewModel.ImageUrl) ? "/img/product-1.jpg" : Model.ViewModel.ImageUrl)" alt="Image">
+                    </div>
+                    @foreach (var variant in Model.ViewModel.Variants.Where(v => !string.IsNullOrEmpty(v.ImageUrl)))
+                    {
+                        <div class="carousel-item">
+                            <img class="w-100 h-100" src="@variant.ImageUrl" alt="Image">
+                        </div>
+                    }
+                </div>
+                <a class="carousel-control-prev" href="#product-carousel" data-slide="prev">
+                    <i class="fa fa-2x fa-angle-left text-dark"></i>
+                </a>
+                <a class="carousel-control-next" href="#product-carousel" data-slide="next">
+                    <i class="fa fa-2x fa-angle-right text-dark"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-7 pb-5">
+            <h3 class="font-weight-semi-bold">@Model.ViewModel.Name</h3>
+            <div class="d-flex mb-3">
+                <div class="text-primary mr-2">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= Math.Floor(Model.ViewModel.AvgRating))
+                        {
+                            <small class="fas fa-star"></small>
+                        }
+                        else if (i - 1 < Model.ViewModel.AvgRating)
+                        {
+                            <small class="fas fa-star-half-alt"></small>
+                        }
+                        else
+                        {
+                            <small class="far fa-star"></small>
+                        }
+                    }
+                </div>
+                <small class="pt-1">(@Model.ViewModel.ReviewCount Reviews)</small>
+            </div>
+            <h3 class="font-weight-semi-bold mb-4">$@Model.ViewModel.BasePrice</h3>
+            <p class="mb-4">@Model.ViewModel.Description</p>
+            
+<style>
+    .variant-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .variant-option {
+        cursor: pointer;
+        position: relative;
+    }
+    .variant-option input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .variant-card {
+        padding: 10px 20px;
+        border: 2px solid #dee2e6;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 120px;
+        user-select: none;
+    }
+    .variant-option input:checked + .variant-card {
+        border-color: #D19C97;
+        background-color: #fcf1f0;
+        box-shadow: 0 4px 12px rgba(209, 156, 151, 0.15);
+        transform: translateY(-2px);
+    }
+    .variant-card:hover {
+        border-color: #D19C97;
+        background-color: #fdfaf9;
+    }
+    .variant-info {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+    }
+    .variant-sub-info {
+        font-size: 0.8rem;
+        color: #777;
+        margin-top: 2px;
+    }
+
+    /* Quantity & Add to Cart styling */
+    .quantity-container {
+        display: flex;
+        align-items: center;
+        background: #f8f9fa;
+        border: 2px solid #dee2e6;
+        border-radius: 12px;
+        padding: 4px;
+        width: fit-content;
+    }
+    .quantity-container .btn-qty {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px !important;
+        border: none;
+        background: #fff;
+        color: #333;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        font-size: 0.8rem;
+    }
+    .quantity-container .btn-qty:hover {
+        background: #D19C97;
+        color: #fff;
+    }
+    .quantity-container input {
+        width: 40px;
+        border: none;
+        background: transparent;
+        text-align: center;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #333;
+    }
+    .btn-add-to-cart {
+        background: #D19C97;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 8px 20px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(209, 156, 151, 0.3);
+        height: 44px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+    }
+    .btn-add-to-cart:hover {
+        background: #c38b86;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(209, 156, 151, 0.4);
+        color: #fff;
+    }
+    .btn-add-to-cart:active {
+        transform: translateY(0);
+    }
+</style>
+
+            @if (Model.ViewModel.Variants.Any())
+            {
+                <div class="mb-4">
+                    <p class="text-dark font-weight-medium mb-3">Chọn phiên bản (Size & Màu sắc):</p>
+                    <div class="variant-container">
+                        @foreach (var variant in Model.ViewModel.Variants)
+                        {
+                            <label class="variant-option">
+                                <input type="radio" class="variant-selector" name="variantId" value="@variant.Id" data-price="@variant.Price">
+                                <div class="variant-card shadow-sm">
+                                    <span class="variant-info">@variant.Size</span>
+                                    <span class="variant-sub-info">@variant.Color</span>
+                                </div>
+                            </label>
+                        }
+                    </div>
+                </div>
+            }
+
+            <form asp-page="/Cart/AddToCart" method="post" id="add-to-cart-form">
+                <input type="hidden" name="productId" value="@Model.ViewModel.Id" />
+                <input type="hidden" name="productVariantId" id="selected-variant-id" value="" />
+                
+                <div class="d-flex align-items-center mb-4 pt-2 gap-3" style="gap: 12px;">
+                    <div class="quantity-container mr-3">
+                        <button type="button" class="btn-qty btn-minus">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        <input type="text" name="quantity" value="1">
+                        <button type="button" class="btn-qty btn-plus">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
+                    <button type="submit" class="btn-add-to-cart shadow">
+                        <i class="fa fa-shopping-cart"></i> THÊM VÀO GIỎ HÀNG
+                    </button>
+                </div>
+            </form>
+            <div class="d-flex pt-2">
+                <p class="text-dark font-weight-medium mb-0 mr-2">Share on:</p>
+                <div class="d-inline-flex">
+                    <a class="text-dark px-2" href="">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a class="text-dark px-2" href="">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a class="text-dark px-2" href="">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a class="text-dark px-2" href="">
+                        <i class="fab fa-pinterest"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row px-xl-5">
+        <div class="col">
+            <div class="nav nav-tabs justify-content-center border-secondary mb-4">
+                <a class="nav-item nav-link active" data-toggle="tab" href="#tab-pane-1">Description</a>
+                <a class="nav-item nav-link" data-toggle="tab" href="#tab-pane-2">Information</a>
+                <a class="nav-item nav-link" data-toggle="tab" href="#tab-pane-3">Reviews (@Model.ViewModel.Reviews.Count)</a>
+            </div>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="tab-pane-1">
+                    <h4 class="mb-3">Product Description</h4>
+                    <p>@Model.ViewModel.Description</p>
+                </div>
+                <div class="tab-pane fade" id="tab-pane-2">
+                    <h4 class="mb-3">Additional Information</h4>
+                    <p>Eos no lorem eirmod diam diam, eos elitr et gubergren diam sea. At et gubergren lorem est amet ea vero eos. Et no sea erat diam stet sit ipsum amet sed clita kasd lorem stet eirmod iusto accusam eos neque aliquyam eirmod duo eos, augue invidunt vero est sit ut diam lorem kasd ut.</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item px-0">
+                                    Sit erat duo lorem duo ea consetetur, et eirmod et.
+                                </li>
+                                <li class="list-group-item px-0">
+                                    Amet kasd gubergren sit sanctus et lorem eos nois.
+                                </li>
+                                <li class="list-group-item px-0">
+                                    Duo ipsum rebum vero et vero. Duo clita sit duo amet ipsum rebum ipsum rebum ipsum rebum ipsum rebum ipsum rebum ipsum rebum.
+                                </li>
+                                <li class="list-group-item px-0">
+                                    Dicta nihil ratione corrupti.
+                                </li>
+                              </ul> 
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item px-0">
+                                    Sit erat duo lorem duo ea consetetur, et eirmod et.
+                                </li>
+                                <li class="list-group-item px-0">
+                                    Amet kasd gubergren sit sanctus et lorem eos nois.
+                                </li>
+                                <li class="list-group-item px-0">
+                                    Duo ipsum rebum vero et vero. Duo clita sit duo amet ipsum rebum ipsum rebum ipsum rebum ipsum rebum ipsum rebum ipsum rebum.
+                                </li>
+                                <li class="list-group-item px-0">
+                                    Dicta nihil ratione corrupti.
+                                </li>
+                              </ul> 
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="tab-pane-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="mb-4">@Model.ViewModel.Reviews.Count review for "@Model.ViewModel.Name"</h4>
+                            @foreach (var review in Model.ViewModel.Reviews)
+                            {
+                                <div class="media mb-4">
+                                    <img src="/img/user.jpg" alt="Image" class="img-fluid mr-3 mt-1" style="width: 45px;">
+                                    <div class="media-body">
+                                        <h6>@review.UserName<small> - <i>@review.CreatedAt.ToString("dd MMM yyyy")</i></small></h6>
+                                        <div class="text-primary mb-2">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="@(i <= review.Rating ? "fas" : "far") fa-star"></i>
+                                            }
+                                        </div>
+                                        <p>@review.Comment</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="mb-4">Leave a review</h4>
+                            <small>Your email address will not be published. Required fields are marked *</small>
+                            <div class="d-flex my-3">
+                                <p class="mb-0 mr-2">Your Rating * :</p>
+                                <div class="text-primary">
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                            </div>
+                            <form>
+                                <div class="form-group">
+                                    <label for="message">Your Review *</label>
+                                    <textarea id="message" cols="30" rows="5" class="form-control"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="name">Your Name *</label>
+                                    <input type="text" class="form-control" id="name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Your Email *</label>
+                                    <input type="email" class="form-control" id="email">
+                                </div>
+                                <div class="form-group mb-0">
+                                    <input type="submit" value="Leave Your Review" class="btn btn-primary px-3">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Shop Detail End -->
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.variant-selector').change(function () {
+                var selectedVariantId = $(this).val();
+                var price = $(this).data('price');
+                
+                if (selectedVariantId) {
+                    $('.font-weight-semi-bold.mb-4').first().text('$' + parseFloat(price).toFixed(2));
+                    $('#selected-variant-id').val(selectedVariantId);
+                }
+            });
+
+            // Quantity selector logic
+            $('.btn-qty').on('click', function () {
+                var button = $(this);
+                var input = button.parent().find('input');
+                var oldValue = input.val();
+                var newVal;
+                if (button.hasClass('btn-plus')) {
+                    newVal = parseFloat(oldValue) + 1;
+                } else {
+                    if (oldValue > 1) {
+                        newVal = parseFloat(oldValue) - 1;
+                    } else {
+                        newVal = 1;
+                    }
+                }
+                input.val(newVal).trigger('change');
+            });
+
+            $('input[name="quantity"]').on('keypress', function (e) {
+                if (e.which < 48 || e.which > 57) {
+                    e.preventDefault();
+                }
+            });
+
+            $('input[name="quantity"]').on('input change', function() {
+                var val = $(this).val();
+                if (val !== '') {
+                    var n = parseInt(val);
+                    if (isNaN(n) || n < 1) {
+                        $(this).val(1);
+                    }
+                }
+            }).on('blur', function() {
+                var val = $(this).val();
+                if (val === '' || isNaN(parseInt(val)) || parseInt(val) < 1) {
+                    $(this).val(1);
+                }
+            });
+
+            $('#add-to-cart-form').submit(function (e) {
+                var variantId = $('#selected-variant-id').val();
+                if (!variantId && @(Model.ViewModel.Variants.Any() ? "true" : "false")) {
+                    alert('Vui lòng chọn một phiên bản sản phẩm.');
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}
