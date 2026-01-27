@@ -1,0 +1,582 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.StatisticsModel
+@{
+    ViewData["Title"] = "Thống kê doanh thu - " + Model.ViewModel.ShopName;
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+}
+
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-4">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">
+            <i class="fas fa-chart-line text-primary mr-2"></i>Thống kê doanh thu
+        </h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Shop/ViewShop" class="text-dark">Dashboard</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Thống kê</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<div class="container-fluid py-4">
+    <!-- Overview Statistics Cards -->
+    <div class="row mb-4">
+        <!-- Total Revenue -->
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Tổng doanh thu
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ViewModel.CompletedRevenue.ToString("N0")₫</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Orders -->
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Tổng đơn hàng
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ViewModel.TotalOrders</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Products Sold -->
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Sản phẩm đã bán
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ViewModel.TotalProductsSold</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Products -->
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Sản phẩm (@Model.ViewModel.ActiveProducts đang bán)
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ViewModel.TotalProducts</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cubes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly & Monthly Statistics -->
+    <div class="row mb-4">
+        <!-- Weekly Stats -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3 bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-calendar-week mr-2"></i>Thống kê tuần này
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <div class="border rounded p-3 text-center bg-light">
+                                <h4 class="text-primary mb-1">@Model.ViewModel.WeeklyOrders</h4>
+                                <small class="text-muted">Đơn hàng</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="border rounded p-3 text-center bg-light">
+                                <h4 class="text-success mb-1">@Model.ViewModel.WeeklyRevenue.ToString("N0")₫</h4>
+                                <small class="text-muted">Doanh thu</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2 text-center">
+                                <h5 class="text-success mb-0">@Model.ViewModel.WeeklyCompletedOrders</h5>
+                                <small class="text-muted">Hoàn thành</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2 text-center">
+                                <h5 class="text-warning mb-0">@Model.ViewModel.WeeklyPendingOrders</h5>
+                                <small class="text-muted">Đang xử lý</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2 text-center">
+                                <h5 class="text-danger mb-0">@Model.ViewModel.WeeklyCancelledOrders</h5>
+                                <small class="text-muted">Đã hủy</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <span class="badge badge-info px-3 py-2">
+                            <i class="fas fa-box mr-1"></i>@Model.ViewModel.WeeklyProductsSold sản phẩm đã bán
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Stats -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3 bg-success text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-calendar-alt mr-2"></i>Thống kê tháng này
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <div class="border rounded p-3 text-center bg-light">
+                                <h4 class="text-primary mb-1">@Model.ViewModel.MonthlyOrders</h4>
+                                <small class="text-muted">Đơn hàng</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="border rounded p-3 text-center bg-light">
+                                <h4 class="text-success mb-1">@Model.ViewModel.MonthlyRevenue.ToString("N0")₫</h4>
+                                <small class="text-muted">Doanh thu</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2 text-center">
+                                <h5 class="text-success mb-0">@Model.ViewModel.MonthlyCompletedOrders</h5>
+                                <small class="text-muted">Hoàn thành</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2 text-center">
+                                <h5 class="text-warning mb-0">@Model.ViewModel.MonthlyPendingOrders</h5>
+                                <small class="text-muted">Đang xử lý</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2 text-center">
+                                <h5 class="text-danger mb-0">@Model.ViewModel.MonthlyCancelledOrders</h5>
+                                <small class="text-muted">Đã hủy</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <span class="badge badge-info px-3 py-2">
+                            <i class="fas fa-box mr-1"></i>@Model.ViewModel.MonthlyProductsSold sản phẩm đã bán
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line mr-2"></i>Biểu đồ doanh số 7 ngày gần nhất
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Top Selling Products -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3 bg-warning">
+                    <h6 class="m-0 font-weight-bold text-dark">
+                        <i class="fas fa-trophy mr-2"></i>Top 5 sản phẩm bán chạy
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.ViewModel.TopSellingProducts.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-center">Đã bán</th>
+                                        <th class="text-right">Doanh thu</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{int rank = 1;}
+                                    @foreach (var product in Model.ViewModel.TopSellingProducts)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (rank == 1) { <span class="badge badge-warning"><i class="fas fa-crown"></i> 1</span> }
+                                                else if (rank == 2) { <span class="badge badge-secondary">2</span> }
+                                                else if (rank == 3) { <span class="badge badge-danger">3</span> }
+                                                else { <span class="text-muted">@rank</span> }
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : Url.Content("~/img/product-1.jpg"))" 
+                                                         alt="@product.ProductName" 
+                                                         class="rounded mr-2"
+                                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                                    <span class="font-weight-bold text-truncate" style="max-width: 150px;">@product.ProductName</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-primary">@product.TotalQuantitySold</span>
+                                            </td>
+                                            <td class="text-right text-success font-weight-bold">
+                                                @product.TotalRevenue.ToString("N0")₫
+                                            </td>
+                                        </tr>
+                                        rank++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Chưa có sản phẩm nào được bán</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3 bg-info text-white d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-shopping-bag mr-2"></i>Đơn hàng gần đây
+                    </h6>
+                    <a asp-page="/Shop/Orders/Index" class="btn btn-sm btn-light">
+                        Xem tất cả
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.ViewModel.RecentOrders.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Khách hàng</th>
+                                        <th class="text-right">Tổng tiền</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model.ViewModel.RecentOrders)
+                                    {
+                                        <tr>
+                                            <td><code>#@order.OrderCode</code></td>
+                                            <td class="text-truncate" style="max-width: 100px;">@order.CustomerName</td>
+                                            <td class="text-right text-primary font-weight-bold">@order.TotalAmount.ToString("N0")₫</td>
+                                            <td>
+                                                @{
+                                                    var statusLower = order.Status?.ToLower() ?? "";
+                                                    var badgeClass = statusLower switch
+                                                    {
+                                                        "completed" or "delivered" => "badge-success",
+                                                        "cancelled" or "canceled" => "badge-danger",
+                                                        "paid" => "bg-success-dark",
+                                                        "pending" => "badge-warning",
+                                                        "processing" or "preparing" => "badge-info",
+                                                        "shipped" or "shipping" => "badge-primary",
+                                                        _ => "badge-secondary"
+                                                    };
+                                                }
+                                                <span class="status-badge status-badge-fixed @badgeClass">
+                                                    @(order.Status == "Paid" ? "Đã thanh toán" :
+                                                      order.Status == "Pending" ? "Chờ xử lý" :
+                                                      order.Status == "Cancelled" ? "Đã hủy" :
+                                                      order.Status == "Processing" ? "Đang xử lý" :
+                                                      order.Status == "Preparing" ? "Chuẩn bị hàng" :
+                                                      order.Status == "Shipped" ? "Vận chuyển" :
+                                                      order.Status == "Completed" ? "Hoàn thành" :
+                                                      order.Status)
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Chưa có đơn hàng nào</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Revenue Table -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-table mr-2"></i>Doanh thu theo sản phẩm
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.ViewModel.ProductRevenues.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0" id="productRevenueTable">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th style="width: 50px;">#</th>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-center">Số đơn</th>
+                                        <th class="text-center">SL tuần</th>
+                                        <th class="text-right">DT tuần</th>
+                                        <th class="text-center">SL tháng</th>
+                                        <th class="text-right">DT tháng</th>
+                                        <th class="text-center">Tổng SL</th>
+                                        <th class="text-right">Tổng DT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{int index = 1;}
+                                    @foreach (var product in Model.ViewModel.ProductRevenues)
+                                    {
+                                        <tr>
+                                            <td class="text-muted">@index</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : Url.Content("~/img/product-1.jpg"))" 
+                                                         alt="@product.ProductName" 
+                                                         class="rounded mr-2"
+                                                         style="width: 35px; height: 35px; object-fit: cover;">
+                                                    <span class="font-weight-bold">@product.ProductName</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-secondary">@product.OrderCount</span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if (product.WeeklyQuantitySold > 0)
+                                                {
+                                                    <span class="badge badge-info">@product.WeeklyQuantitySold</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">0</span>
+                                                }
+                                            </td>
+                                            <td class="text-right">
+                                                @if (product.WeeklyRevenue > 0)
+                                                {
+                                                    <span class="text-info">@product.WeeklyRevenue.ToString("N0")₫</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">0₫</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (product.MonthlyQuantitySold > 0)
+                                                {
+                                                    <span class="badge badge-primary">@product.MonthlyQuantitySold</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">0</span>
+                                                }
+                                            </td>
+                                            <td class="text-right">
+                                                @if (product.MonthlyRevenue > 0)
+                                                {
+                                                    <span class="text-primary">@product.MonthlyRevenue.ToString("N0")₫</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">0₫</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-success">@product.TotalQuantitySold</span>
+                                            </td>
+                                            <td class="text-right text-success font-weight-bold">
+                                                @product.TotalRevenue.ToString("N0")₫
+                                            </td>
+                                        </tr>
+                                        index++;
+                                    }
+                                </tbody>
+                                <tfoot class="bg-light font-weight-bold">
+                                    <tr>
+                                        <td colspan="3">TỔNG CỘNG</td>
+                                        <td class="text-center">@Model.ViewModel.WeeklyProductsSold</td>
+                                        <td class="text-right text-info">@Model.ViewModel.WeeklyRevenue.ToString("N0")₫</td>
+                                        <td class="text-center">@Model.ViewModel.MonthlyProductsSold</td>
+                                        <td class="text-right text-primary">@Model.ViewModel.MonthlyRevenue.ToString("N0")₫</td>
+                                        <td class="text-center">@Model.ViewModel.TotalProductsSold</td>
+                                        <td class="text-right text-success">@Model.ViewModel.CompletedRevenue.ToString("N0")₫</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Chưa có sản phẩm nào</p>
+                            <a asp-page="/Shop/Products/Create" class="btn btn-primary">
+                                <i class="fas fa-plus mr-2"></i>Thêm sản phẩm
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .border-left-primary { border-left: 4px solid #4e73df !important; }
+        .border-left-success { border-left: 4px solid #1cc88a !important; }
+        .border-left-warning { border-left: 4px solid #f6c23e !important; }
+        .border-left-danger { border-left: 4px solid #e74a3b !important; }
+        .border-left-info { border-left: 4px solid #36b9cc !important; }
+        .text-gray-300 { color: #dddfeb !important; }
+        .text-gray-800 { color: #5a5c69 !important; }
+        .card { transition: none !important; }
+        .card:hover { transform: none !important; }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Sales Chart
+        var ctx = document.getElementById('salesChart').getContext('2d');
+        var salesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.ViewModel.DailySales.Select(d => $"'{d.DateLabel}'")))],
+                datasets: [{
+                    label: 'Đơn hàng',
+                    data: [@string.Join(",", Model.ViewModel.DailySales.Select(d => d.OrderCount))],
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Doanh thu (VNĐ)',
+                    data: [@string.Join(",", Model.ViewModel.DailySales.Select(d => d.Revenue.ToString("0")))],
+                    borderColor: '#1cc88a',
+                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Số đơn hàng'
+                        },
+                        beginAtZero: true
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Doanh thu (VNĐ)'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('vi-VN') + '₫';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.datasetIndex === 1) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toLocaleString('vi-VN') + '₫';
+                                }
+                                return context.dataset.label + ': ' + context.parsed.y;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}
+

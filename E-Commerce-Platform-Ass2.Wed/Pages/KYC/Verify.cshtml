@@ -1,0 +1,276 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.KYC.VerifyModel
+@{
+    ViewData["Title"] = "Xác thực danh tính";
+    Layout = "~/Pages/Shared/_AccountLayout.cshtml";
+}
+
+<div class="container-fluid py-5">
+    <div class="row px-xl-5">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="bg-light p-5 rounded shadow-sm">
+                <div class="text-center mb-5">
+                    <h2 class="font-weight-semi-bold mb-3">
+                        <i class="fas fa-id-card text-primary mr-2"></i>Xác thực danh tính (KYC)
+                    </h2>
+                    <p class="text-muted">
+                        Để bảo vệ cộng đồng và tuân thủ quy định, vui lòng xác thực danh tính của bạn
+                        trước khi bắt đầu kinh doanh.
+                    </p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="kyc-form">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="row">
+                        <!-- Mặt trước CCCD -->
+                        <div class="col-md-6 mb-4">
+                            <label class="font-weight-semi-bold mb-2">
+                                Mặt trước CCCD/CMND <span class="text-danger">*</span>
+                            </label>
+                            <div class="upload-container" id="front-upload">
+                                <input type="file" asp-for="Input.FrontCard" class="d-none" accept="image/*" id="input-front" />
+                                <div class="upload-zone p-4 text-center border rounded" onclick="document.getElementById('input-front').click()">
+                                    <div class="upload-placeholder">
+                                        <i class="fas fa-camera fa-3x text-primary mb-3"></i>
+                                        <p class="mb-0">Nhấp để tải lên hoặc kéo thả ảnh</p>
+                                    </div>
+                                    <img id="preview-front" class="img-fluid d-none rounded" style="max-height: 200px;" />
+                                </div>
+                                <span asp-validation-for="Input.FrontCard" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Mặt sau CCCD -->
+                        <div class="col-md-6 mb-4">
+                            <label class="font-weight-semi-bold mb-2">
+                                Mặt sau CCCD/CMND <span class="text-danger">*</span>
+                            </label>
+                            <div class="upload-container" id="back-upload">
+                                <input type="file" asp-for="Input.BackCard" class="d-none" accept="image/*" id="input-back" />
+                                <div class="upload-zone p-4 text-center border rounded" onclick="document.getElementById('input-back').click()">
+                                    <div class="upload-placeholder">
+                                        <i class="fas fa-camera fa-3x text-primary mb-3"></i>
+                                        <p class="mb-0">Nhấp để tải lên hoặc kéo thả ảnh</p>
+                                    </div>
+                                    <img id="preview-back" class="img-fluid d-none rounded" style="max-height: 200px;" />
+                                </div>
+                                <span asp-validation-for="Input.BackCard" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ảnh chân dung (Camera Capture) -->
+                    <div class="row justify-content-center">
+                        <div class="col-md-8 mb-4">
+                            <label class="font-weight-semi-bold mb-2">
+                                Ảnh chân dung (Selfie) <span class="text-danger">*</span>
+                            </label>
+                            <div class="camera-container border rounded overflow-hidden bg-dark position-relative" style="min-height: 300px;">
+                                <!-- Video Stream -->
+                                <video id="video" class="w-100 h-100 d-none" autoplay playsinline></video>
+
+                                <!-- Placeholder / Preview -->
+                                <div id="camera-placeholder" class="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-white">
+                                    <i class="fas fa-camera-retro fa-4x mb-3 text-primary"></i>
+                                    <p>Sử dụng camera để chụp ảnh chân dung</p>
+                                    <button type="button" class="btn btn-primary px-4" id="btn-start-camera">
+                                        <i class="fas fa-video mr-2"></i>Mở Camera
+                                    </button>
+                                </div>
+
+                                <!-- Captured Preview -->
+                                <img id="preview-selfie" class="img-fluid d-none w-100 h-100" style="object-fit: cover;" />
+
+                                <!-- Camera Controls -->
+                                <div id="camera-controls" class="position-absolute w-100 text-center d-none" style="bottom: 20px;">
+                                    <button type="button" class="btn btn-danger btn-circle btn-lg shadow" id="btn-capture">
+                                        <i class="fas fa-camera"></i>
+                                    </button>
+                                </div>
+
+                                <div id="retake-controls" class="position-absolute w-100 text-center d-none" style="bottom: 20px;">
+                                    <button type="button" class="btn btn-warning shadow" id="btn-retake">
+                                        <i class="fas fa-sync-alt mr-2"></i>Chụp lại
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Hidden Canvas for capturing -->
+                            <canvas id="canvas" class="d-none" width="640" height="480"></canvas>
+
+                            <!-- Actual Hidden Input for Form -->
+                            <input type="file" asp-for="Input.Selfie" class="d-none" id="input-selfie" />
+
+                            <span asp-validation-for="Input.Selfie" class="text-danger small d-block text-center mt-2"></span>
+                            <small class="form-text text-muted text-center mt-2">
+                                Vui lòng nhìn thẳng vào camera và đảm bảo đủ ánh sáng.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <h6 class="font-weight-bold">
+                            <i class="fas fa-lightbulb mr-2"></i>Mẹo để xác thực thành công:
+                        </h6>
+                        <ul class="mb-0 small">
+                            <li>Ảnh chụp phải rõ nét, đủ ánh sáng, không bị lóa hoặc mờ.</li>
+                            <li>Giấy tờ tùy thân phải còn hạn sử dụng và không bị mất góc.</li>
+                            <li>Ảnh chân dung phải nhìn rõ khuôn mặt, không đeo kính râm hoặc đội mũ che khuất.</li>
+                        </ul>
+                    </div>
+
+                    <div class="form-group mb-0 mt-5">
+                        <button type="submit" class="btn btn-primary btn-block border-0 py-3 font-weight-bold" id="btn-submit">
+                            <i class="fas fa-shield-alt mr-2"></i>BẮT ĐẦU XÁC THỰC
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a asp-page="/Authentication/Profile" class="text-primary">
+                            <i class="fas fa-arrow-left mr-1"></i>Quay lại hồ sơ
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .upload-zone {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px dashed #ddd !important;
+        background: #fbfbfb;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .upload-zone:hover {
+        border-color: #D19C97 !important;
+        background: #fff;
+    }
+
+    .upload-zone img {
+        max-width: 100%;
+        object-fit: contain;
+    }
+
+    .btn-circle.btn-lg {
+        width: 60px;
+        height: 60px;
+        padding: 10px 16px;
+        font-size: 24px;
+        line-height: normal;
+        border-radius: 35px;
+    }
+
+    .camera-container {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        background-color: #000;
+    }
+
+    #video {
+        transform: scaleX(-1);
+    }
+
+    #preview-selfie {
+        transform: scaleX(-1);
+    }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function handleImagePreview(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            const placeholder = preview.previousElementSibling;
+
+            input.onchange = evt => {
+                const [file] = input.files;
+                if (file) {
+                    preview.src = URL.createObjectURL(file);
+                    preview.classList.remove('d-none');
+                    placeholder.classList.add('d-none');
+                }
+            }
+        }
+
+        handleImagePreview('input-front', 'preview-front');
+        handleImagePreview('input-back', 'preview-back');
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const previewSelfie = document.getElementById('preview-selfie');
+        const inputSelfie = document.getElementById('input-selfie');
+        const btnStartCamera = document.getElementById('btn-start-camera');
+        const btnCapture = document.getElementById('btn-capture');
+        const btnRetake = document.getElementById('btn-retake');
+        const cameraPlaceholder = document.getElementById('camera-placeholder');
+        const cameraControls = document.getElementById('camera-controls');
+        const retakeControls = document.getElementById('retake-controls');
+
+        let stream = null;
+
+        btnStartCamera.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user" },
+                    audio: false
+                });
+                video.srcObject = stream;
+                video.classList.remove('d-none');
+                cameraPlaceholder.classList.add('d-none');
+                cameraControls.classList.remove('d-none');
+            } catch (err) {
+                alert("Không thể truy cập camera. Vui lòng đảm bảo bạn đã cấp quyền truy cập camera cho trình duyệt.");
+                console.error(err);
+            }
+        });
+
+        btnCapture.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+                const container = new DataTransfer();
+                container.items.add(file);
+                inputSelfie.files = container.files;
+
+                previewSelfie.src = URL.createObjectURL(blob);
+                previewSelfie.classList.remove('d-none');
+                video.classList.add('d-none');
+                cameraControls.classList.add('d-none');
+                retakeControls.classList.remove('d-none');
+
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            }, 'image/jpeg', 0.9);
+        });
+
+        btnRetake.addEventListener('click', async () => {
+            previewSelfie.classList.add('d-none');
+            retakeControls.classList.add('d-none');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+                video.srcObject = stream;
+                video.classList.remove('d-none');
+                cameraControls.classList.remove('d-none');
+                inputSelfie.value = "";
+            } catch (err) {
+                alert("Không thể truy cập lại camera.");
+                console.error(err);
+            }
+        });
+    </script>
+}
+

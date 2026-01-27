@@ -1,0 +1,214 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Admin.Products.PendingModel
+@{
+    ViewData["Title"] = "Sản phẩm chờ duyệt";
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-clock text-warning"></i> Sản phẩm chờ duyệt</h2>
+        <div>
+            <a asp-page="/Admin/Products/Index" class="btn btn-outline-info me-2">
+                <i class="fas fa-box"></i> Tất cả sản phẩm
+            </a>
+            <a asp-page="/Admin/Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Về Dashboard
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Search Bar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h6 class="m-0 text-warning">
+                        <i class="fas fa-hourglass-half"></i> Danh sách sản phẩm chờ duyệt (@Model.Products.Count)
+                    </h6>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="searchPending" class="form-control" placeholder="Tìm theo tên sản phẩm hoặc shop...">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            @if (Model.Products.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 5%">#</th>
+                                <th style="width: 10%">Ảnh</th>
+                                <th style="width: 20%">Tên sản phẩm</th>
+                                <th style="width: 15%">Shop</th>
+                                <th style="width: 10%">Danh mục</th>
+                                <th style="width: 10%">Giá</th>
+                                <th style="width: 10%">Ngày tạo</th>
+                                <th style="width: 20%">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int index = 1;
+                            }
+                            @foreach (var product in Model.Products)
+                            {
+                                <tr>
+                                    <td>@index</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                        {
+                                            <img src="@product.ImageUrl" alt="@product.Name"
+                                                 class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-light d-flex align-items-center justify-content-center img-thumbnail"
+                                                 style="width: 60px; height: 60px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@product.Name</strong>
+                                        @if (!string.IsNullOrEmpty(product.Description))
+                                        {
+                                            <br />
+                                            <small class="text-muted">
+                                                @(product.Description.Length > 50 ? product.Description.Substring(0, 50) + "..." : product.Description)
+                                            </small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-page="/Admin/Shops/Details" asp-route-id="@product.ShopId" class="text-decoration-none">
+                                            <i class="fas fa-store"></i> @product.ShopName
+                                        </a>
+                                    </td>
+                                    <td>@product.CategoryName</td>
+                                    <td class="text-end">@product.BasePrice.ToString("N0")₫</td>
+                                    <td>@product.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-page="/Admin/Products/Detail" asp-route-id="@product.Id"
+                                               class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                                <i class="fas fa-eye"></i> Chi tiết
+                                            </a>
+                                            <form asp-page-handler="ApproveProduct" asp-route-id="@product.Id" method="post" style="display:inline;">
+                                                <button type="submit" class="btn btn-sm btn-success" title="Duyệt">
+                                                    <i class="fas fa-check"></i> Duyệt
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#rejectModal"
+                                                    data-product-id="@product.Id"
+                                                    data-product-name="@product.Name"
+                                                    title="Từ chối">
+                                                <i class="fas fa-times"></i> Từ chối
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h4 class="text-muted">Không có sản phẩm nào đang chờ duyệt</h4>
+                    <p class="text-muted">Tất cả sản phẩm đã được xử lý.</p>
+                    <a asp-page="/Admin/Products/Index" class="btn btn-primary mt-3">
+                        <i class="fas fa-box"></i> Xem tất cả sản phẩm
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="rejectForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Từ chối sản phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc muốn từ chối sản phẩm: <strong id="productNameText"></strong>?</p>
+                    <div class="mb-3">
+                        <label class="form-label">Lý do từ chối (không bắt buộc)</label>
+                        <textarea name="reason" class="form-control" rows="3"
+                                  placeholder="Nhập lý do từ chối..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Từ chối</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Reject modal handling
+        var rejectModal = document.getElementById('rejectModal');
+        rejectModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var productId = button.getAttribute('data-product-id');
+            var productName = button.getAttribute('data-product-name');
+
+            document.getElementById('productNameText').textContent = productName;
+            document.getElementById('rejectForm').action = '@Url.Page("/Admin/Products/Pending", "RejectProduct")' + '?id=' + productId;
+        });
+
+        // Search functionality
+        document.getElementById('searchPending').addEventListener('input', function () {
+            const searchText = this.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                const productName = row.cells[2]?.textContent.toLowerCase() || '';
+                const shopName = row.cells[3]?.textContent.toLowerCase() || '';
+
+                if (productName.includes(searchText) || shopName.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+}
+

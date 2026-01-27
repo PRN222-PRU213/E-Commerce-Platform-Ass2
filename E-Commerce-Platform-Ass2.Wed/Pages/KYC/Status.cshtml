@@ -1,0 +1,71 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.KYC.StatusModel
+@{
+    ViewData["Title"] = "Trạng thái xác thực";
+    Layout = "~/Pages/Shared/_AccountLayout.cshtml";
+}
+
+<div class="container-fluid py-5">
+    <div class="row px-xl-5">
+        <div class="col-lg-6 offset-lg-3">
+            <div class="bg-light p-5 rounded shadow-sm text-center">
+                @if (Model.StatusViewModel.IsVerified)
+                {
+                    <div class="status-icon mb-4">
+                        <i class="fas fa-check-circle fa-5x text-success animate__animated animate__zoomIn"></i>
+                    </div>
+                    <h2 class="font-weight-semi-bold mb-3 text-success">Xác thực thành công!</h2>
+                    <p class="text-muted mb-4">
+                        Tài khoản của bạn đã hoàn tất xác thực danh tính. Bây giờ bạn có thể bắt đầu tạo shop
+                        và bán hàng trên nền tảng của chúng tôi.
+                    </p>
+
+                    <div class="card border-0 shadow-sm mb-4 text-left">
+                        <div class="card-body">
+                            <h6 class="font-weight-bold mb-3 border-bottom pb-2">Thông tin xác thực</h6>
+                            <div class="row mb-2">
+                                <div class="col-sm-5 text-muted">Trạng thái:</div>
+                                <div class="col-sm-7"><span class="badge badge-success">Đã xác minh</span></div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-5 text-muted">Thời điểm:</div>
+                                <div class="col-sm-7">@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column gap-3">
+                        <a asp-page="/Shop/RegisterShop" class="btn btn-primary btn-block py-3 font-weight-bold mb-3">
+                            <i class="fas fa-store mr-2"></i>TIẾN HÀNH ĐĂNG KÝ SHOP
+                        </a>
+                        <a asp-page="/Authentication/Profile" class="btn btn-outline-secondary btn-block py-3">
+                            <i class="fas fa-user-circle mr-2"></i>Xem hồ sơ cá nhân
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="status-icon mb-4">
+                        <i class="fas fa-exclamation-triangle fa-5x text-warning animate__animated animate__headShake"></i>
+                    </div>
+                    <h2 class="font-weight-semi-bold mb-3 text-warning">Chưa xác thực danh tính</h2>
+                    <p class="text-muted mb-4">
+                        Bạn cần hoàn tất xác thực danh tính để có thể đăng ký mở shop và kinh doanh.
+                    </p>
+
+                    <div class="d-flex flex-column gap-3">
+                        <a asp-page="/KYC/Verify" class="btn btn-primary btn-block py-3 font-weight-bold mb-3">
+                            <i class="fas fa-shield-alt mr-2"></i>BẮT ĐẦU XÁC THỰC NGAY
+                        </a>
+                        <a asp-page="/Authentication/Profile" class="btn btn-outline-secondary btn-block py-3">
+                            <i class="fas fa-user-circle mr-2"></i>Quay lại hồ sơ
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+

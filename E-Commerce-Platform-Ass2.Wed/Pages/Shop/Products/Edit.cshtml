@@ -1,0 +1,708 @@
+@page "{id:guid}"
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products.EditModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Chỉnh sửa sản phẩm";
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+    var cloudName = Configuration["CloudinarySettings:CloudName"] ?? "";
+    var uploadPreset = Configuration["CloudinarySettings:UploadPreset"] ?? "";
+}
+
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-4">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 180px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">
+            <i class="fas fa-edit text-primary mr-2"></i>Chỉnh sửa sản phẩm
+        </h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Shop/Products/Index" class="text-dark">Sản phẩm</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">@Model.Input.Name</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<div class="container-fluid py-4">
+    <div class="row px-xl-5">
+        <div class="col-lg-10 offset-lg-1">
+
+            <!-- Alert messages -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle mr-2"></i>@TempData["SuccessMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle mr-2"></i>@TempData["ErrorMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
+
+            <!-- Product Information Card -->
+            @if (Model.Input.Status == "draft")
+            {
+                <!-- Edit Form (Only for draft status) -->
+                <div class="card border-0 mb-4">
+                    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-edit mr-2"></i>Chỉnh sửa thông tin sản phẩm
+                        </h4>
+                        <span class="badge @Model.Input.StatusBadgeClass px-3 py-2 badge-lg">
+                            <i class="fas fa-info-circle mr-1"></i>@Model.Input.StatusDisplayName
+                        </span>
+                    </div>
+                    <div class="card-body p-5">
+                        <form method="post" asp-page-handler="Update" id="editProductForm">
+                            <input type="hidden" asp-for="Input.Id" />
+                            <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+                            <div class="row">
+                                <!-- Left Column -->
+                                <div class="col-lg-8">
+                                    <!-- Current Image Display -->
+                                    @if (!string.IsNullOrEmpty(Model.Input.ImageUrl))
+                                    {
+                                        <div class="form-group mb-4">
+                                            <label class="font-weight-semi-bold mb-2">
+                                                <i class="fas fa-image text-primary mr-2"></i>Hình ảnh hiện tại
+                                            </label>
+                                            <div class="border rounded p-3 bg-light">
+                                                <img src="@Model.Input.ImageUrl" alt="Current image" class="img-fluid rounded" style="max-height: 250px; object-fit: contain;">
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Product Name -->
+                                    <div class="form-group">
+                                        <label asp-for="Input.Name" class="font-weight-semi-bold">
+                                            <i class="fas fa-tag text-primary mr-2"></i>Tên sản phẩm
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <input asp-for="Input.Name" class="form-control border-0 py-3" placeholder="Nhập tên sản phẩm" />
+                                        <span asp-validation-for="Input.Name" class="text-danger small"></span>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="form-group">
+                                        <label asp-for="Input.Description" class="font-weight-semi-bold">
+                                            <i class="fas fa-align-left text-primary mr-2"></i>Mô tả sản phẩm
+                                        </label>
+                                        <textarea asp-for="Input.Description" class="form-control border-0" rows="6" 
+                                                  placeholder="Mô tả chi tiết về sản phẩm, tính năng, thông số kỹ thuật..."></textarea>
+                                        <span asp-validation-for="Input.Description" class="text-danger small"></span>
+                                    </div>
+
+                                    <!-- Image Upload -->
+                                    <div class="form-group">
+                                        <label class="font-weight-semi-bold">
+                                            <i class="fas fa-image text-primary mr-2"></i>@(string.IsNullOrEmpty(Model.Input.ImageUrl) ? "Hình ảnh sản phẩm" : "Cập nhật hình ảnh")
+                                        </label>
+                                        <div class="mb-3">
+                                            <button type="button" id="uploadImageBtn" class="btn btn-primary">
+                                                <i class="fas fa-cloud-upload-alt mr-2"></i>Tải lên ảnh từ Cloudinary
+                                            </button>
+                                            <button type="button" id="clearImageBtn" class="btn btn-outline-danger ml-2" style="display: none;">
+                                                <i class="fas fa-times mr-2"></i>Xóa ảnh
+                                            </button>
+                                        </div>
+                                        <input asp-for="Input.ImageUrl" type="hidden" id="imageUrlInput" />
+                                        <div id="imagePreview" class="mt-3" style="display: none;">
+                                            <div class="border rounded p-3 bg-light d-inline-block">
+                                                <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 400px; max-height: 400px; object-fit: contain; border: none;">
+                                            </div>
+                                        </div>
+                                        <small class="form-text text-muted mt-2">
+                                            <i class="fas fa-info-circle mr-1"></i>Chỉ sử dụng Cloudinary để tải ảnh lên. Bạn có thể tải từ máy tính, URL, Unsplash, Google Drive, hoặc Dropbox.
+                                        </small>
+                                        <span asp-validation-for="Input.ImageUrl" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Right Column -->
+                                <div class="col-lg-4">
+                                    <div class="bg-light p-4 rounded">
+                                        <h5 class="font-weight-semi-bold mb-4">
+                                            <i class="fas fa-info-circle text-primary mr-2"></i>Thông tin bổ sung
+                                        </h5>
+
+                                        <!-- Category -->
+                                        <div class="form-group">
+                                            <label asp-for="Input.CategoryId" class="font-weight-semi-bold">
+                                                <i class="fas fa-folder text-primary mr-2"></i>Danh mục
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <select asp-for="Input.CategoryId" asp-items="Model.Input.Categories" class="form-control py-3" id="categorySelect" style="display: none;">
+                                                <option value="">-- Chọn danh mục --</option>
+                                            </select>
+                                            <!-- Custom Dropdown Display -->
+                                            <div class="custom-category-dropdown">
+                                                <button type="button" class="form-control py-3 text-left custom-dropdown-btn" id="categoryDropdownBtn" style="background: white; border: 1px solid #ced4da; border-radius: 0.25rem;">
+                                                    <span id="categoryDisplayText" class="text-muted">-- Chọn danh mục --</span>
+                                                    <i class="fas fa-chevron-down float-right mt-1"></i>
+                                                </button>
+                                                <div class="custom-dropdown-menu" id="categoryDropdownMenu" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ced4da; border-radius: 0.25rem; max-height: 300px; overflow-y: auto; width: 100%; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);">
+                                                    <div class="custom-dropdown-item p-3 text-muted" data-value="" style="cursor: pointer; border-bottom: 1px solid #e9ecef;">
+                                                        <i class="fas fa-folder-open mr-2"></i>-- Chọn danh mục --
+                                                    </div>
+                                                    @if (Model.Input.Categories != null)
+                                                    {
+                                                        @foreach (var category in Model.Input.Categories)
+                                                        {
+                                                            <div class="custom-dropdown-item p-3" data-value="@category.Value" style="cursor: pointer; border-bottom: 1px solid #e9ecef; transition: background-color 0.2s;">
+                                                                <i class="fas fa-folder mr-2 text-primary"></i>@category.Text
+                                                            </div>
+                                                        }
+                                                    }
+                                                </div>
+                                            </div>
+                                            <input type="hidden" asp-for="Input.CategoryId" id="categoryHiddenInput" />
+                                            <span asp-validation-for="Input.CategoryId" class="text-danger small"></span>
+                                        </div>
+
+                                        <!-- Base Price -->
+                                        <div class="form-group">
+                                            <label asp-for="Input.BasePrice" class="font-weight-semi-bold">
+                                                <i class="fas fa-money-bill-wave text-primary mr-2"></i>Giá cơ bản
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-transparent border-0">₫</span>
+                                                </div>
+                                                <input asp-for="Input.BasePrice" type="number" step="0.01" min="0" 
+                                                       class="form-control border-0 py-3" placeholder="0.00" />
+                                            </div>
+                                            <span asp-validation-for="Input.BasePrice" class="text-danger small"></span>
+                                            <small class="form-text text-muted">
+                                                <i class="fas fa-info-circle mr-1"></i>Giá này sẽ là giá mặc định cho sản phẩm
+                                            </small>
+                                        </div>
+
+                                        <!-- Additional Info -->
+                                        <div class="mt-3 pt-3 border-top">
+                                            <small class="text-muted d-block mb-2">
+                                                <i class="fas fa-calendar-alt text-primary mr-1"></i>Ngày tạo: @Model.Input.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-page="/Shop/Products/Index" class="btn btn-outline-secondary px-4">
+                                    <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="fas fa-save mr-2"></i>Cập nhật thông tin
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Read-only View (For non-draft status) -->
+                <div class="card border-0 mb-4">
+                    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-box mr-2"></i>Thông tin sản phẩm
+                        </h4>
+                        <span class="badge @Model.Input.StatusBadgeClass px-3 py-2 badge-lg">
+                            <i class="fas fa-info-circle mr-1"></i>@Model.Input.StatusDisplayName
+                        </span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-4 mb-4 mb-md-0">
+                                <div class="position-relative">
+                                    @if (!string.IsNullOrEmpty(Model.Input.ImageUrl))
+                                    {
+                                        <img src="@Model.Input.ImageUrl" alt="@Model.Input.Name" class="img-fluid rounded" style="max-height: 300px; width: 100%; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light rounded shadow-sm d-flex align-items-center justify-content-center" style="height: 300px; border: 2px dashed #dee2e6;">
+                                            <div class="text-center">
+                                                <i class="fas fa-image fa-4x text-muted mb-2"></i>
+                                                <p class="text-muted mb-0">Chưa có hình ảnh</p>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="product-info-details">
+                                    <div class="mb-3 pb-3 border-bottom">
+                                        <label class="text-muted small mb-1 d-block">
+                                            <i class="fas fa-tag text-primary mr-1"></i>Tên sản phẩm
+                                        </label>
+                                        <h5 class="mb-0 font-weight-bold">@Model.Input.Name</h5>
+                                    </div>
+                                    
+                                    <div class="row mb-3 pb-3 border-bottom">
+                                        <div class="col-md-6 mb-3 mb-md-0">
+                                            <label class="text-muted small mb-1 d-block">
+                                                <i class="fas fa-folder text-primary mr-1"></i>Danh mục
+                                            </label>
+                                            <p class="mb-0 font-weight-semi-bold">@(Model.Input.CategoryName ?? "Chưa phân loại")</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="text-muted small mb-1 d-block">
+                                                <i class="fas fa-money-bill-wave text-primary mr-1"></i>Giá cơ bản
+                                            </label>
+                                            <p class="mb-0">
+                                                <strong class="text-danger h5">@Model.Input.BasePrice.ToString("N0") ₫</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3 pb-3 border-bottom">
+                                        <label class="text-muted small mb-1 d-block">
+                                            <i class="fas fa-calendar-alt text-primary mr-1"></i>Ngày tạo
+                                        </label>
+                                        <p class="mb-0">@Model.Input.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                                    </div>
+
+                                    <div>
+                                        <label class="text-muted small mb-1 d-block">
+                                            <i class="fas fa-align-left text-primary mr-1"></i>Mô tả
+                                        </label>
+                                        <p class="mb-0 text-justify">
+                                            @if (string.IsNullOrEmpty(Model.Input.Description))
+                                            {
+                                                <span class="text-muted font-italic">Chưa có mô tả</span>
+                                            }
+                                            else
+                                            {
+                                                @Model.Input.Description
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Variants Card -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-gradient-primary text-white py-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #D19C97 0%, #c88a84 100%);">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cubes mr-2"></i>Biến thể sản phẩm 
+                        <span class="badge badge-light text-primary ml-2">@Model.Input.Variants.Count</span>
+                    </h5>
+                    @if (Model.Input.CanAddVariant)
+                    {
+                        <a asp-page="/Shop/Products/AddVariant" asp-route-id="@Model.Input.Id" class="btn btn-light btn-sm">
+                            <i class="fas fa-plus mr-1"></i>Thêm biến thể
+                        </a>
+                    }
+                </div>
+                <div class="card-body p-4">
+                    @if (Model.Input.Variants.Any())
+                    {
+                        <div class="row">
+                            @foreach (var variant in Model.Input.Variants)
+                            {
+                                <div class="col-lg-6 col-md-12 mb-3">
+                                    <div class="variant-card border rounded p-3 h-100" style="transition: all 0.3s ease; background: #f8f9fa;">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1 font-weight-bold">
+                                                    <i class="fas fa-cube text-primary mr-2"></i>@variant.VariantName
+                                                </h6>
+                                                @if (!string.IsNullOrEmpty(variant.Sku))
+                                                {
+                                                    <small class="text-muted">
+                                                        <code class="bg-white px-2 py-1 rounded">SKU: @variant.Sku</code>
+                                                    </small>
+                                                }
+                                            </div>
+                                            @if (Model.Input.Status == "draft")
+                                            {
+                                                <form method="post" asp-page-handler="DeleteVariant" class="d-inline"
+                                                      onsubmit="return confirm('Bạn có chắc muốn xóa biến thể này?');">
+                                                    <input type="hidden" name="variantId" value="@variant.Id" />
+                                                    <input type="hidden" name="productId" value="@Model.Input.Id" />
+                                                    <button type="submit" class="btn btn-danger btn-sm" title="Xóa biến thể">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                        
+                                        <div class="row mb-2">
+                                            <div class="col-6">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="fas fa-ruler text-primary mr-1"></i>Kích thước
+                                                </small>
+                                                <span class="font-weight-semi-bold">@(string.IsNullOrEmpty(variant.Size) ? "-" : variant.Size)</span>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="fas fa-palette text-primary mr-1"></i>Màu sắc
+                                                </small>
+                                                <span class="font-weight-semi-bold">@(string.IsNullOrEmpty(variant.Color) ? "-" : variant.Color)</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mb-2">
+                                            <div class="col-6">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="fas fa-money-bill-wave text-primary mr-1"></i>Giá
+                                                </small>
+                                                <span class="font-weight-bold text-danger h6 mb-0">@variant.Price.ToString("N0") ₫</span>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="fas fa-boxes text-primary mr-1"></i>Tồn kho
+                                                </small>
+                                                @if (variant.Stock > 10)
+                                                {
+                                                    <span class="badge badge-success badge-lg">@variant.Stock</span>
+                                                }
+                                                else if (variant.Stock > 0)
+                                                {
+                                                    <span class="badge badge-warning badge-lg">@variant.Stock</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-danger badge-lg">Hết hàng</span>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-2 pt-2 border-top">
+                                            <span class="badge @(variant.Status == "active" ? "badge-success" : "badge-secondary")">
+                                                <i class="fas fa-circle mr-1" style="font-size: 0.5rem;"></i>
+                                                @(variant.Status == "active" ? "Hoạt động" : variant.Status)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-cubes fa-4x text-muted"></i>
+                            </div>
+                            <h5 class="text-muted mb-3">Chưa có biến thể nào</h5>
+                            <p class="text-muted mb-4">Thêm biến thể để khách hàng có thể chọn size, màu sắc và các tùy chọn khác.</p>
+                            @if (Model.Input.CanAddVariant)
+                            {
+                                <a asp-page="/Shop/Products/AddVariant" asp-route-id="@Model.Input.Id" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-plus mr-2"></i>Thêm biến thể đầu tiên
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Action Buttons (Only show if draft, and not already in form) -->
+            @if (Model.Input.Status == "draft")
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-end">
+                            @if (Model.Input.CanSubmit)
+                            {
+                                <form method="post" asp-page-handler="Submit" asp-route-id="@Model.Input.Id" class="d-inline"
+                                      onsubmit="return confirm('Bạn có chắc muốn gửi sản phẩm này để duyệt? Sau khi gửi, bạn sẽ không thể chỉnh sửa cho đến khi được duyệt.');">
+                                    <button type="submit" class="btn btn-success btn-lg px-5">
+                                        <i class="fas fa-paper-plane mr-2"></i>Gửi duyệt
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <div class="text-right">
+                                    <button type="button" class="btn btn-success btn-lg px-5" disabled title="Cần thêm ít nhất 1 biến thể">
+                                        <i class="fas fa-paper-plane mr-2"></i>Gửi duyệt
+                                    </button>
+                                    <p class="text-muted small mt-2 mb-0">
+                                        <i class="fas fa-info-circle mr-1"></i>Cần thêm ít nhất 1 biến thể để gửi duyệt
+                                    </p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Action Buttons for non-draft status -->
+                <div class="card border-0 mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a asp-page="/Shop/Products/Index" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-arrow-left mr-2"></i>Quay lại danh sách
+                            </a>
+                            
+                            <div>
+                                @if (Model.Input.Status == "pending")
+                                {
+                                    <div class="alert alert-info mb-0 d-inline-block">
+                                        <i class="fas fa-clock mr-2"></i><strong>Đang chờ admin duyệt...</strong>
+                                    </div>
+                                }
+                                else if (Model.Input.Status == "active")
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <div class="alert alert-success mb-0 mr-3 py-2 px-3">
+                                            <i class="fas fa-check-circle mr-2"></i><strong>Đang bán</strong>
+                                        </div>
+                                        <form method="post" asp-page-handler="Unpublish" asp-route-id="@Model.Input.Id"
+                                              onsubmit="return confirm('Bạn có chắc muốn gỡ sản phẩm này? Sản phẩm sẽ chuyển về bản nháp và không còn hiển thị với khách hàng.');">
+                                            <button type="submit" class="btn btn-warning">
+                                                <i class="fas fa-eye-slash mr-2"></i>Gỡ để chỉnh sửa
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <style>
+        /* .variant-card:hover removed for flat design */
+
+        .badge-lg {
+            font-size: 0.9rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #D19C97 0%, #c88a84 100%);
+        }
+
+        /* Custom Category Dropdown Styles */
+        .custom-category-dropdown {
+            position: relative;
+        }
+
+        .custom-dropdown-btn {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-dropdown-btn:hover {
+            border-color: #D19C97 !important;
+        }
+
+        .custom-dropdown-btn:focus {
+            border-color: #D19C97 !important;
+            box-shadow: 0 0 0 0.2rem rgba(209, 156, 151, 0.25);
+            outline: none;
+        }
+
+        .custom-dropdown-menu {
+            margin-top: 2px;
+        }
+
+        .custom-dropdown-item {
+            transition: all 0.2s ease;
+        }
+
+        .custom-dropdown-item:hover {
+            background-color: #f8f9fa !important;
+        }
+
+        .custom-dropdown-item.bg-primary {
+            background-color: #D19C97 !important;
+            color: white !important;
+        }
+
+        .custom-dropdown-item.bg-primary:hover {
+            background-color: #c88a84 !important;
+        }
+
+        #categorySelect {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            height: 0;
+            width: 0;
+        }
+
+        .card, .card:hover, .variant-card, .variant-card:hover {
+            box-shadow: none !important;
+            transform: none !important;
+            transition: none !important;
+            border: 1px solid #f0f0f0 !important;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            var cloudName = '@cloudName';
+            var uploadPreset = '@uploadPreset';
+            
+            // Cloudinary Upload
+            $('#uploadImageBtn').on('click', function() {
+                if (!window.cloudinary) {
+                    alert('Cloudinary Widget chưa được load! Vui lòng tải lại trang.');
+                    return;
+                }
+                
+                if (!cloudName || !uploadPreset) {
+                    alert('Cloudinary chưa được cấu hình. Vui lòng kiểm tra appsettings.json');
+                    return;
+                }
+                
+                window.cloudinary.openUploadWidget(
+                    {
+                        cloudName: cloudName,
+                        uploadPreset: uploadPreset,
+                        cropping: false,
+                        multiple: false,
+                        maxImageFileSize: 5 * 1024 * 1024, // 5MB
+                        sources: ['local', 'url', 'unsplash', 'image_search', 'google_drive', 'dropbox'],
+                        resourceType: 'image',
+                        folder: 'products',
+                        showPoweredBy: false
+                    },
+                    (error, result) => {
+                        if (!error && result && result.event === 'success') {
+                            var imageUrl = result.info.secure_url;
+                            $('#imageUrlInput').val(imageUrl);
+                            $('#previewImg').attr('src', imageUrl);
+                            $('#imagePreview').show();
+                            $('#clearImageBtn').show();
+                        } else if (error) {
+                            console.error('Upload error:', error);
+                            alert('Có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.');
+                        }
+                    }
+                );
+            });
+
+            // Clear Image
+            $('#clearImageBtn').on('click', function() {
+                $('#imageUrlInput').val('');
+                $('#previewImg').attr('src', '');
+                $('#imagePreview').hide();
+                $('#clearImageBtn').hide();
+            });
+
+            // Load existing image if any
+            var existingImageUrl = $('#imageUrlInput').val();
+            if (existingImageUrl) {
+                $('#previewImg').attr('src', existingImageUrl);
+                // Không auto-show preview nếu đã có hình hiện tại ở phía trên
+            }
+
+            // Custom Category Dropdown Implementation
+            var $categoryBtn = $('#categoryDropdownBtn');
+            var $categoryMenu = $('#categoryDropdownMenu');
+            var $categoryDisplay = $('#categoryDisplayText');
+            var $categorySelect = $('#categorySelect');
+            var $categoryHidden = $('#categoryHiddenInput');
+            var $dropdownItems = $('.custom-dropdown-item');
+
+            // Initialize: Sync with hidden select value
+            function initializeCategoryDropdown() {
+                var selectedValue = $categorySelect.val();
+                if (selectedValue && selectedValue !== '') {
+                    var selectedText = $categorySelect.find('option:selected').text();
+                    $categoryDisplay.text(selectedText).removeClass('text-muted').addClass('text-dark font-weight-semi-bold');
+                    $categoryHidden.val(selectedValue);
+                    
+                    // Highlight selected item
+                    $dropdownItems.removeClass('bg-primary text-white');
+                    $dropdownItems.filter('[data-value="' + selectedValue + '"]').addClass('bg-primary text-white');
+                } else {
+                    $categoryDisplay.text('-- Chọn danh mục --').removeClass('text-dark font-weight-semi-bold').addClass('text-muted');
+                    $categoryHidden.val('');
+                }
+            }
+
+            // Toggle dropdown menu
+            $categoryBtn.on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $categoryMenu.toggle();
+            });
+
+            // Close dropdown when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.custom-category-dropdown').length) {
+                    $categoryMenu.hide();
+                }
+            });
+
+            // Handle item selection
+            $dropdownItems.on('click', function() {
+                var value = $(this).data('value');
+                var text = $(this).text().trim();
+                
+                // Update hidden select
+                $categorySelect.val(value);
+                $categoryHidden.val(value);
+                
+                // Update display
+                if (value && value !== '') {
+                    $categoryDisplay.text(text).removeClass('text-muted').addClass('text-dark font-weight-semi-bold');
+                    
+                    // Update visual state
+                    $dropdownItems.removeClass('bg-primary text-white');
+                    $(this).addClass('bg-primary text-white');
+                } else {
+                    $categoryDisplay.text('-- Chọn danh mục --').removeClass('text-dark font-weight-semi-bold').addClass('text-muted');
+                    $dropdownItems.removeClass('bg-primary text-white');
+                }
+                
+                // Close dropdown
+                $categoryMenu.hide();
+                
+                // Trigger change event for validation
+                $categorySelect.trigger('change');
+            });
+
+            // Hover effect for dropdown items
+            $dropdownItems.on('mouseenter', function() {
+                if (!$(this).hasClass('bg-primary')) {
+                    $(this).css('background-color', '#f8f9fa');
+                }
+            }).on('mouseleave', function() {
+                if (!$(this).hasClass('bg-primary')) {
+                    $(this).css('background-color', 'white');
+                }
+            });
+
+            // Initialize on page load
+            initializeCategoryDropdown();
+            
+            // Also sync if select value changes programmatically
+            $categorySelect.on('change', function() {
+                initializeCategoryDropdown();
+            });
+        });
+    </script>
+}
+

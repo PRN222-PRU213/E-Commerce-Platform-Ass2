@@ -1,0 +1,322 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.ViewShopModel
+@{
+    ViewData["Title"] = "Dashboard - " + Model.ViewModel.ShopName;
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+}
+
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-4">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 180px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">
+            <i class="fas fa-store text-primary mr-2"></i>@Model.ViewModel.ShopName Dashboard
+        </h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Authentication/Profile" class="text-dark">Hồ sơ</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Dashboard</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<!-- Dashboard Start -->
+<div class="container-fluid py-4">
+    <div class="row px-xl-5">
+        <!-- Statistics Cards -->
+        <div class="col-lg-12 mb-4">
+            <div class="row">
+                <!-- Total Products Card -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-box text-white fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1">Tổng sản phẩm</h6>
+                                    <h3 class="font-weight-bold mb-0">@Model.ViewModel.TotalProducts</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Products Card -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-check-circle text-white fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1">Đang bán</h6>
+                                    <h3 class="font-weight-bold mb-0 text-success">@Model.ViewModel.ActiveProducts</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Products Card -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-clock text-white fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1">Chờ duyệt</h6>
+                                    <h3 class="font-weight-bold mb-0 text-warning">@Model.ViewModel.PendingProducts</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Draft Products Card -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-file-alt text-white fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1">Bản nháp</h6>
+                                    <h3 class="font-weight-bold mb-0 text-secondary">@Model.ViewModel.DraftProducts</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shop Information & Quick Actions -->
+        <div class="col-lg-4 mb-4">
+            <!-- Shop Info Card -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle mr-2"></i>Thông tin shop
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-store text-white fa-3x"></i>
+                        </div>
+                        <h4 class="font-weight-semi-bold mb-1">@Model.ViewModel.ShopName</h4>
+                        @if (Model.ViewModel.Status == "Pending")
+                        {
+                            <span class="badge badge-warning badge-lg p-2">
+                                <i class="fas fa-clock mr-1"></i>Chờ phê duyệt
+                            </span>
+                        }
+                        else if (Model.ViewModel.Status == "Active")
+                        {
+                            <span class="badge badge-success badge-lg p-2">
+                                <i class="fas fa-check-circle mr-1"></i>Đang hoạt động
+                            </span>
+                        }
+                        else if (Model.ViewModel.Status == "Inactive")
+                        {
+                            <span class="badge badge-danger badge-lg p-2">
+                                <i class="fas fa-times-circle mr-1"></i>Ngừng hoạt động
+                            </span>
+                        }
+                    </div>
+                    <hr>
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Mô tả</small>
+                        <p class="mb-0">@Model.ViewModel.Description</p>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Ngày tạo</small>
+                        <p class="mb-0">
+                            <i class="fas fa-calendar-alt text-primary mr-1"></i>
+                            @Model.ViewModel.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="card border-0">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt text-primary mr-2"></i>Thao tác nhanh
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <a asp-page="/Shop/Products/Create" class="btn btn-primary btn-block mb-2">
+                        <i class="fas fa-plus mr-2"></i>Thêm sản phẩm mới
+                    </a>
+                    <a asp-page="/Shop/Products/Index" class="btn btn-outline-primary btn-block mb-2">
+                        <i class="fas fa-list mr-2"></i>Quản lý sản phẩm
+                    </a>
+                    <a asp-page="/Shop/Orders/Index" class="btn btn-outline-warning btn-block mb-2">
+                        <i class="fas fa-shopping-bag mr-2"></i>Quản lý đơn hàng
+                    </a>
+                    @if (Model.ViewModel.Status == "Active")
+                    {
+                        <a asp-page="/Shop/Statistics" class="btn btn-outline-info btn-block mb-2">
+                            <i class="fas fa-chart-line mr-2"></i>Thống kê doanh thu
+                        </a>
+                    }
+                    <a asp-page="/Authentication/Profile" class="btn btn-outline-secondary btn-block">
+                        <i class="fas fa-arrow-left mr-2"></i>Quay lại hồ sơ
+                    </a>
+                </div>
+            </div>
+
+            @if (Model.ViewModel.Status == "Pending")
+            {
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong>Lưu ý:</strong> Shop của bạn đang chờ phê duyệt. Chúng tôi sẽ xem xét và phê duyệt trong thời gian sớm nhất.
+                </div>
+            }
+        </div>
+
+        <!-- Products Section -->
+        <div class="col-lg-8">
+            <div class="card border-0">
+                <div class="card-header bg-light py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-box text-primary mr-2"></i>Sản phẩm của shop
+                        </h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all">
+                                Tất cả (@Model.ViewModel.TotalProducts)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success filter-btn" data-filter="active">
+                                Active (@Model.ViewModel.ActiveProducts)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-warning filter-btn" data-filter="pending">
+                                Pending (@Model.ViewModel.PendingProducts)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" data-filter="draft">
+                                Draft (@Model.ViewModel.DraftProducts)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.ViewModel.Products.Any())
+                    {
+                        <div class="row" id="products-container">
+                            @foreach (var product in Model.ViewModel.Products)
+                            {
+                                <div class="col-lg-4 col-md-6 mb-4 product-item" data-status="@product.Status">
+                                    <div class="card border-0 h-100">
+                                        <div class="position-relative overflow-hidden">
+                                            <img class="card-img-top" src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : Url.Content("~/img/product-1.jpg"))" alt="@product.Name" style="height: 200px; object-fit: cover;">
+                                            
+                                            <!-- Status Badge Top Right -->
+                                            <div class="position-absolute" style="top: 10px; right: 10px;">
+                                                @if (product.Status == "active") { <span class="badge badge-success shadow-sm">Active</span> }
+                                                else if (product.Status == "pending") { <span class="badge badge-warning shadow-sm text-white">Pending</span> }
+                                                else if (product.Status == "draft") { <span class="badge badge-secondary shadow-sm">Draft</span> }
+                                                else { <span class="badge badge-danger shadow-sm">@product.Status</span> }
+                                            </div>
+                                        </div>
+                                        <div class="card-body d-flex flex-column">
+                                            <h6 class="card-title mb-2 text-truncate" title="@product.Name">
+                                                <a class="text-decoration-none text-dark font-weight-bold" asp-page="/Shop/Products/Edit" asp-route-id="@product.Id">
+                                                    @product.Name
+                                                </a>
+                                            </h6>
+                                            
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h5 class="text-primary mb-0 font-weight-bold">@product.BasePrice.ToString("N0") ₫</h5>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                 <div class="text-warning small">
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        if (i <= Math.Round(product.AvgRating)) { <i class="fa fa-star"></i> }
+                                                        else { <i class="far fa-star"></i> }
+                                                    }
+                                                    <span class="text-muted ml-1">(@product.AvgRating.ToString("F1"))</span>
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(product.CategoryName))
+                                                {
+                                                    <small class="text-muted bg-light px-2 py-1 rounded">
+                                                        @product.CategoryName
+                                                    </small>
+                                                }
+                                            </div>
+
+                                            <div class="mt-auto pt-3 border-top d-flex justify-content-between">
+                                                <a class="btn btn-sm btn-outline-primary" asp-page="/Shop/Products/Edit" asp-route-id="@product.Id" title="Chỉnh sửa">
+                                                    <i class="fa fa-edit mr-1"></i>Sửa
+                                                </a>
+                                                <a class="btn btn-sm btn-outline-info" asp-page="/Shop/Products/Detail" asp-route-id="@product.Id" title="Xem chi tiết">
+                                                    <i class="fa fa-eye mr-1"></i>Xem
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Chưa có sản phẩm nào</h5>
+                            <p class="text-muted mb-4">Bắt đầu thêm sản phẩm đầu tiên cho shop của bạn.</p>
+                            <a asp-page="/Shop/Products/Create" class="btn btn-primary">
+                                <i class="fas fa-plus mr-2"></i>Thêm sản phẩm đầu tiên
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Dashboard End -->
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Product filter functionality
+            $('.filter-btn').on('click', function() {
+                $('.filter-btn').removeClass('active');
+                $(this).addClass('active');
+                
+                var filter = $(this).data('filter');
+                var $products = $('.product-item');
+                
+                if (filter === 'all') {
+                    $products.fadeIn(300);
+                } else {
+                    $products.each(function() {
+                        if ($(this).data('status') === filter) {
+                            $(this).fadeIn(300);
+                        } else {
+                            $(this).fadeOut(300);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+    <style>
+        .card, .card:hover, .product-item:hover .card {
+            box-shadow: none !important;
+            transform: none !important;
+            transition: none !important;
+            border: 1px solid #f0f0f0 !important;
+        }
+    </style>
+}

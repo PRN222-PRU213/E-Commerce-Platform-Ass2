@@ -1,0 +1,459 @@
+@page "{id:guid}"
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.DetailModel
+@using E_Commerce_Platform_Ass2.Service.DTOs
+@{
+    ViewData["Title"] = Model.ViewModel.ShopName;
+    Layout = "~/Pages/Shared/_EShopperLayout.cshtml";
+}
+
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">@Model.ViewModel.ShopName</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Index">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Shop</p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">@Model.ViewModel.ShopName</p>
+        </div>
+    </div>
+    </div>
+<!-- Page Header End -->
+
+<!-- Shop Info Start -->
+<div class="container-fluid py-5">
+    <div class="row px-xl-5">
+        <!-- Shop Information Section -->
+        <div class="col-lg-12 mb-5">
+            <div class="bg-light p-4 rounded shadow-sm">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center mr-4" style="width: 100px; height: 100px;">
+                        <i class="fas fa-store text-white" style="font-size: 3rem;"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h2 class="font-weight-semi-bold mb-2">@Model.ViewModel.ShopName</h2>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-calendar-alt text-primary mr-2"></i>
+                            Established: @Model.ViewModel.CreatedAt.ToString("MMMM dd, yyyy")
+                        </p>
+                        <span class="badge badge-success badge-lg p-2">
+                            <i class="fas fa-check-circle mr-2"></i>Verified Shop
+                        </span>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5 class="font-weight-semi-bold mb-3">
+                            <i class="fas fa-info-circle text-primary mr-2"></i>About This Shop
+                        </h5>
+                        <p class="text-muted">@Model.ViewModel.Description</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Section -->
+        <div class="col-lg-12">
+            <!-- Products Header with Filter/Sort -->
+            <div class="bg-light p-4 rounded shadow-sm mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <h3 class="font-weight-semi-bold mb-0">
+                            <i class="fas fa-box text-primary mr-2"></i>Products 
+                            <span class="badge badge-primary badge-lg">@Model.ViewModel.ProductCount</span>
+                        </h3>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-md-end align-items-center">
+                            <div class="mr-3">
+                                <label class="text-muted small mb-0 mr-2">Sort by:</label>
+                                <select id="sortProducts" class="form-control form-control-sm d-inline-block" style="width: auto;">
+                                    <option value="name-asc">Name (A-Z)</option>
+                                    <option value="name-desc">Name (Z-A)</option>
+                                    <option value="price-asc">Price (Low to High)</option>
+                                    <option value="price-desc">Price (High to Low)</option>
+                                    <option value="rating-desc">Rating (High to Low)</option>
+                                    <option value="newest">Newest First</option>
+                                </select>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary active" id="gridViewBtn" title="Grid View">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="listViewBtn" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.ViewModel.Products.Any())
+            {
+                <!-- Products Grid View -->
+                <div id="productsGridView" class="row">
+                    @foreach (var product in Model.ViewModel.Products)
+                    {
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4 product-card-item" 
+                             data-name="@product.Name.ToLower()" 
+                             data-price="@product.BasePrice" 
+                             data-rating="@product.AvgRating"
+                             data-date="@product.CreatedAt.Ticks">
+                            <div class="card border-0 shadow-sm h-100 product-card">
+                                <div class="position-relative overflow-hidden" style="height: 280px; background: #f8f9fa;">
+                                    <img class="img-fluid w-100 h-100" 
+                                         src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : Url.Content("~/img/product-1.jpg"))" 
+                                         alt="@product.Name" 
+                                         style="object-fit: cover; transition: transform 0.3s ease;">
+                                    <div class="position-absolute top-0 right-0 m-2">
+                                        @if (product.AvgRating > 0 && product.AvgRating >= 4.5m)
+                                        {
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-star mr-1"></i>Top Rated
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="product-overlay position-absolute w-100 h-100 d-flex align-items-center justify-content-center" 
+                                         style="background: rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s ease;">
+                                        <div class="product-actions">
+                                            <a class="btn btn-light btn-sm mx-1" 
+                                               asp-page="/Product/Detail" 
+                                               asp-route-id="@product.Id"
+                                               title="View Details">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                            <a class="btn btn-primary btn-sm mx-1 add-to-cart-btn" 
+                                               href="#" 
+                                               data-product-id="@product.Id"
+                                               title="Add to Cart">
+                                                <i class="fa fa-shopping-cart"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    @if (!string.IsNullOrEmpty(product.CategoryName))
+                                    {
+                                        <small class="text-muted mb-2 d-block">
+                                            <i class="fas fa-tag text-primary mr-1"></i>@product.CategoryName
+                                        </small>
+                                    }
+                                    <h6 class="card-title mb-2">
+                                        <a class="text-dark text-decoration-none" 
+                                           asp-page="/Product/Detail" 
+                                           asp-route-id="@product.Id"
+                                           style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                            @product.Name
+                                        </a>
+                                    </h6>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <h5 class="text-primary mb-0 mr-2">$@product.BasePrice.ToString("N2")</h5>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="mr-2">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= Math.Round(product.AvgRating))
+                                                {
+                                                    <small class="fa fa-star text-warning"></small>
+                                                }
+                                                else
+                                                {
+                                                    <small class="far fa-star text-warning"></small>
+                                                }
+                                            }
+                                        </div>
+                                        <small class="text-muted">(@product.AvgRating.ToString("F1"))</small>
+                                        @if (product.AvgRating == 0)
+                                        {
+                                            <small class="text-muted ml-2">No reviews yet</small>
+                                        }
+                                    </div>
+                                    <div class="mt-auto">
+                                        <a class="btn btn-primary btn-sm btn-block" 
+                                           asp-page="/Product/Detail" 
+                                           asp-route-id="@product.Id">
+                                            <i class="fa fa-shopping-cart mr-1"></i>View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Products List View (Hidden by default) -->
+                <div id="productsListView" class="d-none">
+                    @foreach (var product in Model.ViewModel.Products)
+                    {
+                        <div class="card border-0 shadow-sm mb-3 product-list-item" 
+                             data-name="@product.Name.ToLower()" 
+                             data-price="@product.BasePrice" 
+                             data-rating="@product.AvgRating"
+                             data-date="@product.CreatedAt.Ticks">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <div class="position-relative" style="height: 200px; background: #f8f9fa; border-radius: 0.5rem; overflow: hidden;">
+                                            <img class="img-fluid w-100 h-100" 
+                                                 src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : Url.Content("~/img/product-1.jpg"))" 
+                                                 alt="@product.Name" 
+                                                 style="object-fit: cover;">
+                                            @if (product.AvgRating > 0 && product.AvgRating >= 4.5m)
+                                            {
+                                                <div class="position-absolute top-0 right-0 m-2">
+                                                    <span class="badge badge-success">
+                                                        <i class="fas fa-star mr-1"></i>Top Rated
+                                                    </span>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        @if (!string.IsNullOrEmpty(product.CategoryName))
+                                        {
+                                            <small class="text-muted mb-2 d-block">
+                                                <i class="fas fa-tag text-primary mr-1"></i>@product.CategoryName
+                                            </small>
+                                        }
+                                        <h5 class="mb-2">
+                                            <a class="text-dark text-decoration-none" 
+                                               asp-page="/Product/Detail" 
+                                               asp-route-id="@product.Id">
+                                                @product.Name
+                                            </a>
+                                        </h5>
+                                        @if (!string.IsNullOrEmpty(product.Description))
+                                        {
+                                            <p class="text-muted mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                                @product.Description
+                                            </p>
+                                        }
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="mr-2">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= Math.Round(product.AvgRating))
+                                                    {
+                                                        <small class="fa fa-star text-warning"></small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="far fa-star text-warning"></small>
+                                                    }
+                                                }
+                                            </div>
+                                            <small class="text-muted">(@product.AvgRating.ToString("F1"))</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <h4 class="text-primary mb-3">$@product.BasePrice.ToString("N2")</h4>
+                                        <a class="btn btn-primary btn-block mb-2" 
+                                           asp-page="/Product/Detail" 
+                                           asp-route-id="@product.Id">
+                                            <i class="fa fa-eye mr-1"></i>View Details
+                                        </a>
+                                        <a class="btn btn-outline-primary btn-block add-to-cart-btn" 
+                                           href="#" 
+                                           data-product-id="@product.Id">
+                                            <i class="fa fa-shopping-cart mr-1"></i>Add to Cart
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 bg-light rounded">
+                    <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted mb-2">No products available</h5>
+                    <p class="text-muted">This shop hasn't added any products yet.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<!-- Shop Info End -->
+
+@section Scripts {
+    <style>
+        /* Product Card Styles */
+        .product-card {
+            transition: all 0.3s ease;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .product-card:hover .product-overlay {
+            opacity: 1 !important;
+        }
+
+        .product-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .product-actions .btn {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        /* List View Styles */
+        .product-list-item {
+            transition: all 0.3s ease;
+        }
+
+        .product-list-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Sort and View Controls */
+        #sortProducts {
+            min-width: 180px;
+        }
+
+        .btn-group .btn.active {
+            background-color: #D19C97;
+            border-color: #D19C97;
+            color: white;
+        }
+
+        /* Animation for product items */
+        .product-card-item,
+        .product-list-item {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            .product-actions .btn {
+                width: 35px;
+                height: 35px;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+            // Grid/List View Toggle
+            $('#gridViewBtn').on('click', function () {
+                $('#productsGridView').removeClass('d-none');
+                $('#productsListView').addClass('d-none');
+                $(this).addClass('active');
+                $('#listViewBtn').removeClass('active');
+            });
+
+            $('#listViewBtn').on('click', function () {
+                $('#productsGridView').addClass('d-none');
+                $('#productsListView').removeClass('d-none');
+                $(this).addClass('active');
+                $('#gridViewBtn').removeClass('active');
+            });
+
+            // Sort Products
+            $('#sortProducts').on('change', function () {
+                var sortValue = $(this).val();
+                var $container = $('#productsGridView').is(':visible') ? $('#productsGridView') : $('#productsListView');
+                var $items = $container.find('.product-card-item, .product-list-item');
+
+                $items.sort(function (a, b) {
+                    var aVal, bVal;
+
+                    switch (sortValue) {
+                        case 'name-asc':
+                            aVal = $(a).data('name');
+                            bVal = $(b).data('name');
+                            return aVal.localeCompare(bVal);
+                        case 'name-desc':
+                            aVal = $(a).data('name');
+                            bVal = $(b).data('name');
+                            return bVal.localeCompare(aVal);
+                        case 'price-asc':
+                            aVal = parseFloat($(a).data('price'));
+                            bVal = parseFloat($(b).data('price'));
+                            return aVal - bVal;
+                        case 'price-desc':
+                            aVal = parseFloat($(a).data('price'));
+                            bVal = parseFloat($(b).data('price'));
+                            return bVal - aVal;
+                        case 'rating-desc':
+                            aVal = parseFloat($(a).data('rating'));
+                            bVal = parseFloat($(b).data('rating'));
+                            return bVal - aVal;
+                        case 'newest':
+                            aVal = parseInt($(a).data('date'));
+                            bVal = parseInt($(b).data('date'));
+                            return bVal - aVal;
+                        default:
+                            return 0;
+                    }
+                });
+
+                $container.empty().append($items);
+                
+                // Re-animate items
+                $items.each(function (index) {
+                    $(this).css({
+                        'animation-delay': (index * 0.05) + 's',
+                        'opacity': '0'
+                    });
+                    setTimeout(function () {
+                        $(this).css('opacity', '1');
+                    }.bind(this), 100);
+                });
+            });
+
+            // Add to Cart functionality (placeholder)
+            $('.add-to-cart-btn').on('click', function (e) {
+                e.preventDefault();
+                var productId = $(this).data('product-id');
+                // TODO: Implement add to cart functionality
+                alert('Add to cart functionality will be implemented soon!');
+            });
+
+            // Stagger animation for initial load
+            $('.product-card-item, .product-list-item').each(function (index) {
+                $(this).css({
+                    'animation-delay': (index * 0.05) + 's'
+                });
+            });
+        });
+    </script>
+}
+

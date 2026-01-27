@@ -1,0 +1,211 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Admin.Products.IndexModel
+@{
+    ViewData["Title"] = "Tất cả sản phẩm";
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+    var currentStatus = ViewData["CurrentStatus"] as string;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-box"></i> Tất cả sản phẩm</h2>
+        <div>
+            <a asp-page="/Admin/Products/Pending" class="btn btn-warning me-2">
+                <i class="fas fa-clock"></i> Chờ duyệt
+            </a>
+            <a asp-page="/Admin/Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Về Dashboard
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filter and Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-lg-8 mb-3 mb-lg-0">
+                    <div class="btn-group flex-wrap" role="group">
+                        <a asp-page="./Index"
+                           class="btn @(currentStatus == null ? "btn-primary" : "btn-outline-primary")">
+                            Tất cả (@Model.Products.Count)
+                        </a>
+                        <a asp-page="./Index" asp-route-status="active"
+                           class="btn @(currentStatus == "active" ? "btn-success" : "btn-outline-success")">
+                            <i class="fas fa-check-circle"></i> Đang bán
+                        </a>
+                        <a asp-page="./Index" asp-route-status="pending"
+                           class="btn @(currentStatus == "pending" ? "btn-warning" : "btn-outline-warning")">
+                            <i class="fas fa-clock"></i> Chờ duyệt
+                        </a>
+                        <a asp-page="./Index" asp-route-status="rejected"
+                           class="btn @(currentStatus == "rejected" ? "btn-danger" : "btn-outline-danger")">
+                            <i class="fas fa-times-circle"></i> Bị từ chối
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="searchProduct" class="form-control" placeholder="Tìm theo tên sản phẩm hoặc shop...">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Danh sách sản phẩm
+                @if (!string.IsNullOrEmpty(currentStatus))
+                {
+                    <span class="text-muted">- Lọc theo: @currentStatus</span>
+                }
+            </h6>
+        </div>
+        <div class="card-body">
+            @if (Model.Products.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 5%">#</th>
+                                <th style="width: 8%">Ảnh</th>
+                                <th style="width: 18%">Tên sản phẩm</th>
+                                <th style="width: 12%">Shop</th>
+                                <th style="width: 10%">Danh mục</th>
+                                <th style="width: 10%">Giá</th>
+                                <th style="width: 10%">Trạng thái</th>
+                                <th style="width: 10%">Đánh giá</th>
+                                <th style="width: 10%">Ngày tạo</th>
+                                <th style="width: 7%"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int index = 1;
+                            }
+                            @foreach (var product in Model.Products)
+                            {
+                                <tr>
+                                    <td>@index</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                        {
+                                            <img src="@product.ImageUrl" alt="@product.Name"
+                                                 class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-light d-flex align-items-center justify-content-center"
+                                                 style="width: 50px; height: 50px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@product.Name</strong>
+                                    </td>
+                                    <td>
+                                        <a asp-page="/Admin/Shops/Details" asp-route-id="@product.ShopId" class="text-decoration-none">
+                                            @product.ShopName
+                                        </a>
+                                    </td>
+                                    <td>@product.CategoryName</td>
+                                    <td class="text-end">@product.BasePrice.ToString("N0")₫</td>
+                                    <td>
+                                        @switch (product.Status)
+                                        {
+                                            case "active":
+                                                <span class="badge bg-success">Đang bán</span>
+                                                break;
+                                            case "pending":
+                                                <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                                break;
+                                            case "draft":
+                                                <span class="badge bg-secondary">Nháp</span>
+                                                break;
+                                            case "rejected":
+                                                <span class="badge bg-danger">Bị từ chối</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary">@product.Status</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (product.AvgRating > 0)
+                                        {
+                                            <span class="text-warning">
+                                                <i class="fas fa-star"></i> @product.AvgRating.ToString("0.1")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa có</span>
+                                        }
+                                    </td>
+                                    <td>@product.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <a asp-page="/Admin/Products/Detail" asp-route-id="@product.Id"
+                                           class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Không có sản phẩm nào.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('searchProduct').addEventListener('input', function () {
+            const searchText = this.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                const productName = row.cells[2]?.textContent.toLowerCase() || '';
+                const shopName = row.cells[3]?.textContent.toLowerCase() || '';
+                const category = row.cells[4]?.textContent.toLowerCase() || '';
+
+                if (productName.includes(searchText) || shopName.includes(searchText) || category.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+}
+

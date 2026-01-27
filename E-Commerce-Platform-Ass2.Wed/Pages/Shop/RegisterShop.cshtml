@@ -1,0 +1,78 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.RegisterShopModel
+@{
+    ViewData["Title"] = "Đăng ký shop";
+    Layout = "~/Pages/Shared/_AccountLayout.cshtml";
+}
+
+<!-- Register Shop Start -->
+<div class="container-fluid py-5">
+    <div class="row px-xl-5">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="bg-light p-5 rounded shadow-sm">
+                <div class="text-center mb-4">
+                    <h2 class="font-weight-semi-bold mb-3">
+                        <i class="fas fa-store text-primary mr-2"></i>Đăng ký shop của bạn
+                    </h2>
+                    <p class="text-muted">Tạo shop để bắt đầu bán hàng trên nền tảng của chúng tôi</p>
+                </div>
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle mr-2"></i>@TempData["ErrorMessage"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                <form method="post" class="mt-4">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+                    
+                    <div class="form-group">
+                        <label asp-for="Input.ShopName" class="font-weight-semi-bold">
+                            <i class="fas fa-store text-primary mr-2"></i>Tên shop <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Input.ShopName" class="form-control border-0 py-4" placeholder="Nhập tên shop của bạn" />
+                        <span asp-validation-for="Input.ShopName" class="text-danger small"></span>
+                        <small class="form-text text-muted">Tên shop sẽ hiển thị công khai trên nền tảng</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Input.Description" class="font-weight-semi-bold">
+                            <i class="fas fa-align-left text-primary mr-2"></i>Mô tả shop <span class="text-danger">*</span>
+                        </label>
+                        <textarea asp-for="Input.Description" class="form-control border-0 py-4" rows="5" placeholder="Mô tả về shop của bạn, sản phẩm bạn bán, thông tin liên hệ..."></textarea>
+                        <span asp-validation-for="Input.Description" class="text-danger small"></span>
+                        <small class="form-text text-muted">Mô tả chi tiết về shop sẽ giúp khách hàng hiểu rõ hơn về bạn (tối thiểu 10 ký tự)</small>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Lưu ý:</strong> Sau khi đăng ký, shop của bạn sẽ ở trạng thái "Chờ phê duyệt". 
+                        Chúng tôi sẽ xem xét và phê duyệt trong thời gian sớm nhất.
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <button type="submit" class="btn btn-primary btn-block border-0 py-3">
+                            <i class="fas fa-check-circle mr-2"></i>Đăng ký shop
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <a asp-page="/Authentication/Profile" class="text-primary">
+                            <i class="fas fa-arrow-left mr-1"></i>Quay lại hồ sơ
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Register Shop End -->
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

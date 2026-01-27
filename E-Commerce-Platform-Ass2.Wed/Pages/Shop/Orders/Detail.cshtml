@@ -1,0 +1,621 @@
+@page "{id:guid}"
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders.DetailModel
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.Order.Id.ToString().Substring(0, 8).ToUpper();
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+}
+
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-4">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">
+            <i class="fas fa-file-invoice text-primary mr-2"></i>Chi tiết đơn hàng
+        </h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Shop/ViewShop" class="text-dark">Dashboard</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0"><a asp-page="/Shop/Orders/Index" class="text-dark">Đơn hàng</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Chi tiết</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<div class="container-fluid py-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle mr-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle mr-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Order Info -->
+        <div class="col-lg-8">
+            <!-- Order Header -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-hashtag mr-2"></i>Đơn hàng #@Model.Order.Id.ToString().Substring(0, 8).ToUpper()
+                    </h5>
+                    @switch (Model.Order.Status)
+                    {
+                        case "Pending":
+                            <span class="badge badge-warning px-3 py-2">
+                                <i class="fas fa-clock mr-1"></i>Chờ xác nhận
+                            </span>
+                            break;
+                        case "Processing":
+                            <span class="badge badge-info px-3 py-2">
+                                <i class="fas fa-cog fa-spin mr-1"></i>Đang xử lí
+                            </span>
+                            break;
+                        case "Preparing":
+                            <span class="badge badge-primary px-3 py-2">
+                                <i class="fas fa-box-open mr-1"></i>Đang chuẩn bị hàng
+                            </span>
+                            break;
+                        case "Shipped":
+                            <span class="badge badge-primary px-3 py-2">
+                                <i class="fas fa-shipping-fast mr-1"></i>Chuyển giao vận chuyển
+                            </span>
+                            break;
+                        case "Completed":
+                            <span class="badge badge-success px-3 py-2">
+                                <i class="fas fa-check-circle mr-1"></i>Đã hoàn thành
+                            </span>
+                            break;
+                        case "Cancelled":
+                            <span class="badge badge-danger px-3 py-2">
+                                <i class="fas fa-times-circle mr-1"></i>Đơn hàng bị hủy
+                            </span>
+                            break;
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Thông tin khách hàng</h6>
+                            <p class="mb-1"><strong>@Model.Order.CustomerName</strong></p>
+                            <p class="mb-1"><i class="fas fa-envelope text-muted mr-2"></i>@Model.Order.CustomerEmail</p>
+                            <p class="mb-0"><i class="fas fa-calendar text-muted mr-2"></i>@Model.Order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Địa chỉ giao hàng</h6>
+                            <p class="mb-0"><i class="fas fa-map-marker-alt text-danger mr-2"></i>@Model.Order.ShippingAddress</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0"><i class="fas fa-box mr-2"></i>Sản phẩm (@Model.Order.Items.Count)</h5>
+                </div>
+                <div class="card-body">
+                    @foreach (var item in Model.Order.Items)
+                    {
+                        <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                            <div class="mr-3" style="width: 80px; height: 80px;">
+                                <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/img/product-1.jpg" : item.ImageUrl)" 
+                                     alt="@item.ProductName" 
+                                     class="img-fluid rounded" 
+                                     style="width: 80px; height: 80px; object-fit: cover;">
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">@item.ProductName</h6>
+                                <small class="text-muted">
+                                    @if (!string.IsNullOrEmpty(item.Size))
+                                    {
+                                        <span class="mr-2">Size: @item.Size</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.Color))
+                                    {
+                                        <span>Màu: @item.Color</span>
+                                    }
+                                </small>
+                            </div>
+                            <div class="text-right">
+                                <p class="mb-0">@item.Price.ToString("N0")₫ x @item.Quantity</p>
+                                <strong class="text-primary">@item.TotalPrice.ToString("N0")₫</strong>
+                            </div>
+                        </div>
+                    }
+                    <div class="d-flex justify-content-between pt-3">
+                        <h5 class="font-weight-bold">Tổng cộng:</h5>
+                        <h5 class="font-weight-bold text-primary">@Model.Order.TotalAmount.ToString("N0")₫</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions & Shipment -->
+        <div class="col-lg-4">
+            <!-- Order Status Timeline -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list mr-2"></i>Quản lý trạng thái đơn hàng</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Timeline -->
+                    <div class="timeline">
+                        <!-- Step 1: Pending -->
+                        <div class="timeline-item @(Model.Order.Status == "Pending" ? "active" : (new[] { "Processing", "Preparing", "Shipped", "Completed" }.Contains(Model.Order.Status) ? "completed" : ""))">
+                            <div class="timeline-marker">
+                                @if (Model.Order.Status == "Pending")
+                                {
+                                    <i class="fas fa-circle text-warning"></i>
+                                }
+                                else if (new[] { "Processing", "Preparing", "Shipped", "Completed" }.Contains(Model.Order.Status))
+                                {
+                                    <i class="fas fa-check-circle text-success"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-circle text-muted"></i>
+                                }
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Chờ xử lý</h6>
+                                <small class="text-muted">Đơn hàng mới từ khách hàng</small>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Processing -->
+                        <div class="timeline-item @(Model.Order.Status == "Processing" ? "active" : (new[] { "Preparing", "Shipped", "Completed" }.Contains(Model.Order.Status) ? "completed" : ""))">
+                            <div class="timeline-marker">
+                                @if (Model.Order.Status == "Processing")
+                                {
+                                    <i class="fas fa-circle text-info"></i>
+                                }
+                                else if (new[] { "Preparing", "Shipped", "Completed" }.Contains(Model.Order.Status))
+                                {
+                                    <i class="fas fa-check-circle text-success"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-circle text-muted"></i>
+                                }
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Đang xử lý</h6>
+                                <small class="text-muted">Xác nhận và kiểm tra đơn</small>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Preparing -->
+                        <div class="timeline-item @(Model.Order.Status == "Preparing" ? "active" : (new[] { "Shipped", "Completed" }.Contains(Model.Order.Status) ? "completed" : ""))">
+                            <div class="timeline-marker">
+                                @if (Model.Order.Status == "Preparing")
+                                {
+                                    <i class="fas fa-circle text-primary"></i>
+                                }
+                                else if (new[] { "Shipped", "Completed" }.Contains(Model.Order.Status))
+                                {
+                                    <i class="fas fa-check-circle text-success"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-circle text-muted"></i>
+                                }
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Chuẩn bị hàng</h6>
+                                <small class="text-muted">Đóng gói và sẵn sàng giao</small>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Shipped -->
+                        <div class="timeline-item @(Model.Order.Status == "Shipped" ? "active" : (Model.Order.Status == "Completed" ? "completed" : ""))">
+                            <div class="timeline-marker">
+                                @if (Model.Order.Status == "Shipped")
+                                {
+                                    <i class="fas fa-circle text-primary"></i>
+                                }
+                                else if (Model.Order.Status == "Completed")
+                                {
+                                    <i class="fas fa-check-circle text-success"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-circle text-muted"></i>
+                                }
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Vận chuyển</h6>
+                                <small class="text-muted">Đang giao đến khách</small>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Completed -->
+                        <div class="timeline-item @(Model.Order.Status == "Completed" ? "completed" : "")">
+                            <div class="timeline-marker">
+                                @if (Model.Order.Status == "Completed")
+                                {
+                                    <i class="fas fa-check-circle text-success"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-circle text-muted"></i>
+                                }
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Hoàn thành</h6>
+                                <small class="text-muted">Giao hàng thành công</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0"><i class="fas fa-tasks mr-2"></i>Cập nhật trạng thái</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Debug: Hiển thị status hiện tại -->
+                    <div class="alert alert-secondary mb-3">
+                        <small><strong>Status hiện tại:</strong> "@Model.Order.Status"</small>
+                    </div>
+                    
+                    @{
+                        var status = Model.Order.Status?.Trim().ToLower();
+                    }
+                    
+                    @if (status == "pending" || status == "paid")
+                    {
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-info-circle mr-2"></i>Đơn hàng mới - Chờ xử lý
+                        </div>
+                        <form method="post" asp-page-handler="StartProcessing" asp-route-id="@Model.Order.Id" class="mb-2">
+                            <button type="submit" class="btn btn-info btn-block" onclick="return confirm('Bắt đầu xử lý đơn hàng này?')">
+                                <i class="fas fa-play mr-2"></i>Bắt đầu xử lý
+                            </button>
+                        </form>
+                        <form method="post" asp-page-handler="Reject" asp-route-id="@Model.Order.Id">
+                            <button type="submit" class="btn btn-outline-danger btn-block" onclick="return confirm('Từ chối đơn hàng này?')">
+                                <i class="fas fa-times mr-2"></i>Từ chối đơn hàng
+                            </button>
+                        </form>
+                    }
+                    else if (status == "processing")
+                    {
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-cog fa-spin mr-2"></i>Đang xử lý đơn hàng
+                        </div>
+                        <form method="post" asp-page-handler="StartPreparing" asp-route-id="@Model.Order.Id">
+                            <button type="submit" class="btn btn-primary btn-block" onclick="return confirm('Chuyển sang chuẩn bị hàng?')">
+                                <i class="fas fa-box-open mr-2"></i>Bắt đầu chuẩn bị hàng
+                            </button>
+                        </form>
+                    }
+                    else if (status == "preparing" || status == "confirmed")
+                    {
+                        <div class="alert alert-primary mb-3">
+                            <i class="fas fa-box-open mr-2"></i>Đang chuẩn bị hàng - Sẵn sàng giao vận chuyển
+                        </div>
+                        <form method="post" asp-page-handler="Ship" asp-route-id="@Model.Order.Id">
+                            <div class="form-group">
+                                <label class="font-weight-bold"><i class="fas fa-truck mr-2"></i>Đơn vị vận chuyển <span class="text-danger">*</span></label>
+                                <select name="Carrier" class="form-control" required>
+                                    <option value="">-- Chọn đơn vị --</option>
+                                    <option value="Giao Hàng Nhanh">Giao Hàng Nhanh (GHN)</option>
+                                    <option value="Giao Hàng Tiết Kiệm">Giao Hàng Tiết Kiệm (GHTK)</option>
+                                    <option value="Vietnam Post">Vietnam Post (VNPost)</option>
+                                    <option value="J&T Express">J&T Express</option>
+                                    <option value="Shopee Express">Shopee Express</option>
+                                    <option value="Viettel Post">Viettel Post</option>
+                                    <option value="Ninja Van">Ninja Van</option>
+                                    <option value="Best Express">Best Express</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold"><i class="fas fa-barcode mr-2"></i>Mã vận đơn <span class="text-danger">*</span></label>
+                                <input type="text" name="TrackingCode" class="form-control" placeholder="VD: GHN123456789" required>
+                                <small class="form-text text-muted">Nhập mã vận đơn từ đơn vị vận chuyển</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-shipping-fast mr-2"></i>Chuyển giao vận chuyển
+                            </button>
+                        </form>
+                    }
+                    else if (status == "shipped" || status == "shipping")
+                    {
+                        <div class="alert alert-primary mb-3">
+                            <i class="fas fa-shipping-fast mr-2"></i>Hàng đang được vận chuyển
+                        </div>
+                        <form method="post" asp-page-handler="MarkDelivered" asp-route-id="@Model.Order.Id">
+                            <button type="submit" class="btn btn-success btn-block" onclick="return confirm('Xác nhận đã giao hàng thành công?')">
+                                <i class="fas fa-check-circle mr-2"></i>Xác nhận đã giao hàng
+                            </button>
+                        </form>
+                    }
+                    else if (status == "completed" || status == "delivered")
+                    {
+                        <div class="alert alert-success text-center mb-0">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <p class="mb-0 font-weight-bold">Đơn hàng đã hoàn thành</p>
+                            <small class="text-muted">Giao hàng thành công</small>
+                        </div>
+                    }
+                    else if (status == "cancelled" || status == "rejected")
+                    {
+                        <div class="alert alert-danger text-center mb-0">
+                            <i class="fas fa-times-circle fa-2x mb-2"></i>
+                            <p class="mb-0 font-weight-bold">Đơn hàng đã bị hủy</p>
+                            <small class="text-muted">Không thể xử lý</small>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Default: Hiển thị nút xử lý cho status không nhận dạng được -->
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-question-circle mr-2"></i>Trạng thái: @Model.Order.Status
+                        </div>
+                        <form method="post" asp-page-handler="StartProcessing" asp-route-id="@Model.Order.Id" class="mb-2">
+                            <button type="submit" class="btn btn-info btn-block" onclick="return confirm('Bắt đầu xử lý đơn hàng này?')">
+                                <i class="fas fa-play mr-2"></i>Bắt đầu xử lý
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <!-- Shipment Info -->
+            @{
+                var shipmentStatus = Model.Order.Status?.Trim().ToLower();
+            }
+            @if (shipmentStatus == "shipped" || shipmentStatus == "shipping" || shipmentStatus == "completed" || shipmentStatus == "delivered")
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0"><i class="fas fa-shipping-fast mr-2"></i>Thông tin vận chuyển</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Order.Shipment != null)
+                        {
+                            <div class="mb-3">
+                                <small class="text-muted">Đơn vị vận chuyển</small>
+                                <p class="mb-0 font-weight-bold">
+                                    <i class="fas fa-truck text-primary mr-2"></i>@Model.Order.Shipment.Carrier
+                                </p>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Mã vận đơn</small>
+                                <p class="mb-0">
+                                    <code class="font-weight-bold bg-light px-2 py-1 rounded">@Model.Order.Shipment.TrackingCode</code>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary ml-2" onclick="copyToClipboard('@Model.Order.Shipment.TrackingCode')" title="Sao chép">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </p>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Trạng thái vận chuyển</small>
+                                <p class="mb-0">
+                                    @switch (Model.Order.Shipment.Status)
+                                    {
+                                        case "Pending":
+                                            <span class="badge badge-warning px-3 py-2">
+                                                <i class="fas fa-clock mr-1"></i>Đang chờ
+                                            </span>
+                                            break;
+                                        case "Shipping":
+                                            <span class="badge badge-info px-3 py-2">
+                                                <i class="fas fa-shipping-fast mr-1"></i>Đang vận chuyển
+                                            </span>
+                                            break;
+                                        case "Delivered":
+                                            <span class="badge badge-success px-3 py-2">
+                                                <i class="fas fa-check-circle mr-1"></i>Đã giao
+                                            </span>
+                                            break;
+                                        default:
+                                            <span class="badge badge-secondary px-3 py-2">@Model.Order.Shipment.Status</span>
+                                            break;
+                                    }
+                                </p>
+                            </div>
+                            <div class="mb-0">
+                                <small class="text-muted">Cập nhật lúc</small>
+                                <p class="mb-0">
+                                    <i class="fas fa-clock text-muted mr-1"></i>@Model.Order.Shipment.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </p>
+                            </div>
+
+                            @if (Model.Order.Status == "Shipped" && Model.Order.Shipment.Status != "Delivered")
+                            {
+                                <hr>
+                                <h6 class="mb-3"><i class="fas fa-edit mr-2"></i>Cập nhật vận chuyển</h6>
+                                <form method="post" asp-page-handler="UpdateShipment" asp-route-id="@Model.Order.Id">
+                                    <div class="form-group">
+                                        <label class="small">Đơn vị vận chuyển</label>
+                                        <select name="Carrier" class="form-control form-control-sm" required id="carrierSelect">
+                                            <option value="Giao Hàng Nhanh">Giao Hàng Nhanh</option>
+                                            <option value="Giao Hàng Tiết Kiệm">Giao Hàng Tiết Kiệm</option>
+                                            <option value="Vietnam Post">Vietnam Post</option>
+                                            <option value="J&T Express">J&T Express</option>
+                                            <option value="Shopee Express">Shopee Express</option>
+                                            <option value="Viettel Post">Viettel Post</option>
+                                            <option value="Ninja Van">Ninja Van</option>
+                                            <option value="Best Express">Best Express</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="small">Mã vận đơn</label>
+                                        <input type="text" name="TrackingCode" class="form-control form-control-sm" 
+                                               value="@Model.Order.Shipment.TrackingCode" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="small">Trạng thái vận chuyển</label>
+                                        <select name="Status" class="form-control form-control-sm" required id="statusSelect">
+                                            <option value="Pending">Đang chờ</option>
+                                            <option value="Shipping">Đang vận chuyển</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-sm btn-primary btn-block">
+                                        <i class="fas fa-save mr-1"></i>Cập nhật
+                                    </button>
+                                </form>
+                                <script>
+                                    document.getElementById('carrierSelect').value = '@Model.Order.Shipment.Carrier';
+                                    document.getElementById('statusSelect').value = '@Model.Order.Shipment.Status';
+                                </script>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">Chưa có thông tin vận chuyển</p>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Payment Info -->
+            @if (Model.Order.Payment != null)
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0"><i class="fas fa-credit-card mr-2"></i>Thanh toán</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <small class="text-muted">Phương thức</small>
+                            <p class="mb-0 font-weight-bold">@Model.Order.Payment.Method</p>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">Số tiền</small>
+                            <p class="mb-0 font-weight-bold text-primary">@Model.Order.Payment.Amount.ToString("N0")₫</p>
+                        </div>
+                        <div class="mb-0">
+                            <small class="text-muted">Trạng thái</small>
+                            <p class="mb-0">
+                                @if (Model.Order.Payment.Status == "Completed")
+                                {
+                                    <span class="badge badge-success">Đã thanh toán</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-warning">@Model.Order.Payment.Status</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Back Button -->
+            <a asp-page="/Shop/Orders/Index" class="btn btn-outline-secondary btn-block">
+                <i class="fas fa-arrow-left mr-2"></i>Quay lại danh sách
+            </a>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show toast or alert
+                alert('Đã sao chép mã vận đơn: ' + text);
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        /* Timeline Styles */
+        .timeline {
+            position: relative;
+            padding: 0;
+            list-style: none;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 45px;
+            padding-bottom: 20px;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 9px;
+            top: 20px;
+            bottom: -20px;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .timeline-item:last-child::before {
+            display: none;
+        }
+
+        .timeline-item.completed::before {
+            background: #28a745;
+        }
+
+        .timeline-item.active::before {
+            background: linear-gradient(to bottom, #28a745 0%, #e9ecef 100%);
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .timeline-marker i {
+            font-size: 20px;
+        }
+
+        .timeline-content {
+            padding-top: 0;
+        }
+
+        .timeline-content h6 {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .timeline-item.active .timeline-content h6 {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .timeline-item.completed .timeline-content h6 {
+            color: #28a745;
+        }
+
+        /* Responsive */
+        @@media (max-width: 991px) {
+            .timeline-item {
+                padding-left: 40px;
+            }
+        }
+    </style>
+}
+

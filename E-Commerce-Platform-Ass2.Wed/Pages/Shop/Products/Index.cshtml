@@ -1,0 +1,149 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products.IndexModel
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+}
+
+<div class="container-fluid pt-5">
+    <div class="row px-xl-5">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="font-weight-semi-bold mb-1">
+                        <i class="fas fa-box text-primary mr-2"></i>Quản lý sản phẩm
+                    </h2>
+                    <p class="text-muted mb-0">Shop: <strong>@Model.ViewModel.ShopName</strong></p>
+                </div>
+                <a asp-page="/Shop/Products/Create" class="btn btn-primary">
+                    <i class="fas fa-plus mr-2"></i>Thêm sản phẩm mới
+                </a>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0">
+                        <div class="card-body text-center py-4">
+                            <h3 class="font-weight-bold text-primary mb-0">@Model.ViewModel.TotalProducts</h3>
+                            <small class="text-muted">Tổng sản phẩm</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0">
+                        <div class="card-body text-center py-4">
+                            <h3 class="font-weight-bold text-success mb-0">@Model.ViewModel.ActiveCount</h3>
+                            <small class="text-muted">Đang bán</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0">
+                        <div class="card-body text-center py-4">
+                            <h3 class="font-weight-bold text-secondary mb-0">@Model.ViewModel.InactiveCount</h3>
+                            <small class="text-muted">Ngừng bán</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle mr-2"></i>@TempData["SuccessMessage"]
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle mr-2"></i>@TempData["ErrorMessage"]
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+            }
+
+            <!-- Products Table -->
+            @if (Model.ViewModel.Products.Any())
+            {
+                <div class="card border-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th style="width:80px;">Hình</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Danh mục</th>
+                                    <th>Giá</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th style="width:120px;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.ViewModel.Products)
+                                {
+                                    <tr>
+                                        <td class="align-middle">
+                                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                            {
+                                                <img src="@item.ImageUrl" alt="@item.Name" class="rounded" 
+                                                     style="width:60px;height:60px;object-fit:cover;">
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                     style="width:60px;height:60px;">
+                                                    <i class="fas fa-image text-muted"></i>
+                                                </div>
+                                            }
+                                        </td>
+                                        <td class="align-middle">
+                                            <strong>@item.Name</strong>
+                                            @if (!string.IsNullOrEmpty(item.Description))
+                                            {
+                                                <p class="text-muted small mb-0 text-truncate" style="max-width:250px;">
+                                                    @item.Description
+                                                </p>
+                                            }
+                                        </td>
+                                        <td class="align-middle">@(item.CategoryName ?? "—")</td>
+                                        <td class="align-middle">
+                                            <strong class="text-primary">@item.BasePrice.ToString("N0") ₫</strong>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="badge @item.StatusBadgeClass">@item.StatusDisplayName</span>
+                                        </td>
+                                        <td class="align-middle">@item.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                        <td class="align-middle">
+                                            <a asp-page="/Shop/Products/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Empty State -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-box-open fa-4x text-muted mb-4"></i>
+                        <h4>Chưa có sản phẩm nào</h4>
+                        <p class="text-muted mb-4">Bắt đầu bằng cách thêm sản phẩm đầu tiên cho shop của bạn.</p>
+                        <a asp-page="/Shop/Products/Create" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus mr-2"></i>Thêm sản phẩm đầu tiên
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

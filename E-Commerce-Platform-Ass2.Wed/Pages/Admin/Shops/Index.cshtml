@@ -1,0 +1,192 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Admin.Shops.IndexModel
+@{
+    ViewData["Title"] = "Quản lý Shop";
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+    var currentStatus = ViewData["CurrentStatus"] as string;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-store"></i> Quản lý Shop</h2>
+        <a asp-page="/Admin/Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Về Dashboard
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filter and Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="btn-group" role="group">
+                        <a asp-page="./Index"
+                           class="btn @(currentStatus == null ? "btn-primary" : "btn-outline-primary")">
+                            Tất cả (@Model.Shops.Count)
+                        </a>
+                        <a asp-page="./Index" asp-route-status="Active"
+                           class="btn @(currentStatus == "Active" ? "btn-success" : "btn-outline-success")">
+                            <i class="fas fa-check-circle"></i> Hoạt động
+                        </a>
+                        <a asp-page="./Index" asp-route-status="Pending"
+                           class="btn @(currentStatus == "Pending" ? "btn-warning" : "btn-outline-warning")">
+                            <i class="fas fa-clock"></i> Chờ duyệt
+                        </a>
+                        <a asp-page="./Index" asp-route-status="Inactive"
+                           class="btn @(currentStatus == "Inactive" ? "btn-secondary" : "btn-outline-secondary")">
+                            <i class="fas fa-ban"></i> Không hoạt động
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="searchShop" class="form-control" placeholder="Tìm theo tên shop hoặc chủ shop...">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shops Table -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Danh sách Shop
+                @if (!string.IsNullOrEmpty(currentStatus))
+                {
+                    <span class="text-muted">- Lọc theo: @currentStatus</span>
+                }
+            </h6>
+        </div>
+        <div class="card-body">
+            @if (Model.Shops.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 5%">#</th>
+                                <th style="width: 20%">Tên Shop</th>
+                                <th style="width: 20%">Chủ shop</th>
+                                <th style="width: 15%">Email</th>
+                                <th style="width: 10%">Số SP</th>
+                                <th style="width: 10%">Trạng thái</th>
+                                <th style="width: 10%">Ngày tạo</th>
+                                <th style="width: 10%">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int index = 1;
+                            }
+                            @foreach (var shop in Model.Shops)
+                            {
+                                <tr>
+                                    <td>@index</td>
+                                    <td>
+                                        <strong>@shop.ShopName</strong>
+                                        @if (!string.IsNullOrEmpty(shop.Description))
+                                        {
+                                            <br />
+                                            <small class="text-muted">
+                                                @(shop.Description.Length > 50 ? shop.Description.Substring(0, 50) + "..." : shop.Description)
+                                            </small>
+                                        }
+                                    </td>
+                                    <td>@shop.OwnerName</td>
+                                    <td>@shop.OwnerEmail</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">@shop.ProductCount</span>
+                                    </td>
+                                    <td>
+                                        @if (shop.Status == "Active")
+                                        {
+                                            <span class="badge bg-success">Hoạt động</span>
+                                        }
+                                        else if (shop.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Không hoạt động</span>
+                                        }
+                                    </td>
+                                    <td>@shop.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-page="./Details" asp-route-id="@shop.Id"
+                                               class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if (shop.Status == "Pending")
+                                            {
+                                                <form asp-page-handler="ApproveShop" asp-route-id="@shop.Id" method="post" style="display:inline;">
+                                                    <button type="submit" class="btn btn-sm btn-success" title="Duyệt">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                                <form asp-page-handler="RejectShop" asp-route-id="@shop.Id" method="post" style="display:inline;">
+                                                    <button type="submit" class="btn btn-sm btn-danger" title="Từ chối">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-store fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Không có shop nào.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('searchShop').addEventListener('input', function () {
+            const searchText = this.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                const shopName = row.cells[1]?.textContent.toLowerCase() || '';
+                const ownerName = row.cells[2]?.textContent.toLowerCase() || '';
+                const email = row.cells[3]?.textContent.toLowerCase() || '';
+
+                if (shopName.includes(searchText) || ownerName.includes(searchText) || email.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+}
+

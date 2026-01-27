@@ -1,0 +1,249 @@
+@page "{id:guid}"
+@model E_Commerce_Platform_Ass2.Wed.Pages.Admin.Shops.DetailsModel
+@{
+    ViewData["Title"] = "Chi tiết Shop";
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-store"></i> Chi tiết Shop</h2>
+        <a asp-page="./Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Shop Info -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Thông tin Shop</h6>
+                    @if (Model.Shop.Status == "Active")
+                    {
+                        <span class="badge bg-success">Hoạt động</span>
+                    }
+                    else if (Model.Shop.Status == "Pending")
+                    {
+                        <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Không hoạt động</span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-store fa-4x text-primary mb-3"></i>
+                        <h4>@Model.Shop.ShopName</h4>
+                    </div>
+
+                    <hr />
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Mô tả</label>
+                        <p>@(string.IsNullOrEmpty(Model.Shop.Description) ? "Chưa có mô tả" : Model.Shop.Description)</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Chủ shop</label>
+                        <p><i class="fas fa-user"></i> @Model.Shop.OwnerName</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Email</label>
+                        <p><i class="fas fa-envelope"></i> @Model.Shop.OwnerEmail</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Ngày tạo</label>
+                        <p><i class="fas fa-calendar"></i> @Model.Shop.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Số sản phẩm</label>
+                        <p><i class="fas fa-box"></i> @Model.Shop.ProductCount sản phẩm</p>
+                    </div>
+
+                    <hr />
+
+                    <!-- Actions -->
+                    @if (Model.Shop.Status == "Pending")
+                    {
+                        <div class="d-grid gap-2">
+                            <form asp-page-handler="ApproveShop" asp-route-id="@Model.Shop.Id" method="post">
+                                <button type="submit" class="btn btn-success w-100 mb-2">
+                                    <i class="fas fa-check"></i> Duyệt Shop
+                                </button>
+                            </form>
+                            <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                <i class="fas fa-times"></i> Từ chối Shop
+                            </button>
+                        </div>
+                    }
+                    else if (Model.Shop.Status == "Active")
+                    {
+                        <form asp-page-handler="RejectShop" asp-route-id="@Model.Shop.Id" method="post">
+                            <button type="submit" class="btn btn-outline-danger w-100"
+                                    onclick="return confirm('Bạn có chắc muốn vô hiệu hóa shop này?');">
+                                <i class="fas fa-ban"></i> Vô hiệu hóa
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-page-handler="ApproveShop" asp-route-id="@Model.Shop.Id" method="post">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-check"></i> Kích hoạt lại
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Products List -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-box"></i> Sản phẩm của Shop (@Model.Shop.ProductCount)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.Shop.Products != null && Model.Shop.Products.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Ảnh</th>
+                                        <th>Tên sản phẩm</th>
+                                        <th>Giá</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int idx = 1;
+                                    }
+                                    @foreach (var product in Model.Shop.Products)
+                                    {
+                                        <tr>
+                                            <td>@idx</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                                {
+                                                    <img src="@product.ImageUrl" alt="@product.Name"
+                                                         style="width: 50px; height: 50px; object-fit: cover;" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="bg-light d-flex align-items-center justify-content-center"
+                                                         style="width: 50px; height: 50px;">
+                                                        <i class="fas fa-image text-muted"></i>
+                                                    </div>
+                                                }
+                                            </td>
+                                            <td>@product.Name</td>
+                                            <td>@product.BasePrice.ToString("N0")₫</td>
+                                            <td>
+                                                @switch (product.Status)
+                                                {
+                                                    case "active":
+                                                        <span class="badge bg-success">Đang bán</span>
+                                                        break;
+                                                    case "pending":
+                                                        <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                                        break;
+                                                    case "draft":
+                                                        <span class="badge bg-secondary">Nháp</span>
+                                                        break;
+                                                    case "rejected":
+                                                        <span class="badge bg-danger">Bị từ chối</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary">@product.Status</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>@product.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                <a asp-page="/Admin/Products/Detail" asp-route-id="@product.Id"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                @if (product.Status == "pending")
+                                                {
+                                                    <form asp-page="/Admin/Products/Pending" asp-page-handler="ApproveProduct"
+                                                          asp-route-id="@product.Id" method="post" style="display:inline;">
+                                                        <button type="submit" class="btn btn-sm btn-success" title="Duyệt">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </td>
+                                        </tr>
+                                        idx++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Shop này chưa có sản phẩm nào.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-page-handler="RejectShop" asp-route-id="@Model.Shop.Id" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Từ chối Shop</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Lý do từ chối (không bắt buộc)</label>
+                        <textarea name="reason" class="form-control" rows="3"
+                                  placeholder="Nhập lý do từ chối..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Từ chối</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

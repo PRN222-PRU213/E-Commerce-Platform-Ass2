@@ -1,0 +1,410 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products.CreateModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Thêm sản phẩm mới";
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+    var cloudName = Configuration["CloudinarySettings:CloudName"] ?? "";
+    var uploadPreset = Configuration["CloudinarySettings:UploadPreset"] ?? "";
+}
+
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-4">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 180px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">
+            <i class="fas fa-plus-circle text-primary mr-2"></i>Thêm sản phẩm mới
+        </h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Shop/ViewShop" class="text-dark">Dashboard</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Thêm sản phẩm</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<!-- Create Product Form Start -->
+<div class="container-fluid py-4">
+    <div class="row px-xl-5">
+        <div class="col-lg-10 offset-lg-1">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-box mr-2"></i>Thông tin sản phẩm
+                    </h4>
+                </div>
+                <div class="card-body p-5">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle mr-2"></i>@TempData["SuccessMessage"]
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle mr-2"></i>@TempData["ErrorMessage"]
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    }
+
+                    <form method="post">
+                        <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+                        <div class="row">
+                            <!-- Left Column -->
+                            <div class="col-lg-8">
+                                <!-- Product Name -->
+                                <div class="form-group">
+                                    <label asp-for="Input.Name" class="font-weight-semi-bold">
+                                        <i class="fas fa-tag text-primary mr-2"></i>Tên sản phẩm
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Input.Name" class="form-control border-0 py-3" placeholder="Nhập tên sản phẩm" />
+                                    <span asp-validation-for="Input.Name" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="form-group">
+                                    <label asp-for="Input.Description" class="font-weight-semi-bold">
+                                        <i class="fas fa-align-left text-primary mr-2"></i>Mô tả sản phẩm
+                                    </label>
+                                    <textarea asp-for="Input.Description" class="form-control border-0" rows="6" 
+                                              placeholder="Mô tả chi tiết về sản phẩm, tính năng, thông số kỹ thuật..."></textarea>
+                                    <span asp-validation-for="Input.Description" class="text-danger small"></span>
+                                    <small class="form-text text-muted">
+                                        <i class="fas fa-info-circle mr-1"></i>Mô tả chi tiết sẽ giúp khách hàng hiểu rõ hơn về sản phẩm
+                                    </small>
+                                </div>
+
+                                <!-- Image Upload -->
+                                <div class="form-group">
+                                    <label class="font-weight-semi-bold">
+                                        <i class="fas fa-image text-primary mr-2"></i>Hình ảnh sản phẩm
+                                    </label>
+                                    <div class="mb-3">
+                                        <button type="button" id="uploadImageBtn" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-cloud-upload-alt mr-2"></i>Tải lên ảnh từ Cloudinary
+                                        </button>
+                                        <button type="button" id="clearImageBtn" class="btn btn-outline-danger ml-2" style="display: none;">
+                                            <i class="fas fa-times mr-2"></i>Xóa ảnh
+                                        </button>
+                                    </div>
+                                    <input asp-for="Input.ImageUrl" type="hidden" id="imageUrlInput" />
+                                    <div id="imagePreview" class="mt-3" style="display: none;">
+                                        <div class="border rounded p-3 bg-light d-inline-block">
+                                            <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 400px; max-height: 400px; object-fit: contain; border: none;">
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted mt-2">
+                                        <i class="fas fa-info-circle mr-1"></i>Chỉ sử dụng Cloudinary để tải ảnh lên. Bạn có thể tải từ máy tính, URL, Unsplash, Google Drive, hoặc Dropbox.
+                                    </small>
+                                    <span asp-validation-for="Input.ImageUrl" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-lg-4">
+                                <div class="bg-light p-4 rounded">
+                                    <h5 class="font-weight-semi-bold mb-4">
+                                        <i class="fas fa-info-circle text-primary mr-2"></i>Thông tin bổ sung
+                                    </h5>
+
+                                    <!-- Category -->
+                                    <div class="form-group">
+                                        <label asp-for="Input.CategoryId" class="font-weight-semi-bold">
+                                            <i class="fas fa-folder text-primary mr-2"></i>Danh mục
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <select asp-for="Input.CategoryId" asp-items="Model.Input.Categories" class="form-control py-3" id="categorySelect" style="display: none;">
+                                            <option value="">-- Chọn danh mục --</option>
+                                        </select>
+                                        <!-- Custom Dropdown Display -->
+                                        <div class="custom-category-dropdown">
+                                            <button type="button" class="form-control py-3 text-left custom-dropdown-btn" id="categoryDropdownBtn" style="background: white; border: 1px solid #ced4da; border-radius: 0.25rem;">
+                                                <span id="categoryDisplayText" class="text-muted">-- Chọn danh mục --</span>
+                                                <i class="fas fa-chevron-down float-right mt-1"></i>
+                                            </button>
+                                            <div class="custom-dropdown-menu" id="categoryDropdownMenu" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ced4da; border-radius: 0.25rem; max-height: 300px; overflow-y: auto; width: 100%; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);">
+                                                <div class="custom-dropdown-item p-3 text-muted" data-value="" style="cursor: pointer; border-bottom: 1px solid #e9ecef;">
+                                                    <i class="fas fa-folder-open mr-2"></i>-- Chọn danh mục --
+                                                </div>
+                                                @if (Model.Input.Categories != null)
+                                                {
+                                                    @foreach (var category in Model.Input.Categories)
+                                                    {
+                                                        <div class="custom-dropdown-item p-3" data-value="@category.Value" style="cursor: pointer; border-bottom: 1px solid #e9ecef; transition: background-color 0.2s;">
+                                                            <i class="fas fa-folder mr-2 text-primary"></i>@category.Text
+                                                        </div>
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                        <input type="hidden" asp-for="Input.CategoryId" id="categoryHiddenInput" />
+                                        <span asp-validation-for="Input.CategoryId" class="text-danger small"></span>
+                                    </div>
+
+                                    <!-- Base Price -->
+                                    <div class="form-group">
+                                        <label asp-for="Input.BasePrice" class="font-weight-semi-bold">
+                                            <i class="fas fa-money-bill-wave text-primary mr-2"></i>Giá cơ bản
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text bg-transparent border-0">$</span>
+                                            </div>
+                                            <input asp-for="Input.BasePrice" type="number" step="0.01" min="0" 
+                                                   class="form-control border-0 py-3" placeholder="0.00" />
+                                        </div>
+                                        <span asp-validation-for="Input.BasePrice" class="text-danger small"></span>
+                                        <small class="form-text text-muted">
+                                            <i class="fas fa-info-circle mr-1"></i>Giá này sẽ là giá mặc định cho sản phẩm
+                                        </small>
+                                    </div>
+
+                                    <!-- Info Box -->
+                                    <div class="alert alert-info mt-4">
+                                        <h6 class="font-weight-semi-bold mb-2">
+                                            <i class="fas fa-lightbulb mr-2"></i>Lưu ý
+                                        </h6>
+                                        <ul class="mb-0 pl-3" style="font-size: 0.875rem;">
+                                            <li>Sản phẩm sẽ được tạo ở trạng thái <strong>Draft</strong></li>
+                                            <li>Sau khi tạo, bạn có thể thêm biến thể (size, color, etc.)</li>
+                                            <li>Submit sản phẩm để admin duyệt</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a asp-page="/Shop/ViewShop" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-arrow-left mr-2"></i>Hủy
+                            </a>
+                            <div>
+                                <button type="submit" class="btn btn-primary px-5">
+                                    <i class="fas fa-save mr-2"></i>Lưu sản phẩm
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Create Product Form End -->
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            var cloudName = '@cloudName';
+            var uploadPreset = '@uploadPreset';
+            
+            // Cloudinary Upload
+            $('#uploadImageBtn').on('click', function() {
+                if (!window.cloudinary) {
+                    alert('Cloudinary Widget chưa được load! Vui lòng tải lại trang.');
+                    return;
+                }
+                
+                if (!cloudName || !uploadPreset) {
+                    alert('Cloudinary chưa được cấu hình. Vui lòng kiểm tra appsettings.json');
+                    return;
+                }
+                
+                window.cloudinary.openUploadWidget(
+                    {
+                        cloudName: cloudName,
+                        uploadPreset: uploadPreset,
+                        cropping: false,
+                        multiple: false,
+                        maxImageFileSize: 5 * 1024 * 1024, // 5MB
+                        sources: ['local', 'url', 'unsplash', 'image_search', 'google_drive', 'dropbox'],
+                        resourceType: 'image',
+                        folder: 'products',
+                        showPoweredBy: false
+                    },
+                    (error, result) => {
+                        if (!error && result && result.event === 'success') {
+                            var imageUrl = result.info.secure_url;
+                            $('#imageUrlInput').val(imageUrl);
+                            $('#previewImg').attr('src', imageUrl);
+                            $('#imagePreview').show();
+                            $('#clearImageBtn').show();
+                        } else if (error) {
+                            console.error('Upload error:', error);
+                            alert('Có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.');
+                        }
+                    }
+                );
+            });
+
+            // Clear Image
+            $('#clearImageBtn').on('click', function() {
+                $('#imageUrlInput').val('');
+                $('#previewImg').attr('src', '');
+                $('#imagePreview').hide();
+                $('#clearImageBtn').hide();
+            });
+
+            // Load existing image if any
+            var existingImageUrl = $('#imageUrlInput').val();
+            if (existingImageUrl) {
+                $('#previewImg').attr('src', existingImageUrl);
+                $('#imagePreview').show();
+                $('#clearImageBtn').show();
+            }
+
+            // Custom Category Dropdown Implementation
+            var $categoryBtn = $('#categoryDropdownBtn');
+            var $categoryMenu = $('#categoryDropdownMenu');
+            var $categoryDisplay = $('#categoryDisplayText');
+            var $categorySelect = $('#categorySelect');
+            var $categoryHidden = $('#categoryHiddenInput');
+            var $dropdownItems = $('.custom-dropdown-item');
+
+            // Initialize: Sync with hidden select value
+            function initializeCategoryDropdown() {
+                var selectedValue = $categorySelect.val();
+                if (selectedValue && selectedValue !== '') {
+                    var selectedText = $categorySelect.find('option:selected').text();
+                    $categoryDisplay.text(selectedText).removeClass('text-muted').addClass('text-dark font-weight-semi-bold');
+                    $categoryHidden.val(selectedValue);
+                    
+                    // Highlight selected item
+                    $dropdownItems.removeClass('bg-primary text-white');
+                    $dropdownItems.filter('[data-value="' + selectedValue + '"]').addClass('bg-primary text-white');
+                } else {
+                    $categoryDisplay.text('-- Chọn danh mục --').removeClass('text-dark font-weight-semi-bold').addClass('text-muted');
+                    $categoryHidden.val('');
+                }
+            }
+
+            // Toggle dropdown menu
+            $categoryBtn.on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $categoryMenu.toggle();
+            });
+
+            // Close dropdown when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.custom-category-dropdown').length) {
+                    $categoryMenu.hide();
+                }
+            });
+
+            // Handle item selection
+            $dropdownItems.on('click', function() {
+                var value = $(this).data('value');
+                var text = $(this).text().trim();
+                
+                // Update hidden select
+                $categorySelect.val(value);
+                $categoryHidden.val(value);
+                
+                // Update display
+                if (value && value !== '') {
+                    $categoryDisplay.text(text).removeClass('text-muted').addClass('text-dark font-weight-semi-bold');
+                    
+                    // Update visual state
+                    $dropdownItems.removeClass('bg-primary text-white');
+                    $(this).addClass('bg-primary text-white');
+                } else {
+                    $categoryDisplay.text('-- Chọn danh mục --').removeClass('text-dark font-weight-semi-bold').addClass('text-muted');
+                    $dropdownItems.removeClass('bg-primary text-white');
+                }
+                
+                // Close dropdown
+                $categoryMenu.hide();
+                
+                // Trigger change event for validation
+                $categorySelect.trigger('change');
+            });
+
+            // Hover effect for dropdown items
+            $dropdownItems.on('mouseenter', function() {
+                if (!$(this).hasClass('bg-primary')) {
+                    $(this).css('background-color', '#f8f9fa');
+                }
+            }).on('mouseleave', function() {
+                if (!$(this).hasClass('bg-primary')) {
+                    $(this).css('background-color', 'white');
+                }
+            });
+
+            // Initialize on page load
+            initializeCategoryDropdown();
+            
+            // Also sync if select value changes programmatically
+            $categorySelect.on('change', function() {
+                initializeCategoryDropdown();
+            });
+        });
+    </script>
+    <style>
+        /* Custom Category Dropdown Styles */
+        .custom-category-dropdown {
+            position: relative;
+        }
+
+        .custom-dropdown-btn {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-dropdown-btn:hover {
+            border-color: #D19C97 !important;
+        }
+
+        .custom-dropdown-btn:focus {
+            border-color: #D19C97 !important;
+            box-shadow: 0 0 0 0.2rem rgba(209, 156, 151, 0.25);
+            outline: none;
+        }
+
+        .custom-dropdown-menu {
+            margin-top: 2px;
+        }
+
+        .custom-dropdown-item {
+            transition: all 0.2s ease;
+        }
+
+        .custom-dropdown-item:hover {
+            background-color: #f8f9fa !important;
+        }
+
+        .custom-dropdown-item.bg-primary {
+            background-color: #D19C97 !important;
+            color: white !important;
+        }
+
+        .custom-dropdown-item.bg-primary:hover {
+            background-color: #c88a84 !important;
+        }
+
+        /* Hide original select but keep it for form submission */
+        #categorySelect {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            height: 0;
+            width: 0;
+        }
+    </style>
+}
+
