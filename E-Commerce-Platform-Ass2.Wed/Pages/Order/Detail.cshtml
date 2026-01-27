@@ -1,0 +1,346 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Order.DetailModel
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "~/Pages/Shared/_EShopperLayout.cshtml";
+}
+
+<style>
+    .page-container {
+        background-color: #EDF1FF;
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .detail-header {
+        background: linear-gradient(135deg, #D19C97 0%, #c88a84 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(209, 156, 151, 0.3);
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid #D19C97;
+    }
+
+    .info-row {
+        display: flex;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #3D464D;
+        min-width: 150px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-value {
+        color: #6c757d;
+        flex: 1;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+        color: white !important;
+    }
+
+    /* Custom status colors */
+    .bg-info {
+        background-color: #17a2b8 !important;
+    }
+
+    .bg-purple {
+        background-color: #6f42c1 !important;
+    }
+
+    .bg-primary {
+        background-color: #007bff !important;
+    }
+
+    .bg-success-dark {
+        background-color: #155724 !important;
+    }
+
+    .product-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .product-table thead {
+        background: #EDF1FF;
+        color: #3D464D;
+    }
+
+    .product-table thead th {
+        padding: 1rem;
+        font-weight: 600;
+        border: none;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .product-table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-color: #f0f0f0;
+    }
+
+    .product-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #3D464D;
+        font-size: 1rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .variant-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-right: 0.6rem;
+        transition: all 0.2s ease;
+    }
+
+    .variant-badge i {
+        margin-right: 0.4rem;
+        font-size: 0.85rem;
+    }
+
+    .badge-size {
+        background-color: #e7f3ff;
+        color: #0e6dfd;
+        border: 1px solid #b6d4fe;
+    }
+
+    .badge-color {
+        background-color: #fff0f1;
+        color: #dc3545;
+        border: 1px solid #ffccd2;
+    }
+
+    .variant-badge:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .total-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid #D19C97;
+    }
+
+    .total-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #D19C97;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #D19C97 0%, #c88a84 100%);
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 10px rgba(209, 156, 151, 0.3);
+        font-size: 1rem;
+    }
+
+    .btn-back:hover {
+        background: linear-gradient(135deg, #c88a84 0%, #b87972 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(209, 156, 151, 0.4);
+    }
+
+    .btn-back i {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-back:hover i {
+        transform: translateX(-3px);
+    }
+</style>
+
+<div class="page-container">
+    <div class="container-fluid px-4">
+        <!-- Header -->
+        <div class="detail-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1"><i class="fas fa-file-invoice me-2"></i>Chi tiết đơn hàng</h2>
+                    <p class="mb-0 opacity-75">Thông tin chi tiết về đơn hàng của bạn</p>
+                </div>
+                <div class="text-end">
+                    <div class="small opacity-75">Mã đơn hàng</div>
+                    <div class="h5 mb-0">#@Model.ViewModel.OrderId.ToString().Substring(0, 8)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Information Card -->
+        <div class="info-card">
+            <h5 class="mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Thông tin đơn hàng</h5>
+            
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-calendar text-primary"></i>
+                    Ngày đặt hàng
+                </div>
+                <div class="info-value">@Model.ViewModel.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-map-marker-alt text-primary"></i>
+                    Địa chỉ giao hàng
+                </div>
+                <div class="info-value">@Model.ViewModel.ShippingAddress</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fas fa-info-circle text-primary"></i>
+                    Trạng thái
+                </div>
+                <div class="info-value">
+                    <span class="status-badge status-badge-fixed
+                        @(Model.ViewModel.Status == "Paid" ? "bg-success-dark" :
+                          Model.ViewModel.Status == "Pending" ? "bg-warning text-dark" :
+                          Model.ViewModel.Status == "Cancelled" ? "bg-danger" :
+                          Model.ViewModel.Status == "Processing" ? "bg-info" :
+                          Model.ViewModel.Status == "Preparing" ? "bg-purple" :
+                          Model.ViewModel.Status == "Shipped" ? "bg-primary" :
+                          Model.ViewModel.Status == "Completed" ? "bg-success" :
+                          "bg-secondary")">
+                        @(Model.ViewModel.Status == "Paid" ? "Đã thanh toán" :
+                          Model.ViewModel.Status == "Pending" ? "Chờ xử lý" :
+                          Model.ViewModel.Status == "Cancelled" ? "Đã hủy" :
+                          Model.ViewModel.Status == "Processing" ? "Đang xử lý" :
+                          Model.ViewModel.Status == "Preparing" ? "Chuẩn bị hàng" :
+                          Model.ViewModel.Status == "Shipped" ? "Vận chuyển" :
+                          Model.ViewModel.Status == "Completed" ? "Hoàn thành" :
+                          Model.ViewModel.Status)
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <div class="mb-3">
+            <h5 class="mb-3"><i class="fas fa-shopping-cart me-2 text-primary"></i>Sản phẩm đã đặt</h5>
+        </div>
+
+        <table class="table product-table mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 50%;">Sản phẩm</th>
+                    <th class="text-center" style="width: 20%;">Đơn giá</th>
+                    <th class="text-center" style="width: 15%;">Số lượng</th>
+                    <th class="text-end" style="width: 15%;">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.ViewModel.Items)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="@item.ImageUrl"
+                                     class="product-img me-3"
+                                     onerror="this.src='/img/product-1.jpg'" 
+                                     alt="@item.ProductName" />
+                                <div>
+                                    <div class="product-name">@item.ProductName</div>
+                                    @if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.Color))
+                                    {
+                                        <div class="d-flex flex-wrap mt-2">
+                                            @if (!string.IsNullOrEmpty(item.Size))
+                                            {
+                                                <span class="variant-badge badge-size" title="Kích thước">
+                                                    <i class="fas fa-ruler-combined"></i>Size: @item.Size
+                                                </span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.Color))
+                                            {
+                                                <span class="variant-badge badge-color" title="Màu sắc">
+                                                    <i class="fas fa-palette"></i>Màu: @item.Color
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">@item.Price.ToString("N0") đ</td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">@item.Quantity</span>
+                        </td>
+                        <td class="text-end">
+                            <strong>@item.SubTotal.ToString("N0") đ</strong>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Total Section -->
+        <div class="total-section">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Tổng thanh toán</h5>
+                </div>
+                <div class="total-amount">
+                    @Model.ViewModel.TotalAmount.ToString("N0") đ
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mt-4">
+            <a asp-page="/Order/History" class="btn-back text-decoration-none">
+                <i class="fas fa-arrow-left"></i>
+                Quay lại lịch sử đơn hàng
+            </a>
+        </div>
+    </div>
+</div>

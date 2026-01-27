@@ -1,0 +1,425 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Cart.IndexModel
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    Layout = "~/Pages/Shared/_EShopperLayout.cshtml";
+}
+
+<style>
+    .cart-item-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 15px;
+        background: #fff;
+        position: relative;
+    }
+    .cart-item-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+    }
+    .product-img-container {
+        width: 100px;
+        height: 100px;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .product-img-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover;
+    }
+    .quantity-input {
+        max-width: 50px;
+        border: none;
+        background: transparent;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #333;
+    }
+    .btn-qty {
+        width: 35px;
+        height: 35px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50% !important;
+        border: 2px solid #D1B472;
+        background: #fff;
+        color: #D1B472;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+    }
+    .btn-qty:hover {
+        background: #D1B472;
+        color: #fff;
+    }
+    .btn-qty i {
+        font-weight: 900;
+        display: block;
+    }
+    .price-text {
+        white-space: nowrap;
+    }
+    .summary-card {
+        border: none;
+        border-radius: 20px;
+        background: #f8f9fa;
+        position: sticky;
+        top: 20px;
+    }
+    .checkout-btn {
+        border-radius: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        transition: all 0.3s;
+    }
+    .summary-title {
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 15px;
+    }
+    .remove-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 1.4rem;
+    }
+    .remove-btn:hover {
+        color: #dc3545;
+    }
+    .badge-variant {
+        background: #f1f3f5;
+        color: #495057;
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+</style>
+
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-5 py-5" style="background: linear-gradient(rgba(255, 255, 255, .8), rgba(255, 255, 255, .8)), url('/img/bg-cart.jpg'); background-size: cover;">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 200px">
+        <h1 class="font-weight-bold text-dark mb-3">Giỏ Hàng Của Bạn</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Index" class="text-primary">Trang chủ</a></p>
+            <p class="m-0 px-2 text-muted">/</p>
+            <p class="m-0 text-muted">Giỏ hàng</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<div class="container py-5">
+    <div class="row px-xl-5">
+        @if (Model.ViewModel.Items == null || !Model.ViewModel.Items.Any())
+        {
+                <div class="col-12 text-center py-5">
+                    <div class="mb-4">
+                        <i class="fa fa-shopping-cart text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
+                    </div>
+                    <h3 class="font-weight-bold text-dark mb-3">Giỏ hàng của bạn đang trống</h3>
+                    <p class="text-muted mb-4">Hãy thêm một vài sản phẩm để bắt đầu mua sắm bạn nhé!</p>
+                    <a asp-page="/Index" class="btn btn-primary py-3 px-5 shadow" style="border-radius: 12px; font-weight: 700;">
+                        QUAY LẠI CỬA HÀNG
+                    </a>
+                </div>
+        }
+        else
+        {
+                <!-- Cart Items -->
+                <div class="col-lg-8">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="font-weight-bold mb-0 text-dark">Sản phẩm (@Model.ViewModel.Items.Count)</h4>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-4">
+                        <input type="checkbox" id="selectAll" class="mr-2">
+                        <label for="selectAll" class="mb-0 font-weight-bold">Chọn tất cả</label>
+                    </div>
+                @foreach (var item in Model.ViewModel.Items)
+                {
+                            <div class="card cart-item-card mb-3 p-3 shadow-sm">
+                                <div class="row align-items-center">
+                                    <div class="col-md-1 col-2 text-center">
+                                        <input type="checkbox"
+                                               class="select-item"
+                                               data-id="@item.CartItemId"
+                                               data-total="@item.TotalLinePrice" />
+                                    </div>
+
+                                    <div class="col-md-2 col-3">
+                                        <div class="product-img-container">
+                                            <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/img/product-1.jpg" : item.ImageUrl)" alt="@item.ProductName">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-7">
+                                        <h6 class="font-weight-bold mb-1 text-dark">@item.ProductName</h6>
+                                        <div class="d-flex flex-wrap mt-2">
+                                            @if (!string.IsNullOrEmpty(item.Size))
+                                            {
+                                                <span class="badge-variant mr-2 mb-1">Cỡ: @item.Size</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.Color))
+                                            {
+                                                <span class="badge-variant mb-1">Màu: @item.Color</span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-2 col-4 text-center">
+                                        <span class="text-muted d-block d-md-none small">Giá</span>
+                                        <h6 class="font-weight-bold mb-0 price-text">@item.Price.ToString("N0") VNĐ</h6>
+                                    </div>
+
+                                    <div class="col-md-2 col-4 text-center">
+                                        <span class="text-muted d-block d-md-none small">Số lượng</span>
+                                        <div class="d-flex align-items-center justify-content-center quantity"
+                                             data-id="@item.CartItemId">
+                                            <button class="btn btn-sm btn-qty btn-minus">
+                                                <i class="fa fa-minus"></i>
+                                            </button>
+                                            <input type="text" class="quantity-input text-center mx-1" value="@item.Quantity" readonly>
+                                            <button class="btn btn-sm btn-qty btn-plus">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-1 col-3 text-center">
+                                        <span class="text-muted d-block d-md-none small">Tổng</span>
+                                        <h6 class="font-weight-bold text-primary mb-0 price-text line-total"
+                                            data-id="@item.CartItemId">
+                                            @item.TotalLinePrice.ToString("N0") VNĐ
+                                        </h6>
+                                    </div>
+
+                                    <div class="col-md-1 col-1 text-right mt-3 mt-md-0">
+                                        <i class="fa fa-times-circle remove-btn" title="Xóa sản phẩm" data-id="@item.CartItemId"></i>
+                                    </div>
+                                </div>
+                            </div>
+                }
+
+                    <a asp-page="/Index" class="btn btn-outline-primary mt-4 py-2 px-4 shadow-sm" style="border-radius: 10px; font-weight: 600;">
+                        <i class="fa fa-arrow-left mr-2"></i> Tiếp tục mua sắm
+                    </a>
+                </div>
+
+                <!-- Summary -->
+                <div class="col-lg-4 mt-5 mt-lg-0">
+                    <div class="card summary-card p-4 shadow-sm">
+                        <h4 class="font-weight-bold mb-4 text-dark summary-title">Tổng đơn hàng</h4>
+
+                        <div class="d-flex justify-content-between mb-4 pt-2">
+                            <h5 class="font-weight-bold text-dark">Tổng cộng</h5>
+                            <h5 class="font-weight-bold text-primary" id="cartTotal">0 VNĐ</h5>
+                        </div>
+
+                        <form method="post" asp-page="/Payment/PayWithMomo" id="checkoutForm">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="selectedCartItemIds" id="selectedCartItemIds" />
+                            <div class="form-group mb-3">
+                                <label class="font-weight-bold">Địa chỉ giao hàng</label>
+                                <textarea id="shippingAddress"
+                                          name="shippingAddress"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Nhập địa chỉ giao hàng..."
+                                          required></textarea>
+                            </div>
+
+                            <button type="submit"
+                                    class="btn btn-primary btn-block py-3 checkout-btn shadow">
+                                TIẾN HÀNH THANH TOÁN
+                            </button>
+                        </form>
+
+
+                        <div class="text-center mt-4">
+                            <p class="small text-muted mb-2">Chúng tôi chấp nhận</p>
+                            <img src="/img/payments.png" class="img-fluid" alt="Phương thức thanh toán" style="max-width: 180px; opacity: 0.8;">
+                        </div>
+                    </div>
+                </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+        <script>
+                function getToken() {
+                    return $('input[name="__RequestVerificationToken"]').val() || $('input[name="__RequestVerificationToken"]').first().val();
+                }
+
+                $('.remove-btn').on('click', function () {
+                    var btn = $(this);
+                    var cartItemId = btn.data('id');
+                    var card = btn.closest('.cart-item-card');
+
+                    if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+                        $.ajax({
+                            url: '/Cart/Remove?id=' + cartItemId,
+                            type: 'POST',
+                            headers: {
+                                'RequestVerificationToken': getToken()
+                            },
+                            success: function (result) {
+                                if (result.success) {
+                                    card.fadeOut(300, function () {
+                                        $(this).remove();
+
+                                            updateTotal();
+                                        // Update total price
+                                        // $('.summary-card .text-primary').text(result.newCartTotal.toLocaleString('en-US') + ' VNĐ');
+
+                                        // Update item count in header
+                                        $('h4.font-weight-bold.text-dark:contains("Sản phẩm")').text('Sản phẩm (' + result.newItemCount + ')');
+
+                                        // Check if cart is empty
+                                        if (result.newItemCount === 0) {
+                                            location.reload(); // Simplest way to show the "empty cart" message
+                                        }
+                                    });
+                                } else {
+                                    alert(result.message || 'Có lỗi xảy ra khi xóa sản phẩm.');
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Status:', status);
+                                console.error('Error:', error);
+                                console.error('Response:', xhr.responseText);
+                                alert('Lỗi: ' + (xhr.responseJSON?.message || xhr.responseText || 'Không thể kết nối'));
+                            }
+                        });
+                    }
+                });
+        </script>
+
+    <script>
+        $('#checkoutForm').on('submit', function (e) {
+            var address = $('#shippingAddress').val().trim();
+
+            if (!address) {
+                e.preventDefault();
+                alert('Vui lòng nhập địa chỉ giao hàng');
+            }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+
+            $('.btn-plus, .btn-minus').on('click', function () {
+
+                const btn = $(this);
+                const container = btn.closest('.quantity');
+                const cartItemId = container.data('id');
+                const input = container.find('.quantity-input');
+
+                let oldVal = parseInt(input.val());
+                let newVal = oldVal;
+
+                if (btn.hasClass('btn-plus')) newVal++;
+                else if (oldVal > 1) newVal--;
+
+                if (newVal === oldVal) return;
+
+                btn.prop('disabled', true);
+
+                $.ajax({
+                    url: `/Cart/Update?id=${cartItemId}&quantity=${newVal}`,
+                    type: 'POST',
+                    headers: {
+                        'RequestVerificationToken': getToken()
+                    },
+                    success: function (res) {
+                        if (res.success) {
+
+                            // update quantity
+                            input.val(res.quantity);
+
+                            // update line total
+                            const lineTotalEl = $(`.line-total[data-id='${cartItemId}']`);
+                            lineTotalEl.text(res.lineTotal.toLocaleString('vi-VN') + ' VNĐ');
+
+                            const checkbox = $(`.select-item[data-id='${cartItemId}']`);
+                            checkbox.data('total', res.lineTotal);
+
+                            updateTotal();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        console.error('Response:', xhr.responseText);
+
+                        if (xhr.status === 401) {
+                            alert('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại');
+                            window.location.href = '/Authentication/Login';
+                        } else {
+                            alert('Lỗi: ' + (xhr.responseJSON?.message || 'Không thể cập nhật số lượng'));
+                        }
+                    },
+                    complete: function () {
+                        btn.prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Chọn từng sản phẩm
+            $('.select-item').on('change', function () {
+                updateTotal();
+
+                // sync select all
+                const allChecked = $('.select-item').length === $('.select-item:checked').length;
+                $('#selectAll').prop('checked', allChecked);
+            });
+
+            // Chọn tất cả
+            $('#selectAll').on('change', function () {
+                $('.select-item').prop('checked', this.checked);
+                updateTotal();
+            });
+        });
+    </script>
+
+    <script>
+        $('#checkoutForm').on('submit', function (e) {
+
+            const selectedIds = $('.select-item:checked')
+                .map(function () {
+                    return $(this).data('id');
+                }).get();
+
+            if (selectedIds.length === 0) {
+                e.preventDefault();
+                alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+                return;
+            }
+
+            $('#selectedCartItemIds').val(selectedIds.join(','));
+        });
+    </script>
+    
+    <script>
+        function updateTotal() {
+            let total = 0;
+
+            $('.select-item:checked').each(function () {
+                total += parseFloat($(this).data('total'));
+            });
+
+            $('#cartTotal').text(total.toLocaleString('vi-VN') + ' VNĐ');
+        }
+    </script>
+}
