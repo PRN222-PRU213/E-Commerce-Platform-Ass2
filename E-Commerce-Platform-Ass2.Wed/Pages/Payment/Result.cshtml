@@ -1,0 +1,45 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Payment.ResultModel
+@{
+    ViewData["Title"] = "Kết quả thanh toán";
+    Layout = "~/Pages/Shared/_EShopperLayout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+
+            @if (Model.IsSuccess)
+            {
+                <div class="alert alert-success">
+                    <h3 class="mb-3">🎉 Thanh toán thành công</h3>
+                    <p><strong>Mã đơn hàng:</strong> @Model.OrderId</p>
+                    <p><strong>Số tiền:</strong> @Model.Amount VND</p>
+                    <p><strong>Thông báo:</strong> @Model.Message</p>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    <h3 class="mb-3">❌ Thanh toán thất bại</h3>
+                    <p><strong>Mã đơn hàng:</strong> @Model.OrderId</p>
+                    <p><strong>Lý do:</strong> @Model.Message</p>
+                </div>
+            }
+
+            <div class="mt-4">
+                <a asp-page="/Index" class="btn btn-primary">
+                    Về trang chủ
+                </a>
+
+                @if (!Model.IsSuccess)
+                {
+                    <a asp-page="/Cart/Index" class="btn btn-warning ms-2">
+                        Quay về giỏ hàng
+                    </a>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
