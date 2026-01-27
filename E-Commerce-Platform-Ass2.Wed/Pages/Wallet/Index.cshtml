@@ -1,0 +1,72 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Wallet.IndexModel
+@{
+    ViewData["Title"] = "Ví của tôi";
+    Layout = "~/Pages/Shared/_EShopperLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-4 text-center">💼 Ví của tôi</h3>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+
+                    <!-- Balance -->
+                    <div class="text-center mb-4">
+                        <div class="text-muted mb-1">Số dư hiện tại</div>
+                        <h1 class="fw-bold text-success">
+                            @Model.ViewModel.Balance.ToString("N0") đ
+                        </h1>
+                    </div>
+
+                    <!-- Last change -->
+                    <div class="d-flex justify-content-between align-items-center bg-light rounded-3 p-3 mb-3">
+                        <div>
+                            <div class="small text-muted">Giao dịch gần nhất</div>
+
+                            @if (Model.ViewModel.LastChangeAmount.HasValue)
+                            {
+                                <span class="fw-semibold
+                                @(Model.ViewModel.LastChangeAmount > 0 ? "text-success" : "text-danger")">
+                                    @(Model.ViewModel.LastChangeAmount > 0 ? "+" : "")
+                                    @Model.ViewModel.LastChangeAmount.Value.ToString("N0") đ
+                                </span>
+                                <span class="badge bg-secondary ms-2">
+                                    @Model.ViewModel.LastChangeType
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">
+                                    Chưa có giao dịch
+                                </span>
+                            }
+                        </div>
+
+                        <i class="fas fa-exchange-alt fa-lg text-primary"></i>
+                    </div>
+
+                    <!-- Updated time -->
+                    <div class="text-center text-muted small mb-3">
+                        Cập nhật lúc:
+                        <strong>@Model.ViewModel.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</strong>
+                    </div>
+
+                    <hr />
+
+                    <!-- Info -->
+                    <div class="alert alert-info small mb-0 rounded-3">
+                        💡 <strong>Ví nội bộ</strong> được dùng để thanh toán đơn hàng.  
+                        Nếu số dư không đủ, hệ thống sẽ tự động chuyển sang
+                        <strong>MoMo</strong> để thanh toán phần còn thiếu.
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
