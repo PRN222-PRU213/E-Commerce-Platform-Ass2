@@ -1,0 +1,73 @@
+@page "{id:guid}"
+@model E_Commerce_Platform_Ass2.Wed.Pages.Admin.Categories.EditModel
+@{
+    ViewData["Title"] = "Chỉnh sửa danh mục";
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit mr-2"></i>Chỉnh sửa danh mục
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle mr-2"></i>@TempData["Error"]
+                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                        </div>
+                    }
+
+                    @if (Model.ProductCount > 0)
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Danh mục này đang có <strong>@Model.ProductCount sản phẩm</strong>.
+                        </div>
+                    }
+
+                    <form method="post">
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-tag text-primary mr-1"></i>Tên danh mục <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Input.Name" class="form-control" placeholder="Nhập tên danh mục..." />
+                            <span asp-validation-for="Input.Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-toggle-on text-primary mr-1"></i>Trạng thái
+                            </label>
+                            <select asp-for="Input.Status" class="form-control">
+                                <option value="Active" selected="@(Model.Input.Status == "Active")">Hoạt động</option>
+                                <option value="Inactive" selected="@(Model.Input.Status == "Inactive")">Ẩn</option>
+                            </select>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-page="/Admin/Categories/Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left mr-2"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

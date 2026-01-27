@@ -1,0 +1,130 @@
+@* Copied from Ass1 _AdminLayout, updated for Razor Pages routing *@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Panel</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @* ... giữ nguyên phần style như Ass1 ... *@
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <h4><i class="fas fa-shield-alt text-primary"></i> Admin Panel</h4>
+            <small>E-Commerce Platform</small>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-header">Tổng quan</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Admin") && Context.Request.Path == "/Admin" ? "active" : "")"
+                       asp-page="/Admin/Index">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="menu-header">Quản lý Shop</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Admin/Shops") ? "active" : "")"
+                       asp-page="/Admin/Shops/Index">
+                        <i class="fas fa-store"></i>
+                        <span>Tất cả Shop</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       asp-page="/Admin/Shops/Index" asp-route-status="Pending">
+                        <i class="fas fa-hourglass-half"></i>
+                        <span>Shop chờ duyệt</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="menu-header">Quản lý Sản phẩm</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Admin/Products/Index") ? "active" : "")"
+                       asp-page="/Admin/Products/Index">
+                        <i class="fas fa-box"></i>
+                        <span>Tất cả sản phẩm</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Admin/Products/Pending") ? "active" : "")"
+                       asp-page="/Admin/Products/Pending">
+                        <i class="fas fa-clock"></i>
+                        <span>Sản phẩm chờ duyệt</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="menu-header">Danh mục</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Admin/Categories") ? "active" : "")"
+                       asp-page="/Admin/Categories/Index">
+                        <i class="fas fa-tags"></i>
+                        <span>Danh mục</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                        <a asp-page="/Admin/Index">Admin</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        @ViewData["Title"]
+                    </li>
+                </ol>
+            </nav>
+
+            <div class="user-dropdown dropdown">
+                @if (User?.Identity?.IsAuthenticated ?? false)
+                {
+                    <a class="dropdown-toggle" href="#" id="userDropdown" data-bs-toggle="dropdown">
+                        <div class="user-avatar">
+                            @User.Identity!.Name?.FirstOrDefault()
+                        </div>
+                        <span>@User.Identity!.Name</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" asp-page="/Authentication/Profile">
+                            <i class="fas fa-user-circle me-2"></i>Hồ sơ
+                        </a>
+                        <form asp-page="/Authentication/Logout" method="post">
+                            <button type="submit" class="dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </header>
+
+        <section class="admin-content">
+            @RenderBody()
+        </section>
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
