@@ -378,5 +378,5 @@ FodyWeavers.xsd
 
 # Entity Framework Migrations
 # NOTE: Migrations are usually committed to version control for database schema tracking
-# Uncomment the line below if you want to ignore migrations (not recommended for most projects)
-# **/Migrations/
+# Ignoring migrations for Ass2 project (can be regenerated with dotnet ef migrations add)
+**/Migrations/
