@@ -1,4 +1,4 @@
-﻿namespace E_Commerce_Platform_Ass1.Data.Database.Entities
+﻿namespace E_Commerce_Platform_Ass2.Data.Database.Entities
 {
     public class OrderItem
     {
