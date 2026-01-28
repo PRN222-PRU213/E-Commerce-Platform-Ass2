@@ -1,8 +1,8 @@
-using E_Commerce_Platform_Ass1.Data.Database.Entities;
+using E_Commerce_Platform_Ass2.Data.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace E_Commerce_Platform_Ass1.Data.Database.Configurations
+namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
 {
     public class RoleConfiguration : IEntityTypeConfiguration<Role>
     {
