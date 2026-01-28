@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Quản lý đơn hàng";
     Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
-    var statistics = Model.Statistics ?? new E_Commerce_Platform_Ass2.Service.Services.ShopOrderStatistics();
+    var statistics = Model.Statistics ?? new E_Commerce_Platform_Ass2.Service.Services.IServices.ShopOrderStatistics();
     var currentStatus = Model.Status;
 }
 

@@ -1,4 +1,5 @@
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
+using E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions;
 using E_Commerce_Platform_Ass2.Wed.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;

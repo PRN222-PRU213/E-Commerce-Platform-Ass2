@@ -59,14 +59,6 @@ namespace E_Commerce_Platform_Ass2.Wed.Models
         public int TotalProductsSold { get; set; }
     }
 
-    public class DailySalesViewModel
-    {
-        public DateTime Date { get; set; }
-        public string DateLabel { get; set; } = string.Empty;
-        public int OrderCount { get; set; }
-        public decimal Revenue { get; set; }
-    }
-
     public class RecentOrderViewModel
     {
         public Guid Id { get; set; }

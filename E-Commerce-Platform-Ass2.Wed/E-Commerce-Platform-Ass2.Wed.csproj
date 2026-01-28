@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\E-Commerce-Platform-Ass2.Service\E-Commerce-Platform-Ass2.Service.csproj" />
+    <ProjectReference Include="..\E-Commerce-Platform-Ass2.Data\E-Commerce-Platform-Ass2.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

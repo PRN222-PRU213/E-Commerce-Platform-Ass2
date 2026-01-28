@@ -1,6 +1,7 @@
 using E_Commerce_Platform_Ass2.Data.Database;
 using E_Commerce_Platform_Ass2.Data.Momo;
 using E_Commerce_Platform_Ass2.Service.Common.Configurations;
+using E_Commerce_Platform_Ass2.Service.DTOs;
 using E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Configure Cloudinary
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings")
+);
+
+// Configure VNPT eKYC (optional - required if you enable KYC feature)
+builder.Services.Configure<VnptEKycConfig>(
+    builder.Configuration.GetSection("VnptEKyc")
 );
 
 // Register all repositories & services via extension method
