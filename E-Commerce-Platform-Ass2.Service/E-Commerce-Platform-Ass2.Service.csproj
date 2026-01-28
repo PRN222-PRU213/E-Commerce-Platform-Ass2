@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -9,6 +9,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\E-Commerce-Platform-Ass2.Data\E-Commerce-Platform-Ass2.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Use shared ASP.NET Core framework for Http abstractions on net9 -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+
+    <!-- Align to EFCore dependency versions to avoid NU1605 package downgrade -->
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.12" />
+
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="MailKit" Version="4.8.0" />
+    <PackageReference Include="MimeKit" Version="4.8.0" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="CloudinaryDotNet" Version="1.27.6" />
   </ItemGroup>
 
 </Project>
