@@ -1,8 +1,8 @@
-using E_Commerce_Platform_Ass1.Data.Database.Configurations;
-using E_Commerce_Platform_Ass1.Data.Database.Entities;
+using E_Commerce_Platform_Ass2.Data.Database.Configurations;
+using E_Commerce_Platform_Ass2.Data.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace E_Commerce_Platform_Ass1.Data.Database
+namespace E_Commerce_Platform_Ass2.Data.Database
 {
     public class ApplicationDbContext : DbContext
     {
@@ -25,6 +25,7 @@ namespace E_Commerce_Platform_Ass1.Data.Database
         public DbSet<Cart> Carts { get; set; }
         public DbSet<Refund> Refunds { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
+        public DbSet<EKycVerification> EKycVerifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
