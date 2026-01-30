@@ -11,11 +11,16 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Checkout
     {
         private readonly ICheckoutService _checkoutService;
         private readonly IUserService _userService;
+        private readonly IShopWalletService _shopWalletService;
 
-        public PaymentCallBackModel(ICheckoutService checkoutService, IUserService userService)
+        public PaymentCallBackModel(
+            ICheckoutService checkoutService, 
+            IUserService userService,
+            IShopWalletService shopWalletService)
         {
             _checkoutService = checkoutService;
             _userService = userService;
+            _shopWalletService = shopWalletService;
         }
 
         public bool IsSuccess { get; set; }
@@ -69,6 +74,9 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Checkout
                     walletUsed,
                     momoAmount
                 );
+
+                // ⭐ PHÂN PHỐI TIỀN CHO CÁC SHOP
+                await _shopWalletService.DistributeOrderPaymentAsync(newOrder.Id);
 
                 HttpContext.Session.Clear();
 

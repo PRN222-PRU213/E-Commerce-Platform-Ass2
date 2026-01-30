@@ -31,6 +31,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions
             serviceCollection.AddScoped<IShipmentRepository, ShipmentRepository>();
             serviceCollection.AddScoped<IRefundRepository, RefundRepository>();
             serviceCollection.AddScoped<IWalletRepository, WalletRepository>();
+            serviceCollection.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
             serviceCollection.AddScoped<IEKycRepository, EKycRepository>();
             serviceCollection.AddScoped<IReturnRequestRepository, ReturnRequestRepository>();
             serviceCollection.AddScoped<IShopWalletRepository, ShopWalletRepository>();

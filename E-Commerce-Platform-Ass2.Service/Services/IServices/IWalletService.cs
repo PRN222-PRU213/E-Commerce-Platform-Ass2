@@ -13,5 +13,15 @@ namespace E_Commerce_Platform_Ass2.Service.Services.IServices
         Task<WalletDto> GetOrCreateAsync(Guid userId);
         Task RefundAsync(Guid userId, decimal amount);
         Task<WalletPaymentResultDto> PayAsync(Guid userId, decimal amount);
+        
+        /// <summary>
+        /// Nạp tiền vào ví
+        /// </summary>
+        Task<WalletDto> TopUpAsync(Guid userId, decimal amount, string? referenceId = null);
+        
+        /// <summary>
+        /// Lấy lịch sử giao dịch ví
+        /// </summary>
+        Task<List<WalletTransactionDto>> GetTransactionsAsync(Guid userId, int take = 20);
     }
 }

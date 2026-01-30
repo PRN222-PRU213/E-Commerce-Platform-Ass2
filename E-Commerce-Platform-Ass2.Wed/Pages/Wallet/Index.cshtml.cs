@@ -29,13 +29,18 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Wallet
             }
 
             var walletDto = await _walletService.GetOrCreateAsync(userId);
+            
+            // Lấy transactions gần đây (10 transactions)
+            // ⚠️ LƯU Ý: Method GetTransactionsAsync cần được thêm vào IWalletService và WalletService
+            var transactions = await _walletService.GetTransactionsAsync(userId, 10);
 
             ViewModel = new WalletViewModel
             {
                 Balance = walletDto.Balance,
                 UpdatedAt = walletDto.UpdatedAt,
                 LastChangeAmount = walletDto.LastChangeAmount,
-                LastChangeType = walletDto.LastChangeType
+                LastChangeType = walletDto.LastChangeType,
+                Transactions = transactions
             };
 
             return Page();

@@ -1,0 +1,61 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Wallet.TopUpCallbackModel
+@{
+    ViewData["Title"] = Model.ViewModel.IsSuccess ? "Nạp tiền thành công" : "Nạp tiền thất bại";
+    Layout = "~/Pages/Shared/_EShopperLayout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 text-center">
+                <div class="card-body p-5">
+                    @if (Model.ViewModel.IsSuccess)
+                    {
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle text-success" style="font-size: 80px;"></i>
+                        </div>
+                        
+                        <h3 class="text-success mb-3">Nạp tiền thành công!</h3>
+                        
+                        <div class="bg-light rounded-3 p-4 mb-4">
+                            <div class="mb-2">
+                                <span class="text-muted">Số tiền nạp:</span>
+                                <strong class="text-success fs-4">+@Model.ViewModel.Amount.ToString("N0") VNĐ</strong>
+                            </div>
+                            <hr />
+                            <div>
+                                <span class="text-muted">Số dư mới:</span>
+                                <strong class="fs-4">@Model.ViewModel.NewBalance.ToString("N0") VNĐ</strong>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-4">
+                            <i class="fas fa-times-circle text-danger" style="font-size: 80px;"></i>
+                        </div>
+                        
+                        <h3 class="text-danger mb-3">Nạp tiền thất bại</h3>
+                        
+                        <div class="alert alert-danger">
+                            @Model.ViewModel.Message
+                        </div>
+                    }
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a asp-page="/Wallet/Index" class="btn btn-primary btn-lg">
+                            <i class="fas fa-wallet me-2"></i>Quay lại ví
+                        </a>
+                        @if (Model.ViewModel.IsSuccess)
+                        {
+                            <a asp-page="/Wallet/TopUp" class="btn btn-outline-primary">
+                                <i class="fas fa-plus-circle me-2"></i>Nạp thêm
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
