@@ -14,6 +14,11 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
 
         public DateTime CreatedAt { get; set; }
 
+        /// <summary>
+        /// Thời điểm đơn hàng được hoàn thành (dùng để tính deadline hoàn tiền)
+        /// </summary>
+        public DateTime? CompletedAt { get; set; }
+
         // Navigation property
         public User User { get; set; } = null!;
 

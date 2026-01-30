@@ -1,0 +1,107 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.Wallet.TransactionsModel
+@{
+    ViewData["Title"] = "Lịch sử giao dịch - Ví Shop";
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+}
+
+<!-- Page Header -->
+<div class="container-fluid bg-secondary mb-4">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">
+            <i class="fas fa-history text-primary mr-2"></i>Lịch sử giao dịch
+        </h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Shop/ViewShop" class="text-dark">Dashboard</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0"><a asp-page="/Shop/Wallet/Index" class="text-dark">Ví Shop</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Lịch sử</p>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid py-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list mr-2"></i>Tất cả giao dịch (@Model.Transactions.Count)</h5>
+            <a asp-page="/Shop/Wallet/Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left mr-1"></i> Quay lại
+            </a>
+        </div>
+        <div class="card-body">
+            @if (Model.Transactions.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Ngày giờ</th>
+                                <th>Loại giao dịch</th>
+                                <th>Mô tả</th>
+                                <th>Mã đơn hàng</th>
+                                <th class="text-right">Số tiền</th>
+                                <th class="text-right">Số dư sau</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tx in Model.Transactions)
+                            {
+                                var isPositive = tx.Amount > 0;
+                                <tr>
+                                    <td>@tx.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @switch (tx.TransactionType)
+                                        {
+                                            case "Sale":
+                                                <span class="badge badge-success"><i class="fas fa-plus mr-1"></i>Bán hàng</span>
+                                                break;
+                                            case "Refund":
+                                                <span class="badge badge-warning"><i class="fas fa-undo mr-1"></i>Hoàn tiền</span>
+                                                break;
+                                            case "Withdrawal":
+                                                <span class="badge badge-info"><i class="fas fa-money-bill-wave mr-1"></i>Rút tiền</span>
+                                                break;
+                                            default:
+                                                <span class="badge badge-secondary">@tx.TransactionType</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>@tx.Description</td>
+                                    <td>
+                                        @if (tx.OrderId.HasValue)
+                                        {
+                                            <a asp-page="/Shop/Orders/Detail" asp-route-id="@tx.OrderId" class="text-primary">
+                                                #@tx.OrderId.Value.ToString()[..8].ToUpper()
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-right">
+                                        <strong class="@(isPositive ? "text-success" : "text-danger")">
+                                            @(isPositive ? "+" : "")@tx.Amount.ToString("N0") VNĐ
+                                        </strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <span class="text-muted">@tx.BalanceAfter.ToString("N0") VNĐ</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Chưa có giao dịch nào</h5>
+                    <p class="text-muted">Giao dịch sẽ xuất hiện khi có khách hàng mua sản phẩm của bạn.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -26,6 +26,9 @@ namespace E_Commerce_Platform_Ass2.Data.Database
         public DbSet<Refund> Refunds { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<EKycVerification> EKycVerifications { get; set; }
+        public DbSet<ReturnRequest> ReturnRequests { get; set; } = null!;
+        public DbSet<ShopWallet> ShopWallets { get; set; } = null!;
+        public DbSet<ShopWalletTransaction> ShopWalletTransactions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,6 +50,9 @@ namespace E_Commerce_Platform_Ass2.Data.Database
             modelBuilder.ApplyConfiguration(new CartConfiguration());
             modelBuilder.ApplyConfiguration(new RefundConfiguration());
             modelBuilder.ApplyConfiguration(new WalletConfiguration());
+            modelBuilder.ApplyConfiguration(new ReturnRequestConfiguration());
+            modelBuilder.ApplyConfiguration(new ShopWalletConfiguration());
+            modelBuilder.ApplyConfiguration(new ShopWalletTransactionConfiguration());
         }
     }
 }

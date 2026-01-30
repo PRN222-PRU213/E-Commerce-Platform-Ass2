@@ -1,0 +1,156 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.Wallet.IndexModel
+@{
+    ViewData["Title"] = "Ví Shop";
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+}
+
+<!-- Page Header -->
+<div class="container-fluid bg-secondary mb-4">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">
+            <i class="fas fa-wallet text-primary mr-2"></i>Ví Shop
+        </h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Shop/ViewShop" class="text-dark">Dashboard</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Ví Shop</p>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid py-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle mr-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle mr-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Balance Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <i class="fas fa-wallet fa-3x text-primary"></i>
+                    </div>
+                    <h6 class="text-muted mb-2">Số dư hiện tại</h6>
+                    <h2 class="font-weight-bold text-success mb-0">
+                        @Model.ViewModel.Balance.ToString("N0") <small>VNĐ</small>
+                    </h2>
+                    <p class="text-muted mt-2 mb-4">@Model.ViewModel.ShopName</p>
+                    <a asp-page="/Shop/Wallet/Transactions" class="btn btn-outline-primary">
+                        <i class="fas fa-history mr-1"></i> Xem lịch sử
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history mr-2"></i>Giao dịch gần đây</h5>
+                    <a asp-page="/Shop/Wallet/Transactions" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                </div>
+                <div class="card-body">
+                    @if (Model.ViewModel.RecentTransactions.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Ngày</th>
+                                        <th>Loại</th>
+                                        <th>Mô tả</th>
+                                        <th class="text-right">Số tiền</th>
+                                        <th class="text-right">Số dư sau</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var tx in Model.ViewModel.RecentTransactions)
+                                    {
+                                        var isPositive = tx.Amount > 0;
+                                        <tr>
+                                            <td>@tx.CreatedAt.ToString("dd/MM HH:mm")</td>
+                                            <td>
+                                                @switch (tx.TransactionType)
+                                                {
+                                                    case "Sale":
+                                                        <span class="badge badge-success">Bán hàng</span>
+                                                        break;
+                                                    case "Refund":
+                                                        <span class="badge badge-warning">Hoàn tiền</span>
+                                                        break;
+                                                    case "Withdrawal":
+                                                        <span class="badge badge-info">Rút tiền</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge badge-secondary">@tx.TransactionType</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                <small>@tx.Description</small>
+                                            </td>
+                                            <td class="text-right">
+                                                <strong class="@(isPositive ? "text-success" : "text-danger")">
+                                                    @(isPositive ? "+" : "")@tx.Amount.ToString("N0")
+                                                </strong>
+                                            </td>
+                                            <td class="text-right text-muted">@tx.BalanceAfter.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">Chưa có giao dịch nào</h6>
+                            <p class="text-muted small">Giao dịch sẽ xuất hiện khi có khách hàng mua sản phẩm của bạn.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar mr-2"></i>Thống kê nhanh</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h4 class="text-success">@Model.ViewModel.RecentTransactions.Where(t => t.TransactionType == "Sale").Sum(t => t.Amount).ToString("N0") VNĐ</h4>
+                            <small class="text-muted">Tổng doanh thu (hiển thị)</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h4 class="text-warning">@Model.ViewModel.RecentTransactions.Count(t => t.TransactionType == "Sale")</h4>
+                            <small class="text-muted">Số đơn hàng (hiển thị)</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h4 class="text-danger">@Math.Abs(Model.ViewModel.RecentTransactions.Where(t => t.TransactionType == "Refund").Sum(t => t.Amount)).ToString("N0") VNĐ</h4>
+                            <small class="text-muted">Đã hoàn tiền (hiển thị)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

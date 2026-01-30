@@ -1,0 +1,130 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.ReturnRequest.IndexModel
+
+@{
+    ViewData["Title"] = "Yêu cầu đổi trả của tôi";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-undo-alt me-2"></i>Yêu cầu đổi trả của tôi
+        </h2>
+        <a asp-page="/Order/History" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại Lịch sử đơn hàng
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Requests.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">Bạn chưa có yêu cầu đổi trả nào</h5>
+            <p class="text-muted">Nếu có vấn đề với đơn hàng, bạn có thể tạo yêu cầu từ trang Lịch sử đơn hàng</p>
+            <a asp-page="/Order/History" class="btn btn-primary mt-2">
+                <i class="fas fa-history me-1"></i> Xem lịch sử đơn hàng
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var request in Model.Requests)
+            {
+                <div class="col-12 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                            <div>
+                                <span class="fw-bold">Yêu cầu #@request.Id.ToString().Substring(0, 8).ToUpper()</span>
+                                <span class="text-muted ms-2">| Đơn hàng #@request.OrderId.ToString().Substring(0, 8).ToUpper()</span>
+                            </div>
+                            <div>
+                                @{
+                                    var statusClass = request.Status switch
+                                    {
+                                        "Pending" => "warning",
+                                        "Approved" => "success",
+                                        "Rejected" => "danger",
+                                        _ => "secondary"
+                                    };
+                                    var statusText = request.Status switch
+                                    {
+                                        "Pending" => "Đang chờ xử lý",
+                                        "Approved" => "Đã duyệt",
+                                        "Rejected" => "Đã từ chối",
+                                        _ => request.Status
+                                    };
+                                }
+                                <span class="badge bg-@statusClass">@statusText</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <p class="mb-1">
+                                        <strong>Loại yêu cầu:</strong> 
+                                        @(request.RequestType == "Return" ? "Trả hàng + Hoàn tiền" : "Chỉ hoàn tiền")
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Lý do:</strong> 
+                                        @(request.Reason switch
+                                        {
+                                            "Defective" => "Sản phẩm bị lỗi/hỏng",
+                                            "WrongItem" => "Giao sai sản phẩm",
+                                            "NotAsDescribed" => "Không đúng mô tả",
+                                            "ChangeOfMind" => "Đổi ý không muốn mua nữa",
+                                            _ => request.Reason
+                                        })
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(request.ShopResponse))
+                                    {
+                                        <p class="mb-1">
+                                            <strong>Phản hồi từ Shop:</strong> @request.ShopResponse
+                                        </p>
+                                    }
+                                </div>
+                                <div class="col-md-4 text-md-end">
+                                    <p class="mb-1">
+                                        <strong>Số tiền yêu cầu:</strong> 
+                                        <span class="text-primary fw-bold">@request.RequestedAmount.ToString("N0") VNĐ</span>
+                                    </p>
+                                    @if (request.ApprovedAmount.HasValue)
+                                    {
+                                        <p class="mb-1">
+                                            <strong>Số tiền được duyệt:</strong> 
+                                            <span class="text-success fw-bold">@request.ApprovedAmount.Value.ToString("N0") VNĐ</span>
+                                        </p>
+                                    }
+                                    <p class="mb-1 text-muted small">
+                                        Tạo lúc: @request.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <a asp-page="/ReturnRequest/Detail" asp-route-id="@request.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i> Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

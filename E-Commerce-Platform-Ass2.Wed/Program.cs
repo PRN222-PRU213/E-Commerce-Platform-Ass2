@@ -46,6 +46,11 @@ builder.Services.Configure<VnptEKycConfig>(
     builder.Configuration.GetSection("VnptEKyc")
 );
 
+// Configure RefundBusinessRules
+builder.Services.Configure<E_Commerce_Platform_Ass2.Service.Options.RefundBusinessRules>(
+    builder.Configuration.GetSection(E_Commerce_Platform_Ass2.Service.Options.RefundBusinessRules.SectionName)
+);
+
 // Register all repositories & services via extension method
 builder.Services.AddService();
 

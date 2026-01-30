@@ -1,0 +1,126 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.ReturnRequest.CreateModel
+
+@{
+    ViewData["Title"] = "Yêu cầu đổi trả/hoàn tiền";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-undo-alt me-2"></i>Yêu cầu đổi trả/hoàn tiền
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                        </div>
+                    }
+
+                    <!-- Order Info -->
+                    <div class="alert alert-info mb-4">
+                        <h6 class="mb-2"><i class="fas fa-shopping-bag me-2"></i>Thông tin đơn hàng</h6>
+                        <p class="mb-1">
+                            <strong>Mã đơn hàng:</strong> #@Model.Input.OrderId.ToString().Substring(0, 8).ToUpper()
+                        </p>
+                        <p class="mb-1">
+                            <strong>Ngày đặt:</strong> @Model.Input.OrderDate.ToString("dd/MM/yyyy HH:mm")
+                        </p>
+                        <p class="mb-0">
+                            <strong>Tổng giá trị:</strong> 
+                            <span class="fw-bold text-primary">@Model.Input.TotalAmount.ToString("N0") VNĐ</span>
+                        </p>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Sản phẩm trong đơn hàng:</h6>
+                        @foreach (var item in Model.Input.Items)
+                        {
+                            <div class="d-flex align-items-center mb-2 p-2 border rounded">
+                                <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/images/no-image.png" : item.ImageUrl)" 
+                                     alt="@item.ProductName" 
+                                     class="rounded me-3" 
+                                     style="width: 60px; height: 60px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">@item.ProductName</h6>
+                                    <small class="text-muted">
+                                        @if (!string.IsNullOrEmpty(item.Size)) { <span>Size: @item.Size</span> }
+                                        @if (!string.IsNullOrEmpty(item.Color)) { <span class="ms-2">Màu: @item.Color</span> }
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <span>@item.Price.ToString("N0") VNĐ x @item.Quantity</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr>
+
+                    <!-- Return Request Form -->
+                    <form method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="Input.OrderId" />
+                        <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.RequestType" class="form-label">Loại yêu cầu <span class="text-danger">*</span></label>
+                            <select asp-for="Input.RequestType" class="form-select">
+                                @foreach (var option in CreateReturnRequestViewModel.RequestTypeOptions)
+                                {
+                                    <option value="@option.Value">@option.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Input.RequestType" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Reason" class="form-label">Lý do <span class="text-danger">*</span></label>
+                            <select asp-for="Input.Reason" class="form-select">
+                                <option value="">-- Chọn lý do --</option>
+                                @foreach (var option in CreateReturnRequestViewModel.ReasonOptions)
+                                {
+                                    <option value="@option.Value">@option.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Input.Reason" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.ReasonDetail" class="form-label">Chi tiết lý do</label>
+                            <textarea asp-for="Input.ReasonDetail" class="form-control" rows="3" 
+                                      placeholder="Mô tả chi tiết vấn đề bạn gặp phải..."></textarea>
+                            <span asp-validation-for="Input.ReasonDetail" class="text-danger"></span>
+                        </div>
+
+                        <input type="hidden" asp-for="Input.RequestedAmount" value="@Model.Input.TotalAmount" />
+
+                        <div class="mb-4">
+                            <label class="form-label">Hình ảnh bằng chứng (tối đa 5 ảnh)</label>
+                            <input type="file" name="evidenceImages" class="form-control" multiple accept="image/*" />
+                            <small class="text-muted">Chụp ảnh sản phẩm bị lỗi, hóa đơn, hoặc bằng chứng liên quan</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i> Gửi yêu cầu
+                            </button>
+                            <a asp-page="/Order/History" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
