@@ -118,6 +118,10 @@
                 <a asp-page="./Index" asp-route-status="Cancelled" class="btn @(currentStatus == "Cancelled" ? "btn-danger" : "btn-outline-danger")">
                     <i class="fas fa-times-circle"></i> Đã hủy
                 </a>
+                <span class="border-start mx-2"></span>
+                <a asp-page="./ReturnRequests" class="btn btn-outline-warning">
+                    <i class="fas fa-exchange-alt"></i> Yêu cầu hoàn trả
+                </a>
             </div>
         </div>
     </div>
