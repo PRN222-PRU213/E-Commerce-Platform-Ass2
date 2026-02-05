@@ -1,11 +1,14 @@
 using System.Security.Claims;
 using E_Commerce_Platform_Ass2.Service.DTOs;
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
+using E_Commerce_Platform_Ass2.Wed.Hubs;
 using E_Commerce_Platform_Ass2.Wed.Models;
+using E_Commerce_Platform_Ass2.Wed.Models.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 
 namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
 {
@@ -14,11 +17,17 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
     {
         private readonly IProductService _productService;
         private readonly IShopService _shopService;
+        private readonly IHubContext<NotificationHub, INotificationClient> _hubContext;
 
-        public CreateModel(IProductService productService, IShopService shopService)
+        public CreateModel(
+            IProductService productService,
+            IShopService shopService,
+            IHubContext<NotificationHub, INotificationClient> hubContext
+        )
         {
             _productService = productService;
             _shopService = shopService;
+            _hubContext = hubContext;
         }
 
         [BindProperty]
@@ -106,10 +115,25 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
                 return Page();
             }
 
+            var message = new ProductChangedMessage
+            {
+                ProductId = result.Data,
+                ShopId = shop.Id,
+                ChangeType = "created",
+                Status = "draft",
+                Name = Input.Name,
+                TriggeredBy = User.Identity?.Name,
+            };
+
+            await Task.WhenAll(
+                _hubContext.Clients.Group($"shop-{shop.Id}").ProductChanged(message),
+                _hubContext.Clients.Group("admins").ProductChanged(message),
+                _hubContext.Clients.Group($"user-{userId}").ProductChanged(message)
+            );
+
             TempData["SuccessMessage"] =
                 "Tạo sản phẩm thành công! Vui lòng thêm biến thể cho sản phẩm.";
             return RedirectToPage("/Shop/Products/Edit", new { id = result.Data });
         }
     }
 }
-

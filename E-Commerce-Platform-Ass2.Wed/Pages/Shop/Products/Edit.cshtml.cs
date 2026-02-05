@@ -1,11 +1,14 @@
 using System.Security.Claims;
 using E_Commerce_Platform_Ass2.Service.DTOs;
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
+using E_Commerce_Platform_Ass2.Wed.Hubs;
 using E_Commerce_Platform_Ass2.Wed.Models;
+using E_Commerce_Platform_Ass2.Wed.Models.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 
 namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
 {
@@ -15,16 +18,19 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
         private readonly IProductService _productService;
         private readonly IProductVariantService _productVariantService;
         private readonly IShopService _shopService;
+        private readonly IHubContext<NotificationHub, INotificationClient> _hubContext;
 
         public EditModel(
             IProductService productService,
             IProductVariantService productVariantService,
-            IShopService shopService
+            IShopService shopService,
+            IHubContext<NotificationHub, INotificationClient> hubContext
         )
         {
             _productService = productService;
             _productVariantService = productVariantService;
             _shopService = shopService;
+            _hubContext = hubContext;
         }
 
         [BindProperty]
@@ -152,6 +158,31 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
             }
         }
 
+        private Task NotifyProductChangedAsync(
+            Guid productId,
+            Guid shopId,
+            string changeType,
+            string? status = null,
+            string? name = null
+        )
+        {
+            var message = new ProductChangedMessage
+            {
+                ProductId = productId,
+                ShopId = shopId,
+                ChangeType = changeType,
+                Status = status,
+                Name = name ?? Input.Name,
+                TriggeredBy = User.Identity?.Name,
+            };
+
+            return Task.WhenAll(
+                _hubContext.Clients.Group($"shop-{shopId}").ProductChanged(message),
+                _hubContext.Clients.Group("admins").ProductChanged(message),
+                _hubContext.Clients.Group($"user-{GetCurrentUserId()}").ProductChanged(message)
+            );
+        }
+
         public async Task<IActionResult> OnPostUpdateAsync(Guid id)
         {
             var (ok, shop) = await GetCurrentUserShopAsync();
@@ -186,6 +217,8 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
                 return Page();
             }
 
+            await NotifyProductChangedAsync(id, shop.Id, "updated", Input.Status, Input.Name);
+
             TempData["SuccessMessage"] = "Cập nhật thông tin sản phẩm thành công!";
             return RedirectToPage("/Shop/Products/Edit", new { id });
         }
@@ -208,6 +241,13 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
             {
                 TempData["SuccessMessage"] =
                     "Đã gửi sản phẩm để duyệt thành công! Vui lòng chờ admin phê duyệt.";
+                await NotifyProductChangedAsync(
+                    id,
+                    shop.Id,
+                    "statusChanged",
+                    "pending",
+                    Input.Name
+                );
             }
 
             return RedirectToPage("/Shop/Products/Edit", new { id });
@@ -231,6 +271,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
             {
                 TempData["SuccessMessage"] =
                     "Đã gỡ sản phẩm thành công! Bạn có thể chỉnh sửa và gửi duyệt lại.";
+                await NotifyProductChangedAsync(id, shop.Id, "statusChanged", "draft", Input.Name);
             }
 
             return RedirectToPage("/Shop/Products/Edit", new { id });
@@ -259,4 +300,3 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
         }
     }
 }
-
