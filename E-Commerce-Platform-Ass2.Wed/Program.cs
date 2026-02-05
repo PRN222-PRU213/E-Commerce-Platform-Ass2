@@ -13,6 +13,7 @@ builder.Services.Configure<MomoConfig>(builder.Configuration.GetSection("MomoAPI
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
 
 // Sessions
 builder.Services.AddDistributedMemoryCache();
@@ -42,13 +43,13 @@ builder.Services.Configure<CloudinarySettings>(
 );
 
 // Configure VNPT eKYC (optional - required if you enable KYC feature)
-builder.Services.Configure<VnptEKycConfig>(
-    builder.Configuration.GetSection("VnptEKyc")
-);
+builder.Services.Configure<VnptEKycConfig>(builder.Configuration.GetSection("VnptEKyc"));
 
 // Configure RefundBusinessRules
 builder.Services.Configure<E_Commerce_Platform_Ass2.Service.Options.RefundBusinessRules>(
-    builder.Configuration.GetSection(E_Commerce_Platform_Ass2.Service.Options.RefundBusinessRules.SectionName)
+    builder.Configuration.GetSection(
+        E_Commerce_Platform_Ass2.Service.Options.RefundBusinessRules.SectionName
+    )
 );
 
 // Register all repositories & services via extension method
@@ -73,7 +74,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
-app.MapRazorPages()
-   .WithStaticAssets();
+app.MapRazorPages().WithStaticAssets();
+
+app.MapHub<E_Commerce_Platform_Ass2.Wed.Hubs.NotificationHub>("/hubs/notifications");
 
 app.Run();
