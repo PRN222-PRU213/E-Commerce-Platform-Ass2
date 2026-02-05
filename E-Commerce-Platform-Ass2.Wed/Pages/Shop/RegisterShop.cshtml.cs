@@ -11,10 +11,12 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop
     public class RegisterShopModel : PageModel
     {
         private readonly IShopService _shopService;
+        private readonly IEkycService _eKycService;
 
-        public RegisterShopModel(IShopService shopService)
+        public RegisterShopModel(IShopService shopService, IEkycService eKycService)
         {
             _shopService = shopService;
+            _eKycService = eKycService;
         }
 
         [BindProperty]
@@ -35,6 +37,14 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop
                 TempData["ErrorMessage"] =
                     "Bạn đã có shop rồi. Mỗi tài khoản chỉ được đăng ký một shop.";
                 return RedirectToPage("/Authentication/Profile");
+            }
+
+            // Kiểm tra KYC
+            var isVerified = await _eKycService.IsUserVerifiedAsync(userId);
+            if (!isVerified)
+            {
+                TempData["ErrorMessage"] = "Bạn cần xác thực danh tính (KYC) trước khi đăng ký shop.";
+                return RedirectToPage("/KYC/Index");
             }
 
             return Page();

@@ -22,6 +22,16 @@
                         </h1>
                     </div>
 
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-center gap-3 mb-4">
+                        <a asp-page="/Wallet/TopUp" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus-circle me-2"></i>Nạp tiền
+                        </a>
+                        <a asp-page="/Wallet/Transactions" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-history me-2"></i>Lịch sử
+                        </a>
+                    </div>
+
                     <!-- Last change -->
                     <div class="d-flex justify-content-between align-items-center bg-light rounded-3 p-3 mb-3">
                         <div>
@@ -54,6 +64,33 @@
                         Cập nhật lúc:
                         <strong>@Model.ViewModel.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</strong>
                     </div>
+
+                    <!-- Recent Transactions -->
+                    @if (Model.ViewModel.Transactions.Any())
+                    {
+                        <hr />
+                        <h6 class="mb-3">Giao dịch gần đây</h6>
+                        <div class="list-group list-group-flush">
+                            @foreach (var tx in Model.ViewModel.Transactions.Take(5))
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <div>
+                                        <span class="badge @(tx.TransactionType == "TopUp" ? "bg-success" : tx.TransactionType == "Refund" ? "bg-info" : "bg-warning")">
+                                            @tx.TransactionType
+                                        </span>
+                                        <small class="text-muted ms-2">@tx.Description</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-semibold @(tx.Amount > 0 ? "text-success" : "text-danger")">
+                                            @(tx.Amount > 0 ? "+" : "")@tx.Amount.ToString("N0") đ
+                                        </span>
+                                        <br />
+                                        <small class="text-muted">@tx.CreatedAt.ToString("dd/MM HH:mm")</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
 
                     <hr />
 

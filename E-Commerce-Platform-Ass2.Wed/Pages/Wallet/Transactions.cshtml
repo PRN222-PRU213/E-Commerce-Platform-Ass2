@@ -1,0 +1,84 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Wallet.TransactionsModel
+@using E_Commerce_Platform_Ass2.Service.DTOs
+@{
+    ViewData["Title"] = "Lịch sử giao dịch";
+    Layout = "~/Pages/Shared/_EShopperLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-4 text-center">📋 Lịch sử giao dịch</h3>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <a asp-page="/Wallet/Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại ví
+                        </a>
+                        <a asp-page="/Wallet/TopUp" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Nạp tiền
+                        </a>
+                    </div>
+
+                    @if (Model.Transactions.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Thời gian</th>
+                                        <th>Loại</th>
+                                        <th>Mô tả</th>
+                                        <th class="text-end">Số tiền</th>
+                                        <th class="text-end">Số dư sau</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var tx in Model.Transactions)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <small>@tx.CreatedAt.ToString("dd/MM/yyyy")</small><br />
+                                                <small class="text-muted">@tx.CreatedAt.ToString("HH:mm:ss")</small>
+                                            </td>
+                                            <td>
+                                                @{
+                                                    var badgeClass = tx.TransactionType switch
+                                                    {
+                                                        "TopUp" => "bg-success",
+                                                        "Refund" => "bg-info",
+                                                        "Payment" => "bg-warning",
+                                                        _ => "bg-secondary"
+                                                    };
+                                                }
+                                                <span class="badge @badgeClass">@tx.TransactionType</span>
+                                            </td>
+                                            <td>@tx.Description</td>
+                                            <td class="text-end">
+                                                <span class="fw-semibold @(tx.Amount > 0 ? "text-success" : "text-danger")">
+                                                    @(tx.Amount > 0 ? "+" : "")@tx.Amount.ToString("N0") đ
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong>@tx.BalanceAfter.ToString("N0") đ</strong>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                            <p class="text-muted">Chưa có giao dịch nào</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
