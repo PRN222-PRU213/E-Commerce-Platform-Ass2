@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Admin Panel</title>
+    <title>@ViewData["Title"] - Trang quản trị</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -15,8 +15,8 @@
     <!-- Sidebar -->
     <aside class="admin-sidebar">
         <div class="sidebar-brand">
-            <h4><i class="fas fa-shield-alt text-primary"></i> Admin Panel</h4>
-            <small>E-Commerce Platform</small>
+            <h4><i class="fas fa-shield-alt text-primary"></i> Trang quản trị</h4>
+            <small>Nền tảng thương mại điện tử</small>
         </div>
 
         <nav class="sidebar-menu">
@@ -26,7 +26,7 @@
                     <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Admin") && Context.Request.Path == "/Admin" ? "active" : "")"
                        asp-page="/Admin/Index">
                         <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
+                        <span>Bảng điều khiển</span>
                     </a>
                 </li>
             </ul>

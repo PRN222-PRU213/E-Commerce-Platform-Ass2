@@ -4,7 +4,7 @@
 @inject ICartService CartService
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     @await Html.PartialAsync("Partials/_Head")
     
@@ -31,11 +31,11 @@
         <div class="row bg-secondary py-2 px-xl-5">
             <div class="col-lg-6 d-none d-lg-block">
                 <div class="d-inline-flex align-items-center">
-                    <a class="text-dark" href="">FAQs</a>
+                    <a class="text-dark" href="">Câu hỏi thường gặp</a>
                     <span class="text-muted px-2">|</span>
-                    <a class="text-dark" href="">Help</a>
+                    <a class="text-dark" href="">Trợ giúp</a>
                     <span class="text-muted px-2">|</span>
-                    <a class="text-dark" href="">Support</a>
+                    <a class="text-dark" href="">Hỗ trợ</a>
                 </div>
             </div>
             <div class="col-lg-6 text-center text-lg-right">
@@ -69,7 +69,7 @@
                 {
                     <form action="">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Search for products">
+                            <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm">
                             <div class="input-group-append">
                                 <span class="input-group-text bg-transparent text-primary">
                                     <i class="fa fa-search"></i>
@@ -105,20 +105,20 @@
         <div class="row border-top px-xl-5">
             <div class="col-lg-3 d-none d-lg-block">
                 <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100" data-toggle="collapse" href="#navbar-vertical" style="height: 65px; margin-top: -1px; padding: 0 30px;">
-                    <h6 class="m-0">Categories</h6>
+                    <h6 class="m-0">Danh mục</h6>
                     <i class="fa fa-angle-down text-dark"></i>
                 </a>
                 <nav class="collapse show navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0" id="navbar-vertical">
                     <div class="navbar-nav w-100 overflow-hidden" style="height: 410px">
-                        <a href="" class="nav-item nav-link">Shirts</a>
-                        <a href="" class="nav-item nav-link">Jeans</a>
-                        <a href="" class="nav-item nav-link">Swimwear</a>
-                        <a href="" class="nav-item nav-link">Sleepwear</a>
-                        <a href="" class="nav-item nav-link">Sportswear</a>
-                        <a href="" class="nav-item nav-link">Jumpsuits</a>
-                        <a href="" class="nav-item nav-link">Blazers</a>
-                        <a href="" class="nav-item nav-link">Jackets</a>
-                        <a href="" class="nav-item nav-link">Shoes</a>
+                        <a href="" class="nav-item nav-link">Áo sơ mi</a>
+                        <a href="" class="nav-item nav-link">Quần jeans</a>
+                        <a href="" class="nav-item nav-link">Đồ bơi</a>
+                        <a href="" class="nav-item nav-link">Đồ ngủ</a>
+                        <a href="" class="nav-item nav-link">Đồ thể thao</a>
+                        <a href="" class="nav-item nav-link">Đồ liền thân</a>
+                        <a href="" class="nav-item nav-link">Áo blazer</a>
+                        <a href="" class="nav-item nav-link">Áo khoác</a>
+                        <a href="" class="nav-item nav-link">Giày dép</a>
                     </div>
                 </nav>
             </div>
@@ -132,11 +132,11 @@
                     </button>
                     <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
                         <div class="navbar-nav mr-auto py-0">
-                            <a asp-page="/Index" class="nav-item nav-link active">Home</a>
-                            <a href="" class="nav-item nav-link">Shop</a>
-                            <a href="" class="nav-item nav-link">Shop Cart</a>
-                            <a href="" class="nav-item nav-link">Checkout</a>
-                            <a href="" class="nav-item nav-link">Contact</a>
+                            <a asp-page="/Index" class="nav-item nav-link active">Trang chủ</a>
+                            <a href="" class="nav-item nav-link">Cửa hàng</a>
+                            <a href="" class="nav-item nav-link">Giỏ hàng</a>
+                            <a href="" class="nav-item nav-link">Thanh toán</a>
+                            <a href="" class="nav-item nav-link">Liên hệ</a>
                         </div>
                         <div class="navbar-nav ml-auto py-0">
                             @if (User?.Identity?.IsAuthenticated ?? false)
@@ -224,46 +224,46 @@
                 <a asp-page="/Index" class="text-decoration-none">
                     <h1 class="mb-4 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border border-white px-3 mr-1">E</span>Shopper</h1>
                 </a>
-                <p>Dolore erat dolor sit lorem vero amet. Sed sit lorem magna, ipsum no sit erat lorem et magna ipsum dolore amet erat.</p>
-                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
-                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
-                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+                <p>Nền tảng thương mại điện tử giúp bạn mua sắm thời trang dễ dàng, nhanh chóng và an toàn.</p>
+                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Đường Mẫu, TP. Hồ Chí Minh, Việt Nam</p>
+                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>support@eshopper.vn</p>
+                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+84 123 456 789</p>
             </div>
             <div class="col-lg-8 col-md-12">
                 <div class="row">
                     <div class="col-md-4 mb-5">
-                        <h5 class="font-weight-bold text-dark mb-4">Quick Links</h5>
+                        <h5 class="font-weight-bold text-dark mb-4">Liên kết nhanh</h5>
                         <div class="d-flex flex-column justify-content-start">
-                            <a asp-page="/Index" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Home</a>
-                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
-                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
-                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
-                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
-                            <a href="" class="text-dark"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                            <a asp-page="/Index" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Trang chủ</a>
+                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Cửa hàng</a>
+                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Chi tiết cửa hàng</a>
+                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Giỏ hàng</a>
+                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Thanh toán</a>
+                            <a href="" class="text-dark"><i class="fa fa-angle-right mr-2"></i>Liên hệ</a>
                         </div>
                     </div>
                     <div class="col-md-4 mb-5">
-                        <h5 class="font-weight-bold text-dark mb-4">Quick Links</h5>
+                        <h5 class="font-weight-bold text-dark mb-4">Liên kết nhanh</h5>
                         <div class="d-flex flex-column justify-content-start">
-                            <a asp-page="/Index" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Home</a>
-                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
-                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
-                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
-                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
-                            <a href="" class="text-dark"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                            <a asp-page="/Index" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Trang chủ</a>
+                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Cửa hàng</a>
+                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Chi tiết cửa hàng</a>
+                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Giỏ hàng</a>
+                            <a href="" class="text-dark mb-2"><i class="fa fa-angle-right mr-2"></i>Thanh toán</a>
+                            <a href="" class="text-dark"><i class="fa fa-angle-right mr-2"></i>Liên hệ</a>
                         </div>
                     </div>
                     <div class="col-md-4 mb-5">
-                        <h5 class="font-weight-bold text-dark mb-4">Newsletter</h5>
+                        <h5 class="font-weight-bold text-dark mb-4">Bản tin</h5>
                         <form action="">
                             <div class="form-group">
-                                <input type="text" class="form-control border-0 py-4" placeholder="Your Name" required="required" />
+                                <input type="text" class="form-control border-0 py-4" placeholder="Tên của bạn" required="required" />
                             </div>
                             <div class="form-group">
-                                <input type="email" class="form-control border-0 py-4" placeholder="Your Email" required="required" />
+                                <input type="email" class="form-control border-0 py-4" placeholder="Email của bạn" required="required" />
                             </div>
                             <div>
-                                <button class="btn btn-primary btn-block border-0 py-3" type="submit">Subscribe Now</button>
+                                <button class="btn btn-primary btn-block border-0 py-3" type="submit">Đăng ký ngay</button>
                             </div>
                         </form>
                     </div>
@@ -273,7 +273,7 @@
         <div class="row border-top border-light mx-xl-5 py-4">
             <div class="col-md-6 px-xl-0">
                 <p class="mb-md-0 text-center text-md-left text-dark">
-                    &copy; <a class="text-dark font-weight-semi-bold" href="#">E-Commerce Platform</a>. All Rights Reserved.
+                    &copy; <a class="text-dark font-weight-semi-bold" href="#">Nền tảng thương mại điện tử</a>. Đã đăng ký bản quyền.
                 </p>
             </div>
             <div class="col-md-6 px-xl-0 text-center text-md-right">

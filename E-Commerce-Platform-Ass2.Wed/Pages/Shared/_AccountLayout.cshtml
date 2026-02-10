@@ -1,6 +1,6 @@
 @* Copied from Ass1 _AccountLayout, updated for Razor Pages *@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     @await Html.PartialAsync("Partials/_Head")
 </head>
@@ -10,11 +10,11 @@
         <div class="row bg-secondary py-2 px-xl-5">
             <div class="col-lg-6 d-none d-lg-block">
                 <div class="d-inline-flex align-items-center">
-                    <a class="text-dark" href="">FAQs</a>
+                    <a class="text-dark" href="">Câu hỏi thường gặp</a>
                     <span class="text-muted px-2">|</span>
-                    <a class="text-dark" href="">Help</a>
+                    <a class="text-dark" href="">Trợ giúp</a>
                     <span class="text-muted px-2">|</span>
-                    <a class="text-dark" href="">Support</a>
+                    <a class="text-dark" href="">Hỗ trợ</a>
                 </div>
             </div>
             <div class="col-lg-6 text-center text-lg-right">
@@ -48,7 +48,7 @@
             <div class="col-lg-6 col-6 text-left">
                 <form action="">
                     <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Search for products">
+                        <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm">
                         <div class="input-group-append">
                             <span class="input-group-text bg-transparent text-primary">
                                 <i class="fa fa-search"></i>
@@ -86,11 +86,11 @@
                     </button>
                     <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
                         <div class="navbar-nav mr-auto py-0">
-                            <a asp-page="/Index" class="nav-item nav-link">Home</a>
-                            <a asp-page="/Shop/Detail" class="nav-item nav-link">Shop</a>
-                            <a asp-page="/Cart/Index" class="nav-item nav-link">Shop Cart</a>
-                            <a asp-page="/Checkout/Index" class="nav-item nav-link">Checkout</a>
-                            <a href="" class="nav-item nav-link">Contact</a>
+                            <a asp-page="/Index" class="nav-item nav-link">Trang chủ</a>
+                            <a asp-page="/Shop/Detail" class="nav-item nav-link">Cửa hàng</a>
+                            <a asp-page="/Cart/Index" class="nav-item nav-link">Giỏ hàng</a>
+                            <a asp-page="/Checkout/Index" class="nav-item nav-link">Thanh toán</a>
+                            <a href="" class="nav-item nav-link">Liên hệ</a>
                         </div>
                         <div class="navbar-nav ml-auto py-0">
                             @if (User?.Identity?.IsAuthenticated ?? false)
