@@ -25,13 +25,13 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
 
             // CartItem -> Cart (one-way)
             builder.HasOne(ci => ci.Cart)
-                   .WithMany() // ❌ Cart KHÔNG có ICollection<CartItem>
+                   .WithMany() 
                    .HasForeignKey(ci => ci.CartId)
                    .OnDelete(DeleteBehavior.Cascade);
 
             // CartItem -> ProductVariant (one-way)
             builder.HasOne(ci => ci.ProductVariant)
-                   .WithMany() // ❌ ProductVariant KHÔNG có ICollection<CartItem>
+                   .WithMany() 
                    .HasForeignKey(ci => ci.ProductVariantId)
                    .OnDelete(DeleteBehavior.Restrict);
         }

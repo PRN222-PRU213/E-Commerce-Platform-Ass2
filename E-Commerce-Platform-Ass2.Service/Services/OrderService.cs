@@ -73,5 +73,17 @@ namespace E_Commerce_Platform_Ass2.Service.Services
 
             return orderDto;
         }
+
+        public async Task<IEnumerable<Guid>> GetShopIdsByOrderAsync(Guid orderId)
+        {
+            var order = await _orderRepository.GetByIdWithDetailsAsync(orderId);
+            if (order == null) return Enumerable.Empty<Guid>();
+
+            return order.OrderItems
+                .Where(oi => oi.ProductVariant?.Product != null)
+                .Select(oi => oi.ProductVariant.Product.ShopId)
+                .Distinct()
+                .ToList();
+        }
     }
 }
