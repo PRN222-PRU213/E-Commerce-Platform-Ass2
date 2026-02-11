@@ -1,10 +1,13 @@
 using System.Security.Claims;
 using E_Commerce_Platform_Ass2.Service.DTOs;
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
+using E_Commerce_Platform_Ass2.Wed.Hubs;
 using E_Commerce_Platform_Ass2.Wed.Models;
+using E_Commerce_Platform_Ass2.Wed.Models.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
 
 namespace E_Commerce_Platform_Ass2.Wed.Pages.ReturnRequest
 {
@@ -14,15 +17,18 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.ReturnRequest
         private readonly IReturnRequestService _returnRequestService;
         private readonly IOrderService _orderService;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IHubContext<NotificationHub, INotificationClient> _hubContext;
 
         public CreateModel(
             IReturnRequestService returnRequestService,
             IOrderService orderService,
-            ICloudinaryService cloudinaryService)
+            ICloudinaryService cloudinaryService,
+            IHubContext<NotificationHub, INotificationClient> hubContext)
         {
             _returnRequestService = returnRequestService;
             _orderService = orderService;
             _cloudinaryService = cloudinaryService;
+            _hubContext = hubContext;
         }
 
         [BindProperty(SupportsGet = true)]
@@ -121,6 +127,23 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.ReturnRequest
 
             if (result.IsSuccess)
             {
+                // Send real-time notification to admins about new return request
+                try
+                {
+                    var notification = new NotificationMessage
+                    {
+                        Type = "warning",
+                        Message = $"Yêu cầu hoàn trả mới cho đơn hàng #{Input.OrderId.ToString()[..8].ToUpper()}",
+                        Link = "/Shop/Orders/ReturnRequests",
+                        UserId = userId
+                    };
+                    await _hubContext.Clients.Group("admins").NotificationReceived(notification);
+                }
+                catch
+                {
+                    // Don't let notification failure break the return request flow
+                }
+
                 TempData["Success"] = "Yêu cầu hoàn trả đã được gửi thành công! Vui lòng chờ xét duyệt.";
                 return RedirectToPage("/ReturnRequest/Index");
             }

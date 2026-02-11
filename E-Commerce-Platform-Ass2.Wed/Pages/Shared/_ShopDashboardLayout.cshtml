@@ -23,6 +23,7 @@
                 @if (User?.Identity?.IsAuthenticated ?? false)
                 {
                     <div class="d-inline-flex align-items-center">
+                        @await Html.PartialAsync("Partials/_NotificationBell")
                         <div class="nav-item dropdown user-profile-dropdown">
                             <a href="#" class="nav-link dropdown-toggle user-profile-link" id="userDropdown" role="button" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-user-circle mr-2"></i>
@@ -74,6 +75,7 @@
     <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
 
     @await Html.PartialAsync("Partials/_Scripts")
+    @await Html.PartialAsync("Partials/_Notifications")
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -24,16 +24,24 @@ namespace E_Commerce_Platform_Ass2.Wed.Hubs
             var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
             var role = Context.User?.FindFirstValue(ClaimTypes.Role);
 
+            Console.WriteLine(
+                $"[SignalR Hub] User connected | UserId: {userId} | Role: {role} | ConnectionId: {Context.ConnectionId}"
+            );
+
             if (Guid.TryParse(userId, out var userGuid))
             {
                 // Nhóm theo user để gửi thông báo cá nhân
-                await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{userGuid}");
+                var userGroup = $"user-{userGuid}";
+                await Groups.AddToGroupAsync(Context.ConnectionId, userGroup);
+                Console.WriteLine($"[SignalR Hub] Added to group: {userGroup}");
 
                 // Nhóm theo shop (nếu user có shop)
                 var shop = await _shopService.GetShopByUserIdAsync(userGuid);
                 if (shop != null)
                 {
-                    await Groups.AddToGroupAsync(Context.ConnectionId, $"shop-{shop.Id}");
+                    var shopGroup = $"shop-{shop.Id}";
+                    await Groups.AddToGroupAsync(Context.ConnectionId, shopGroup);
+                    Console.WriteLine($"[SignalR Hub] Added to shop group: {shopGroup}");
                 }
             }
 
@@ -44,9 +52,23 @@ namespace E_Commerce_Platform_Ass2.Wed.Hubs
             )
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, "admins");
+                Console.WriteLine($"[SignalR Hub] Added to admins group");
             }
 
             await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            Console.WriteLine(
+                $"[SignalR Hub] User disconnected | UserId: {userId} | ConnectionId: {Context.ConnectionId}"
+            );
+            if (exception != null)
+            {
+                Console.WriteLine($"[SignalR Hub] Disconnect exception: {exception.Message}");
+            }
+            await base.OnDisconnectedAsync(exception);
         }
     }
 }
