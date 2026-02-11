@@ -29,6 +29,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Order
             }
 
             var order = await _orderService.GetOrderItemAsync(orderId);
+            Console.WriteLine($"[Customer Detail] Order {orderId} status: {order?.Status}"); // DEBUG
 
             if (order == null)
                 return NotFound();

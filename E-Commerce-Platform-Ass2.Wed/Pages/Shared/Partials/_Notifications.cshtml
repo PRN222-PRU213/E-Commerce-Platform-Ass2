@@ -1,0 +1,109 @@
+@* Real-time toast notification container & listener *@
+<div id="rt-toast-container" aria-live="polite" aria-atomic="true"
+     style="position:fixed;bottom:1rem;right:1rem;z-index:1080;min-width:320px;max-width:400px;">
+</div>
+
+<style>
+    #rt-toast-container .toast {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        margin-bottom: .5rem;
+        overflow: hidden;
+        opacity: 0;
+        animation: rt-slide-in .3s ease forwards;
+    }
+    #rt-toast-container .toast.hiding {
+        animation: rt-slide-out .3s ease forwards;
+    }
+    #rt-toast-container .toast-header {
+        border-bottom: none;
+        padding: .5rem .75rem;
+        font-weight: 600;
+    }
+    #rt-toast-container .toast-body {
+        padding: .5rem .75rem;
+    }
+    /* Type colours */
+    .rt-toast-success .toast-header { background: #28a745; color: #fff; }
+    .rt-toast-info    .toast-header { background: #17a2b8; color: #fff; }
+    .rt-toast-warning .toast-header { background: #ffc107; color: #212529; }
+    .rt-toast-error   .toast-header { background: #dc3545; color: #fff; }
+
+    @@keyframes rt-slide-in {
+        from { opacity: 0; transform: translateX(100%); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+    @@keyframes rt-slide-out {
+        from { opacity: 1; transform: translateX(0); }
+        to   { opacity: 0; transform: translateX(100%); }
+    }
+</style>
+
+<script>
+(function () {
+    var container = document.getElementById('rt-toast-container');
+    var icons = {
+        success: 'fas fa-check-circle',
+        info:    'fas fa-info-circle',
+        warning: 'fas fa-exclamation-triangle',
+        error:   'fas fa-times-circle'
+    };
+    var titles = {
+        success: 'Thành công',
+        info:    'Thông báo',
+        warning: 'Cảnh báo',
+        error:   'Lỗi'
+    };
+
+    function showToast(type, message, link) {
+        type = type || 'info';
+        var id = 'rt-toast-' + Date.now();
+        var toast = document.createElement('div');
+        toast.id = id;
+        toast.className = 'toast rt-toast-' + type;
+        toast.setAttribute('role', 'alert');
+
+        var linkOpen = link ? '<a href="' + link + '" class="text-decoration-none text-dark">' : '';
+        var linkClose = link ? '</a>' : '';
+
+        toast.innerHTML =
+            '<div class="toast-header">' +
+                '<i class="' + (icons[type] || icons.info) + ' mr-2"></i>' +
+                '<strong class="mr-auto">' + (titles[type] || titles.info) + '</strong>' +
+                '<button type="button" class="ml-2 mb-1 close" style="color:inherit;text-shadow:none;" onclick="this.closest(\'.toast\').remove()">' +
+                    '<span>&times;</span>' +
+                '</button>' +
+            '</div>' +
+            '<div class="toast-body">' + linkOpen + message + linkClose + '</div>';
+
+        container.prepend(toast);
+
+        // Auto-dismiss after 8 seconds
+        setTimeout(function () {
+            toast.classList.add('hiding');
+            setTimeout(function () { toast.remove(); }, 300);
+        }, 8000);
+    }
+
+    // Listen for general notifications
+    document.addEventListener('rt:notification', function (e) {
+        var d = e.detail;
+        showToast(d.type, d.message, d.link);
+    });
+
+    // Listen for product changes
+    document.addEventListener('rt:product-changed', function (e) {
+        var d = e.detail;
+        var labels = {
+            created: 'Sản phẩm mới được tạo',
+            updated: 'Sản phẩm đã được cập nhật',
+            statusChanged: 'Trạng thái sản phẩm thay đổi',
+            deleted: 'Sản phẩm đã bị xóa'
+        };
+        var msg = (labels[d.changeType] || 'Sản phẩm thay đổi') + ': <strong>' + (d.name || '') + '</strong>';
+        if (d.status) msg += ' (' + d.status + ')';
+        showToast('info', msg);
+    });
+})();
+</script>

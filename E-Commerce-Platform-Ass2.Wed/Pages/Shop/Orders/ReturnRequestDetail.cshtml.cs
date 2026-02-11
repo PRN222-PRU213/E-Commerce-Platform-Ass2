@@ -1,9 +1,12 @@
 using System.Security.Claims;
 using E_Commerce_Platform_Ass2.Service.DTOs;
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
+using E_Commerce_Platform_Ass2.Wed.Hubs;
+using E_Commerce_Platform_Ass2.Wed.Models.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
 
 namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
 {
@@ -12,20 +15,24 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
     {
         private readonly IShopService _shopService;
         private readonly IReturnRequestService _returnRequestService;
+        private readonly IHubContext<NotificationHub, INotificationClient> _hubContext;
 
-        public ReturnRequestDetailModel(IShopService shopService, IReturnRequestService returnRequestService)
+        public ReturnRequestDetailModel(IShopService shopService,
+            IReturnRequestService returnRequestService,
+            IHubContext<NotificationHub, INotificationClient> hubContext)
         {
             _shopService = shopService;
             _returnRequestService = returnRequestService;
+            _hubContext = hubContext;
         }
 
-        public ReturnRequestDto Request { get; set; } = new();
+        public ReturnRequestDto ReturnReq { get; set; } = new();
 
         [BindProperty]
         public decimal? ApprovedAmount { get; set; }
 
         [BindProperty]
-        public string? Response { get; set; }
+        public string? ShopResponse { get; set; }
 
         [BindProperty]
         public string? RejectReason { get; set; }
@@ -51,9 +58,9 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
                 return RedirectToPage("/Shop/RegisterShop");
             }
 
-            Request = await _returnRequestService.GetShopRequestDetailAsync(id, shopId.Value);
+            ReturnReq = await _returnRequestService.GetShopRequestDetailAsync(id, shopId.Value);
 
-            if (Request == null)
+            if (ReturnReq == null)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy yêu cầu này.";
                 return RedirectToPage("./ReturnRequests");
@@ -71,11 +78,28 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
                 return RedirectToPage("./ReturnRequests");
             }
 
-            var result = await _returnRequestService.ApproveRequestAsync(id, shopId.Value, ApprovedAmount, Response);
+            // Get request detail for notification
+            var requestDetail = await _returnRequestService.GetShopRequestDetailAsync(id, shopId.Value);
+
+            var result = await _returnRequestService.ApproveRequestAsync(id, shopId.Value, ApprovedAmount, ShopResponse);
 
             if (result.IsSuccess)
             {
                 TempData["SuccessMessage"] = "Đã duyệt yêu cầu và hoàn tiền thành công!";
+
+                // Notify customer about approved return
+                if (requestDetail != null)
+                {
+                    var notification = new NotificationMessage
+                    {
+                        Type = "success",
+                        Message = $"Yêu cầu hoàn trả cho đơn hàng #{requestDetail.OrderId.ToString()[..8].ToUpper()} đã được duyệt!",
+                        Link = "/ReturnRequest/Index",
+                        UserId = requestDetail.UserId
+                    };
+                    await _hubContext.Clients.Group($"user-{requestDetail.UserId}")
+                        .NotificationReceived(notification);
+                }
             }
             else
             {
@@ -94,11 +118,31 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
                 return RedirectToPage("./ReturnRequests");
             }
 
-            var result = await _returnRequestService.RejectRequestAsync(id, shopId.Value, RejectReason);
+            // Get request detail for notification
+            var requestDetail = await _returnRequestService.GetShopRequestDetailAsync(id, shopId.Value);
+
+            var result = await _returnRequestService.RejectRequestAsync(id, shopId.Value, RejectReason ?? string.Empty);
 
             if (result.IsSuccess)
             {
                 TempData["SuccessMessage"] = "Đã từ chối yêu cầu hoàn trả.";
+
+                // Notify customer about rejected return
+                if (requestDetail != null)
+                {
+                    var msg = $"Yêu cầu hoàn trả cho đơn hàng #{requestDetail.OrderId.ToString()[..8].ToUpper()} đã bị từ chối";
+                    if (!string.IsNullOrEmpty(RejectReason)) msg += $": {RejectReason}";
+
+                    var notification = new NotificationMessage
+                    {
+                        Type = "error",
+                        Message = msg,
+                        Link = "/ReturnRequest/Index",
+                        UserId = requestDetail.UserId
+                    };
+                    await _hubContext.Clients.Group($"user-{requestDetail.UserId}")
+                        .NotificationReceived(notification);
+                }
             }
             else
             {

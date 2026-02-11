@@ -12,5 +12,6 @@ namespace E_Commerce_Platform_Ass2.Service.Services.IServices
     {
         Task<IEnumerable<OrderDto>> GetOrderHistoryAsync(Guid userId);
         Task<OrderDetailDto?> GetOrderItemAsync(Guid orderId);
+        Task<IEnumerable<Guid>> GetShopIdsByOrderAsync(Guid orderId);
     }
 }

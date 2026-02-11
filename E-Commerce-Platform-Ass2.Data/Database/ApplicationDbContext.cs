@@ -30,6 +30,7 @@ namespace E_Commerce_Platform_Ass2.Data.Database
         public DbSet<ReturnRequest> ReturnRequests { get; set; } = null!;
         public DbSet<ShopWallet> ShopWallets { get; set; } = null!;
         public DbSet<ShopWalletTransaction> ShopWalletTransactions { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -55,6 +56,7 @@ namespace E_Commerce_Platform_Ass2.Data.Database
             modelBuilder.ApplyConfiguration(new ReturnRequestConfiguration());
             modelBuilder.ApplyConfiguration(new ShopWalletConfiguration());
             modelBuilder.ApplyConfiguration(new ShopWalletTransactionConfiguration());
+            modelBuilder.ApplyConfiguration(new NotificationConfiguration());
         }
     }
 }

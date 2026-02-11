@@ -33,33 +33,33 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Mã yêu cầu:</strong> @Model.Request.Id</p>
-                            <p><strong>Đơn hàng:</strong> @Model.Request.OrderId</p>
-                            <p><strong>Khách hàng:</strong> @Model.Request.UserName</p>
-                            <p><strong>Loại yêu cầu:</strong> @Model.Request.RequestType</p>
+                            <p><strong>Mã yêu cầu:</strong> @Model.ReturnReq.Id</p>
+                            <p><strong>Đơn hàng:</strong> @Model.ReturnReq.OrderId</p>
+                            <p><strong>Khách hàng:</strong> @Model.ReturnReq.UserName</p>
+                            <p><strong>Loại yêu cầu:</strong> @Model.ReturnReq.RequestType</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Trạng thái:</strong> 
-                                <span class="badge @(Model.Request.Status == "Approved" ? "badge-success" : Model.Request.Status == "Rejected" ? "badge-danger" : "badge-warning")">
-                                    @Model.Request.Status
+                                <span class="badge @(Model.ReturnReq.Status == "Approved" ? "badge-success" : Model.ReturnReq.Status == "Rejected" ? "badge-danger" : "badge-warning")">
+                                    @Model.ReturnReq.Status
                                 </span>
                             </p>
-                            <p><strong>Số tiền yêu cầu:</strong> @Model.Request.RequestedAmount.ToString("N0") đ</p>
-                            <p><strong>Ngày tạo:</strong> @Model.Request.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p><strong>Số tiền yêu cầu:</strong> @Model.ReturnReq.RequestedAmount.ToString("N0") đ</p>
+                            <p><strong>Ngày tạo:</strong> @Model.ReturnReq.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
                         </div>
                     </div>
                     <div class="mt-3">
-                        <p><strong>Lý do:</strong> @Model.Request.Reason</p>
-                        @if (!string.IsNullOrEmpty(Model.Request.ReasonDetail))
+                        <p><strong>Lý do:</strong> @Model.ReturnReq.Reason</p>
+                        @if (!string.IsNullOrEmpty(Model.ReturnReq.ReasonDetail))
                         {
-                            <p><strong>Chi tiết:</strong> @Model.Request.ReasonDetail</p>
+                            <p><strong>Chi tiết:</strong> @Model.ReturnReq.ReasonDetail</p>
                         }
                     </div>
                 </div>
             </div>
 
             <!-- Order Items -->
-            @if (Model.Request.OrderItems.Any())
+            @if (Model.ReturnReq.OrderItems.Any())
             {
                 <div class="card border-0 mb-4">
                     <div class="card-header bg-secondary text-white">
@@ -77,7 +77,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var item in Model.Request.OrderItems)
+                                    @foreach (var item in Model.ReturnReq.OrderItems)
                                     {
                                         <tr>
                                             <td>@item.ProductName</td>
@@ -94,7 +94,7 @@
             }
 
             <!-- Evidence Images -->
-            @if (Model.Request.EvidenceImageUrls.Any())
+            @if (Model.ReturnReq.EvidenceImageUrls.Any())
             {
                 <div class="card border-0 mb-4">
                     <div class="card-header bg-secondary text-white">
@@ -102,7 +102,7 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            @foreach (var img in Model.Request.EvidenceImageUrls)
+                            @foreach (var img in Model.ReturnReq.EvidenceImageUrls)
                             {
                                 <div class="col-md-3 mb-3">
                                     <img src="@img" alt="Evidence" class="img-fluid rounded" />
@@ -114,7 +114,7 @@
             }
 
             <!-- Actions (Only if Pending) -->
-            @if (Model.Request.Status == "Pending")
+            @if (Model.ReturnReq.Status == "Pending")
             {
                 <div class="card border-0">
                     <div class="card-header bg-warning text-white">
@@ -122,14 +122,14 @@
                     </div>
                     <div class="card-body">
                         <!-- Approve Form -->
-                        <form method="post" asp-page-handler="ApproveReturn" asp-route-id="@Model.Request.Id" class="mb-4">
+                        <form method="post" asp-page-handler="ApproveReturn" asp-route-id="@Model.ReturnReq.Id" class="mb-4">
                             @Html.AntiForgeryToken()
                             <h6 class="text-success">Duyệt yêu cầu</h6>
                             <div class="form-group">
                                 <label>Số tiền duyệt (VNĐ)</label>
                                 <input type="number" asp-for="ApprovedAmount" class="form-control" 
-                                       value="@Model.Request.RequestedAmount" min="0" step="1000" />
-                                <small class="form-text text-muted">Mặc định: @Model.Request.RequestedAmount.ToString("N0") đ</small>
+                                       value="@Model.ReturnReq.RequestedAmount" min="0" step="1000" />
+                                <small class="form-text text-muted">Mặc định: @Model.ReturnReq.RequestedAmount.ToString("N0") đ</small>
                             </div>
                             <div class="form-group">
                                 <label>Phản hồi (tùy chọn)</label>
@@ -143,7 +143,7 @@
                         <hr />
 
                         <!-- Reject Form -->
-                        <form method="post" asp-page-handler="RejectReturn" asp-route-id="@Model.Request.Id">
+                        <form method="post" asp-page-handler="RejectReturn" asp-route-id="@Model.ReturnReq.Id">
                             @Html.AntiForgeryToken()
                             <h6 class="text-danger">Từ chối yêu cầu</h6>
                             <div class="form-group">

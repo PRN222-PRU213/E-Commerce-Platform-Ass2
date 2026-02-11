@@ -84,6 +84,7 @@
                 }
             </div>
             <div class="col-lg-3 col-6 text-right">
+                @await Html.PartialAsync("Partials/_NotificationBell")
                 <a href="" class="btn border">
                     <i class="fas fa-heart text-primary"></i>
                     <span class="badge">0</span>
@@ -296,6 +297,7 @@
     </div>
 
     @await Html.PartialAsync("Partials/_Scripts")
+    @await Html.PartialAsync("Partials/_Notifications")
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

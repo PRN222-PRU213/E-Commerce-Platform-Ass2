@@ -1,8 +1,11 @@
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
+using E_Commerce_Platform_Ass2.Wed.Hubs;
 using E_Commerce_Platform_Ass2.Wed.Models;
+using E_Commerce_Platform_Ass2.Wed.Models.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
 
 namespace E_Commerce_Platform_Ass2.Wed.Pages.Admin.Products
 {
@@ -10,10 +13,13 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Admin.Products
     public class PendingModel : PageModel
     {
         private readonly IAdminService _adminService;
+        private readonly IHubContext<NotificationHub, INotificationClient> _hubContext;
 
-        public PendingModel(IAdminService adminService)
+        public PendingModel(IAdminService adminService,
+            IHubContext<NotificationHub, INotificationClient> hubContext)
         {
             _adminService = adminService;
+            _hubContext = hubContext;
         }
 
         public List<AdminProductViewModel> Products { get; set; } = new();
@@ -34,18 +40,55 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Admin.Products
 
         public async Task<IActionResult> OnPostApproveProductAsync(Guid id)
         {
+            // Get product info before approval for notification
+            var productInfo = await _adminService.GetProductForApprovalAsync(id);
+
             var result = await _adminService.ApproveProductAsync(id);
             TempData[result.IsSuccess ? "Success" : "Error"] =
                 result.IsSuccess ? "Sản phẩm đã được duyệt thành công!" : result.ErrorMessage;
+
+            // Send real-time notification to shop owner
+            if (result.IsSuccess && productInfo.IsSuccess && productInfo.Data != null)
+            {
+                var notification = new NotificationMessage
+                {
+                    Type = "success",
+                    Message = $"Sản phẩm \"{productInfo.Data.Name}\" đã được Admin duyệt!",
+                    Link = $"/Shop/Products/Edit?id={id}",
+                    TimestampUtc = DateTime.UtcNow
+                };
+                await _hubContext.Clients.Group($"shop-{productInfo.Data.ShopId}")
+                    .NotificationReceived(notification);
+            }
 
             return RedirectToPage("/Admin/Products/Pending");
         }
 
         public async Task<IActionResult> OnPostRejectProductAsync(Guid id, string? reason)
         {
+            // Get product info before rejection for notification
+            var productInfo = await _adminService.GetProductForApprovalAsync(id);
+
             var result = await _adminService.RejectProductAsync(id, reason);
             TempData[result.IsSuccess ? "Success" : "Error"] =
                 result.IsSuccess ? "Sản phẩm đã bị từ chối!" : result.ErrorMessage;
+
+            // Send real-time notification to shop owner
+            if (result.IsSuccess && productInfo.IsSuccess && productInfo.Data != null)
+            {
+                var msg = $"Sản phẩm \"{productInfo.Data.Name}\" đã bị từ chối";
+                if (!string.IsNullOrEmpty(reason)) msg += $": {reason}";
+
+                var notification = new NotificationMessage
+                {
+                    Type = "error",
+                    Message = msg,
+                    Link = $"/Shop/Products/Edit?id={id}",
+                    TimestampUtc = DateTime.UtcNow
+                };
+                await _hubContext.Clients.Group($"shop-{productInfo.Data.ShopId}")
+                    .NotificationReceived(notification);
+            }
 
             return RedirectToPage("/Admin/Products/Pending");
         }
