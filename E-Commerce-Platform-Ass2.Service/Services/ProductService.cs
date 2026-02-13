@@ -43,6 +43,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             var products = await _productRepository.GetAllAsync();
             return products
                 .Where(p => p.Status == "active")
+                .OrderByDescending(p => p.CreatedAt)
                 .Select(p => MapToDto(p, p.Shop?.ShopName))
                 .ToList();
         }
