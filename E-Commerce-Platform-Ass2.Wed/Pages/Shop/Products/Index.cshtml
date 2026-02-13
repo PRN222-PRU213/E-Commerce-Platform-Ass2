@@ -85,7 +85,7 @@
                             <tbody>
                                 @foreach (var item in Model.ViewModel.Products)
                                 {
-                                    <tr>
+                                    <tr id="product-row-@item.Id">
                                         <td class="align-middle">
                                             @if (!string.IsNullOrEmpty(item.ImageUrl))
                                             {
@@ -113,7 +113,7 @@
                                         <td class="align-middle">
                                             <strong class="text-primary">@item.BasePrice.ToString("N0") ₫</strong>
                                         </td>
-                                        <td class="align-middle">
+                                        <td class="align-middle status-cell">
                                             <span class="badge @item.StatusBadgeClass">@item.StatusDisplayName</span>
                                         </td>
                                         <td class="align-middle">@item.CreatedAt.ToString("dd/MM/yyyy")</td>
@@ -146,4 +146,55 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('rt:product-changed', function (e) {
+            console.log('[Shop Product Index] Received product change:', e.detail);
+            var d = e.detail;
+            var productId = d.productId || d.ProductId;
+            
+            // Check if this product exists in our table
+            var row = document.getElementById('product-row-' + productId);
+            if (!row) return;
+
+            // Handle status change
+            if (d.changeType === 'statusChanged' || d.changeType === 'updated' || d.changeType === 'approved' || d.changeType === 'rejected') {
+                var status = d.status || d.Status || '';
+                var statusCell = row.querySelector('.status-cell');
+                
+                if (statusCell) {
+                    var badgeClass = 'badge-secondary';
+                    var statusText = status;
+
+                    if (status.toLowerCase() === 'active') {
+                        badgeClass = 'badge-success';
+                        statusText = 'Đang bán';
+                    } else if (status.toLowerCase() === 'pending') {
+                        badgeClass = 'badge-warning';
+                        statusText = 'Chờ duyệt';
+                    } else if (status.toLowerCase() === 'rejected') {
+                        badgeClass = 'badge-danger';
+                        statusText = 'Bị từ chối';
+                    } else if (status.toLowerCase() === 'draft') {
+                        badgeClass = 'badge-secondary';
+                        statusText = 'Nháp';
+                    } else if (status.toLowerCase() === 'inactive') { // Assuming inactive is 'Ngừng bán' or similar
+                         badgeClass = 'badge-secondary';
+                         statusText = 'Ngừng bán';
+                    }
+
+                    statusCell.innerHTML = `<span class="badge ${badgeClass}">${statusText}</span>`;
+                    
+                    // Add highlight animation
+                    row.style.transition = 'background-color 2s';
+                    row.style.backgroundColor = '#d4edda'; // light green highligh
+                    setTimeout(() => {
+                        row.style.backgroundColor = '';
+                    }, 2000);
+                }
+            }
+        });
+    </script>
+}
 

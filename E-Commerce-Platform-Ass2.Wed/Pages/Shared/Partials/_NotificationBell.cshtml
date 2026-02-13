@@ -139,6 +139,7 @@
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value;
     }
 
+
     // Mark all read on click clear
     if (clearBtn) {
         clearBtn.addEventListener('click', function (e) {
@@ -153,6 +154,28 @@
             .then(() => {
                     loadNotifications();
             });
+        });
+    }
+
+    // Reset count when bell is clicked
+    if (bellBtn) {
+        bellBtn.addEventListener('click', function (e) {
+            if (count > 0) {
+                // Visually reset immediately
+                badge.style.display = 'none';
+                count = 0;
+
+                // Send request to server
+                fetch('/Notifications?handler=MarkAllRead', { 
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': getCsrfToken()
+                    }
+                }).then(() => {
+                    // Optionally reload to update status of items (e.g. remove highlight)
+                    loadNotifications();
+                });
+            }
         });
     }
 })();

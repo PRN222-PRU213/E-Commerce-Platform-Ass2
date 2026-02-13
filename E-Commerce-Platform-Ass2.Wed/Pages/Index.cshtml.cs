@@ -1,5 +1,6 @@
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
 using E_Commerce_Platform_Ass2.Wed.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace E_Commerce_Platform_Ass2.Wed.Pages
@@ -8,6 +9,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages
     {
         private readonly ILogger<IndexModel> _logger;
         private readonly IProductService _productService;
+        private const int PageSize = 8;
 
         public IndexModel(ILogger<IndexModel> logger, IProductService productService)
         {
@@ -17,12 +19,27 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages
 
         public HomeIndexViewModel ViewModel { get; set; } = new();
 
+        [BindProperty(SupportsGet = true)]
+        public int CurrentPage { get; set; } = 1;
+
         public async Task OnGetAsync()
         {
-            var products = await _productService.GetAllProductsAsync();
+            var allProducts = await _productService.GetAllProductsAsync();
+
+            var totalCount = allProducts.Count;
+            var totalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
+
+            if (CurrentPage < 1) CurrentPage = 1;
+            if (CurrentPage > totalPages && totalPages > 0) CurrentPage = totalPages;
+
+            var pagedProducts = allProducts
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize)
+                .ToList();
+
             ViewModel = new HomeIndexViewModel
             {
-                Products = products
+                Products = pagedProducts
                     .Select(p => new HomeProductItemViewModel
                     {
                         Id = p.Id,
@@ -35,6 +52,10 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages
                         CategoryName = p.CategoryName,
                     })
                     .ToList(),
+                CurrentPage = CurrentPage,
+                TotalPages = totalPages,
+                PageSize = PageSize,
+                TotalCount = totalCount,
             };
         }
     }
