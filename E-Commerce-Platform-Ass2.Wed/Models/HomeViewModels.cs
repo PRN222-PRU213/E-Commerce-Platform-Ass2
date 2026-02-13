@@ -6,6 +6,10 @@ namespace E_Commerce_Platform_Ass2.Wed.Models
     public class HomeIndexViewModel
     {
         public List<HomeProductItemViewModel> Products { get; set; } = new();
+        public int CurrentPage { get; set; } = 1;
+        public int TotalPages { get; set; } = 1;
+        public int PageSize { get; set; } = 8;
+        public int TotalCount { get; set; }
     }
 
     /// <summary>

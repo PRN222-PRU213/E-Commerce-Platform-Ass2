@@ -241,12 +241,29 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
             {
                 TempData["SuccessMessage"] =
                     "Đã gửi sản phẩm để duyệt thành công! Vui lòng chờ admin phê duyệt.";
-                await NotifyProductChangedAsync(
-                    id,
-                    shop.Id,
-                    "statusChanged",
-                    "pending",
-                    Input.Name
+
+                // Fetch full product details to include in the broadcast
+                var productDetail = await _productService.GetProductDetailDtoAsync(id);
+
+                var message = new ProductChangedMessage
+                {
+                    ProductId = id,
+                    ShopId = shop.Id,
+                    ChangeType = "statusChanged",
+                    Status = "pending",
+                    Name = productDetail?.Name ?? Input.Name,
+                    TriggeredBy = User.Identity?.Name,
+                    ImageUrl = productDetail?.ImageUrl,
+                    BasePrice = productDetail?.BasePrice ?? 0,
+                    CategoryName = productDetail?.CategoryName,
+                    ShopName = productDetail?.ShopName ?? shop.ShopName,
+                    Description = productDetail?.Description
+                };
+
+                await Task.WhenAll(
+                    _hubContext.Clients.Group($"shop-{shop.Id}").ProductChanged(message),
+                    _hubContext.Clients.Group("admins").ProductChanged(message),
+                    _hubContext.Clients.Group($"user-{GetCurrentUserId()}").ProductChanged(message)
                 );
             }
 

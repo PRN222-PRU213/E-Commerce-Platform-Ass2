@@ -47,18 +47,24 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Admin.Products
             TempData[result.IsSuccess ? "Success" : "Error"] =
                 result.IsSuccess ? "Sản phẩm đã được duyệt thành công!" : result.ErrorMessage;
 
-            // Send real-time notification to shop owner
-            if (result.IsSuccess && productInfo.IsSuccess && productInfo.Data != null)
+            if (result.IsSuccess)
             {
-                var notification = new NotificationMessage
+                // 1. Send real-time notification to shop owner
+                if (productInfo.IsSuccess && productInfo.Data != null)
                 {
-                    Type = "success",
-                    Message = $"Sản phẩm \"{productInfo.Data.Name}\" đã được Admin duyệt!",
-                    Link = $"/Shop/Products/Edit?id={id}",
-                    TimestampUtc = DateTime.UtcNow
-                };
-                await _hubContext.Clients.Group($"shop-{productInfo.Data.ShopId}")
-                    .NotificationReceived(notification);
+                    var notification = new NotificationMessage
+                    {
+                        Type = "success",
+                        Message = $"Sản phẩm \"{productInfo.Data.Name}\" đã được Admin duyệt!",
+                        Link = $"/Shop/Products/Edit?id={id}",
+                        TimestampUtc = DateTime.UtcNow
+                    };
+                    await _hubContext.Clients.Group($"shop-{productInfo.Data.ShopId}")
+                        .NotificationReceived(notification);
+                }
+
+                // 2. Broadcast to all customers to update homepage
+                await BroadcastProductChangedAsync(id, "approved");
             }
 
             return RedirectToPage("/Admin/Products/Pending");
@@ -73,25 +79,42 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Admin.Products
             TempData[result.IsSuccess ? "Success" : "Error"] =
                 result.IsSuccess ? "Sản phẩm đã bị từ chối!" : result.ErrorMessage;
 
-            // Send real-time notification to shop owner
-            if (result.IsSuccess && productInfo.IsSuccess && productInfo.Data != null)
+            if (result.IsSuccess)
             {
-                var msg = $"Sản phẩm \"{productInfo.Data.Name}\" đã bị từ chối";
-                if (!string.IsNullOrEmpty(reason)) msg += $": {reason}";
-
-                var notification = new NotificationMessage
+                // 1. Send real-time notification to shop owner
+                if (productInfo.IsSuccess && productInfo.Data != null)
                 {
-                    Type = "error",
-                    Message = msg,
-                    Link = $"/Shop/Products/Edit?id={id}",
-                    TimestampUtc = DateTime.UtcNow
-                };
-                await _hubContext.Clients.Group($"shop-{productInfo.Data.ShopId}")
-                    .NotificationReceived(notification);
+                    var msg = $"Sản phẩm \"{productInfo.Data.Name}\" đã bị từ chối";
+                    if (!string.IsNullOrEmpty(reason)) msg += $": {reason}";
+
+                    var notification = new NotificationMessage
+                    {
+                        Type = "error",
+                        Message = msg,
+                        Link = $"/Shop/Products/Edit?id={id}",
+                        TimestampUtc = DateTime.UtcNow
+                    };
+                    await _hubContext.Clients.Group($"shop-{productInfo.Data.ShopId}")
+                        .NotificationReceived(notification);
+                }
+
+                // 2. Broadcast to all customers (optional, but good for consistency)
+                await BroadcastProductChangedAsync(id, "rejected");
             }
 
             return RedirectToPage("/Admin/Products/Pending");
         }
+
+        private async Task BroadcastProductChangedAsync(Guid productId, string changeType)
+        {
+            var message = new ProductChangedMessage
+            {
+                ProductId = productId,
+                ChangeType = changeType,
+                Status = changeType == "approved" ? "active" : "rejected",
+                TriggeredBy = "admin"
+            };
+            await _hubContext.Clients.All.ProductChanged(message);
+        }
     }
 }
-

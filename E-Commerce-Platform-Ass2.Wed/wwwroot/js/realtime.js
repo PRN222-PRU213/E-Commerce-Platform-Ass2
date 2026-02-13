@@ -57,6 +57,8 @@
       console.log("[SignalR] Already connected or connecting");
       return;
     }
+    // Note: removed isAuthenticated() check because HttpOnly cookies
+    // are invisible to document.cookie. Auth is handled server-side.
     try {
       console.log("[SignalR] Starting connection...");
       await connection.start();
