@@ -414,5 +414,50 @@
                 }
             });
         });
+
+        // Real-time: listen product status changes for this product
+        (function () {
+            var currentProductId = '@Model.ViewModel.Id';
+            console.log('[Product Detail] Listening for product changes, id:', currentProductId);
+
+            document.addEventListener('rt:product-changed', function (e) {
+                var d = e.detail;
+                var pid = (d.productId || d.ProductId || '').toString();
+                if (pid.toLowerCase() !== currentProductId.toLowerCase()) return;
+
+                console.log('[Product Detail] Product changed:', d);
+                var changeType = d.changeType || d.ChangeType || '';
+                var status = d.status || d.Status || '';
+                var name = d.name || d.Name || 'Sản phẩm';
+
+                if (changeType === 'statusChanged' && (status === 'draft' || status === 'inactive')) {
+                    // Product unpublished - show warning and redirect
+                    showProductToast('warning', `${name} đã bị gỡ khỏi cửa hàng.`);
+                    setTimeout(function () { window.location.href = '/'; }, 2000);
+                } else if (changeType === 'rejected') {
+                    showProductToast('warning', `${name} đã bị từ chối và không còn khả dụng.`);
+                    setTimeout(function () { window.location.href = '/'; }, 2000);
+                } else if (changeType === 'updated') {
+                    showProductToast('info', `${name} vừa được cập nhật.`);
+                    setTimeout(function () { location.reload(); }, 1500);
+                } else if (changeType === 'approved') {
+                    showProductToast('success', `${name} đã được duyệt!`);
+                    setTimeout(function () { location.reload(); }, 1500);
+                }
+            });
+
+            function showProductToast(type, message) {
+                var bgClass = type === 'success' ? 'bg-success' : type === 'warning' ? 'bg-warning' : type === 'error' ? 'bg-danger' : 'bg-info';
+                var iconClass = type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+                var html = '<div class="toast align-items-center text-white ' + bgClass + ' border-0" role="alert" style="position:fixed;top:20px;right:20px;z-index:9999;"><div class="d-flex"><div class="toast-body"><i class="fas ' + iconClass + ' me-2"></i>' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
+                var div = document.createElement('div');
+                div.innerHTML = html;
+                document.body.appendChild(div.firstElementChild);
+                var toastEl = document.body.querySelector('.toast:last-child');
+                var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+                toast.show();
+                toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
+            }
+        })();
     </script>
 }
