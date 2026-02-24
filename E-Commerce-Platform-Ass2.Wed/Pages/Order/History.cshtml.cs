@@ -21,7 +21,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Order
 
         public PagedResult<OrderHistoryViewModel> ViewModel { get; set; } = new();
 
-        public async Task<IActionResult> OnGetAsync(int page = 1)
+        public async Task<IActionResult> OnGetAsync(int pageIndex = 1)
         {
             const int pageSize = 5;
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -52,11 +52,11 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Order
 
             ViewModel = new PagedResult<OrderHistoryViewModel>
             {
-                CurrentPage = page,
+                CurrentPage = pageIndex,
                 PageSize = pageSize,
                 TotalItems = model.Count,
                 Items = model
-                    .Skip((page - 1) * pageSize)
+                    .Skip((pageIndex - 1) * pageSize)
                     .Take(pageSize)
                     .ToList()
             };
