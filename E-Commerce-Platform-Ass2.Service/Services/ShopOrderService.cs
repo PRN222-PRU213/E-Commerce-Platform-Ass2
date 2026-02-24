@@ -269,7 +269,13 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             }
             if (string.IsNullOrWhiteSpace(dto.TrackingCode))
             {
-                return ServiceResult.Failure("Vui lòng nhập mã vận đơn.");
+                return ServiceResult.Failure("Vui lòng nhập mã vận chuyển đơn.");
+            }
+
+            var existsCode = await _shipmentRepository.ExistsTrackingCodeAsync(dto.TrackingCode);
+            if (existsCode)
+            {
+                return ServiceResult.Failure("Vui lòng nhập mã vận chuyển khác vì đã bị trùng.");
             }
 
             // Tạo shipment

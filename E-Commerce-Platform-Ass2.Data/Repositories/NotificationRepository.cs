@@ -66,5 +66,31 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories
             _context.Notifications.Update(notification);
             await _context.SaveChangesAsync();
         }
+
+        public async Task DeleteAsync(Notification notification)
+        {
+            _context.Notifications.Remove(notification);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAllAsync(IEnumerable<Notification> notifications)
+        {
+            _context.Notifications.RemoveRange(notifications);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<Notification> GetByUserAndNotificationIdAsync(Guid userId, Guid notificationId)
+        {
+            return await _context.Notifications
+                .FirstOrDefaultAsync(x => x.UserId == userId && x.Id == notificationId);
+        }
+
+        public async Task<IEnumerable<Notification>> GetNotificationsByUserIdAsync(Guid userId)
+        {
+            return await _context.Notifications
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
+        }
     }
 }

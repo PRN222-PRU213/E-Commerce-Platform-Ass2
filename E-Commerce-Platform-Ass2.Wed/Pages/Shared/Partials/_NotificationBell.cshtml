@@ -33,7 +33,7 @@
 <style>
     #rt-bell-wrapper .dropdown-menu { border: 1px solid rgba(0,0,0,.1); }
     .rt-bell-item { display: flex; align-items: flex-start; padding: 10px 14px; border-bottom: 1px solid #f0f0f0;
-        text-decoration: none; color: #333; transition: background .15s; cursor: pointer; }
+        text-decoration: none; color: #333; transition: background .15s, opacity .3s, max-height .3s; cursor: pointer; position: relative; overflow: hidden; }
     .rt-bell-item:hover { background: #f8f9fa; text-decoration: none; color: #333; }
     .rt-bell-item .rt-bell-icon { width: 32px; height: 32px; border-radius: 50%; display: flex;
         align-items: center; justify-content: center; flex-shrink: 0; margin-right: 10px; font-size: 14px; }
@@ -43,6 +43,11 @@
     .rt-bell-icon-error   { background: #f8d7da; color: #dc3545; }
     .rt-bell-msg { font-size: 13px; line-height: 1.35; flex: 1; }
     .rt-bell-time { font-size: 11px; color: #999; margin-top: 2px; }
+    .rt-bell-delete { flex-shrink: 0; border: none; background: transparent; color: #dc3545; cursor: pointer;
+        font-size: 13px; padding: 4px 6px; border-radius: 4px; transition: color .2s, background .2s;
+        margin-left: 6px; align-self: center; }
+    .rt-bell-delete:hover { color: #dc3545; background: #f8d7da; }
+    .rt-bell-item.rt-bell-removing { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; border-bottom: none; }
     #rt-bell-badge { animation: rt-bell-pulse .6s ease; }
     @@keyframes rt-bell-pulse {
         0%,100% { transform: scale(1); }
@@ -67,19 +72,35 @@
         error:   { cls: 'rt-bell-icon-error',   icon: 'fas fa-times-circle' }
     };
 
-    function addItem(type, message, link, timeAgo, isRead) {
+    function addItem(type, message, link, timeAgo, isRead, notificationId) {
         if (empty) empty.style.display = 'none';
 
         var info = iconMap[type] || iconMap.info;
-        var el = document.createElement(link ? 'a' : 'div');
+        var el = document.createElement('div');
         el.className = 'rt-bell-item' + (isRead ? '' : ' font-weight-bold');
         if (!isRead) el.style.background = '#edf2fa';
-        if (link) el.href = link;
 
-        el.innerHTML =
-             '<div class="rt-bell-icon ' + info.cls + '"><i class="' + info.icon + '"></i></div>' +
-            '<div class="rt-bell-msg">' + message +
-            '<div class="rt-bell-time">' + (timeAgo || 'Vừa xong') + '</div></div>';
+        var contentHtml =
+             '<div class="rt-bell-icon ' + info.cls + '">' +
+             '<i class="' + info.icon + '"></i></div>' +
+             (link ? '<a href="' + link + '" style="flex:1;text-decoration:none;color:inherit;">' : '<div style="flex:1;">') +
+             '<div class="rt-bell-msg">' + message +
+             '<div class="rt-bell-time">' + (timeAgo || 'Vừa xong') + '</div></div>' +
+             (link ? '</a>' : '</div>') +
+             '<button class="rt-bell-delete" title="Xóa thông báo" data-id="' + (notificationId || '') + '">' +
+             '<i class="fas fa-trash-alt"></i></button>';
+
+        el.innerHTML = contentHtml;
+
+        // Attach delete handler
+        var delBtn = el.querySelector('.rt-bell-delete');
+        if (delBtn) {
+            delBtn.addEventListener('click', function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                deleteNotification(delBtn.getAttribute('data-id'), el);
+            });
+        }
 
         if (list.firstChild && list.firstChild !== empty) {
             list.insertBefore(el, list.firstChild);
@@ -98,10 +119,35 @@
                 if(empty) { list.appendChild(empty); empty.style.display = 'block'; }
 
                 if (data.notifications && data.notifications.length > 0) {
-                    // Reverse to add correct order since addItem calls insertBefore
-                    [...data.notifications].reverse().forEach(n => {
-                        addItem(n.type, n.message, n.link, n.timeAgo, n.isRead);
+                    // Data is already sorted newest-first from the server
+                    data.notifications.forEach(n => {
+                        var info = iconMap[n.type] || iconMap.info;
+                        var el = document.createElement('div');
+                        el.className = 'rt-bell-item' + (n.isRead ? '' : ' font-weight-bold');
+                        if (!n.isRead) el.style.background = '#edf2fa';
+
+                        el.innerHTML =
+                            '<div class="rt-bell-icon ' + info.cls + '"><i class="' + info.icon + '"></i></div>' +
+                            (n.link ? '<a href="' + n.link + '" style="flex:1;text-decoration:none;color:inherit;">' : '<div style="flex:1;">') +
+                            '<div class="rt-bell-msg">' + n.message +
+                            '<div class="rt-bell-time">' + (n.timeAgo || 'Vừa xong') + '</div></div>' +
+                            (n.link ? '</a>' : '</div>') +
+                            '<button class="rt-bell-delete" title="Xóa thông báo" data-id="' + n.id + '">' +
+                            '<i class="fas fa-trash-alt"></i></button>';
+
+                        // Attach delete handler
+                        var delBtn = el.querySelector('.rt-bell-delete');
+                        if (delBtn) {
+                            delBtn.addEventListener('click', function(ev) {
+                                ev.preventDefault();
+                                ev.stopPropagation();
+                                deleteNotification(delBtn.getAttribute('data-id'), el);
+                            });
+                        }
+
+                        list.appendChild(el);
                     });
+                    if (empty) empty.style.display = 'none';
                 }
 
                 if (data.unreadCount > 0) {
@@ -118,10 +164,46 @@
     // Load on start
     loadNotifications();
 
+    // Delete a single notification
+    function deleteNotification(notificationId, itemEl) {
+        if (!confirm('Bạn có muốn xóa thông báo này không?')) return;
+
+        if (!notificationId) {
+            // Real-time notification without ID - just remove from UI
+            removeItemEl(itemEl);
+            return;
+        }
+        fetch('/Notifications?handler=Delete&notificationId=' + notificationId, {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': getCsrfToken()
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                removeItemEl(itemEl);
+            }
+        })
+        .catch(err => console.error('Failed to delete notification', err));
+    }
+
+    function removeItemEl(itemEl) {
+        itemEl.classList.add('rt-bell-removing');
+        setTimeout(function() {
+            itemEl.remove();
+            // Check if list is now empty
+            var remaining = list.querySelectorAll('.rt-bell-item');
+            if (remaining.length === 0 && empty) {
+                empty.style.display = 'block';
+            }
+        }, 300);
+    }
+
     // SignalR listener (Real-time)
     document.addEventListener('rt:notification', function (e) {
         var d = e.detail;
-        addItem(d.type, d.message, d.link, 'Vừa xong', false);
+        addItem(d.type, d.message, d.link, 'Vừa xong', false, d.id || '');
         count++;
         badge.textContent = count > 99 ? '99+' : count;
         badge.style.display = 'inline-block';
@@ -140,19 +222,28 @@
     }
 
 
-    // Mark all read on click clear
+    // Delete all notifications on click clear
     if (clearBtn) {
         clearBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            fetch('/Notifications?handler=MarkAllRead', { 
+            if (!confirm('Bạn có muốn xóa tất cả thông báo không?')) return;
+
+            fetch('/Notifications?handler=DeleteAll', { 
                 method: 'POST',
                 headers: {
                     'RequestVerificationToken': getCsrfToken()
                 }
             })
-            .then(() => {
-                    loadNotifications();
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear all items from UI
+                    while(list.firstChild) list.removeChild(list.firstChild);
+                    if (empty) { list.appendChild(empty); empty.style.display = 'block'; }
+                    count = 0;
+                    badge.style.display = 'none';
+                }
             });
         });
     }

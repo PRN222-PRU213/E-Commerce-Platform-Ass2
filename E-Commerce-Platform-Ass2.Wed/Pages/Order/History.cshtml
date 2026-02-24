@@ -117,14 +117,14 @@
     }
 
     .btn-reorder {
-        background: #28a745;
+        background: #dc3545;
         color: white;
     }
 
     .btn-reorder:hover {
-        background: #218838;
+        background: #c82333;
         transform: scale(1.05);
-        box-shadow: 0 3px 10px rgba(40, 167, 69, 0.4);
+        box-shadow: 0 3px 10px rgba(220, 53, 69, 0.4);
         color: white;
     }
 
@@ -212,6 +212,16 @@
             </div>
         }
 
+        @if (TempData["Error"] != null)
+        {
+            <div id="errorAlert"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
         @if (!Model.ViewModel.Items.Any())
         {
             <div class="alert alert-info border-0 shadow-sm text-center py-5">
@@ -288,10 +298,10 @@
 
                             <!-- Actions -->
                             <div class="col-3 order-cell" style="justify-content: center;">
-                                <div class="d-flex gap-2 justify-content-center flex-nowrap">
+                                <div class="d-flex justify-content-center flex-nowrap">
                                     <a asp-page="/Order/Detail"
                                        asp-route-orderId="@item.OrderId"
-                                       class="action-btn btn-detail"
+                                       class="action-btn btn-detail mr-3"
                                        title="Xem chi tiết">
                                         <i class="fas fa-eye"></i>
                                         <span>Chi tiết</span>
@@ -310,9 +320,10 @@
 
                                     @if (item.Status == "Paid" && !item.IsRefunded)
                                     {
-                                        <button class="action-btn btn-refund"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#refundModal"
+                                        <button type="button"
+                                                class="action-btn btn-refund"
+                                                data-toggle="modal"
+                                                data-target="#refundModal"
                                                 data-order-id="@item.OrderId"
                                                 data-amount="@item.TotalAmount"
                                                 title="Hoàn tiền">
@@ -340,7 +351,7 @@
 
                     @for (int i = 1; i <= Model.ViewModel.TotalPages; i++)
                     {
-                        <li class="page-item @(i == Model.ViewModel.CurrentPage ? "active" : "")">
+                        <li class="page-item @(i == Model.ViewModel.CurrentPage ? "Active" : "")">
                             <a class="page-link"
                                asp-page="/Order/History"
                                asp-route-page="@i">@i</a>
@@ -361,20 +372,22 @@
 </div>
 
 <!-- Refund Modal -->
-<div class="modal fade" id="refundModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="refundModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <form asp-page="/Refund/Request" method="post" class="modal-content">
             @Html.AntiForgeryToken()
             <div class="modal-header" style="background: linear-gradient(135deg, #D19C97 0%, #c88a84 100%); color: white;">
-                <h5 class="modal-title"><i class="fas fa-undo me-2"></i>Xác nhận hoàn tiền</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title"><i class="fas fa-undo mr-2"></i>Xác nhận hoàn tiền</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" style="color:white">&times;</span>
+                </button>
             </div>
 
             <div class="modal-body">
                 <input type="hidden" name="orderId" id="refundOrderId" />
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold"><i class="fas fa-money-bill-wave me-2"></i>Số tiền hoàn</label>
+                <div class="form-group">
+                    <label class="font-weight-bold"><i class="fas fa-money-bill-wave mr-2"></i>Số tiền hoàn</label>
                     <input type="number"
                            class="form-control"
                            name="amount"
@@ -382,8 +395,8 @@
                            readonly />
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold"><i class="fas fa-comment-dots me-2"></i>Lý do hoàn tiền</label>
+                <div class="form-group">
+                    <label class="font-weight-bold"><i class="fas fa-comment-dots mr-2"></i>Lý do hoàn tiền</label>
                     <textarea class="form-control"
                               name="reason"
                               rows="3"
@@ -392,16 +405,16 @@
                 </div>
 
                 <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Sau khi hoàn tiền, đơn hàng sẽ bị hủy.
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Sau khi hoàn tiền, đơn hàng sẽ bị hủy.
                 </div>
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>Hủy
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Hủy
                 </button>
                 <button type="submit" class="btn btn-danger">
-                    <i class="fas fa-check me-1"></i>Xác nhận hoàn tiền
+                    <i class="fas fa-check mr-1"></i>Xác nhận hoàn tiền
                 </button>
             </div>
         </form>
@@ -410,25 +423,25 @@
 
 @section Scripts {
 <script>
-    const refundModal = document.getElementById('refundModal');
+    // Bootstrap 4: use jQuery modal events
+    $('#refundModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var orderId = button.data('order-id');
+        var amount  = button.data('amount');
 
-    refundModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const orderId = button.getAttribute('data-order-id');
-        const amount = button.getAttribute('data-amount');
-
-        document.getElementById('refundOrderId').value = orderId;
-        document.getElementById('refundAmount').value = amount;
+        $('#refundOrderId').val(orderId);
+        $('#refundAmount').val(amount);
     });
 
-    // Auto hide success alert
-    setTimeout(() => {
-        const alertNode = document.getElementById('successAlert');
-        if (alertNode) {
-            const bsAlert = new bootstrap.Alert(alertNode);
-            bsAlert.close();
-        }
+    // Auto hide success alert (Bootstrap 4)
+    setTimeout(function () {
+        $('#successAlert').alert('close');
     }, 3000);
+
+    // Auto hide error alert (Bootstrap 4)
+    setTimeout(function () {
+        $('#errorAlert').alert('close');
+    }, 5000);
 
     // Real-time update order list when receiving order notifications
     console.log('[Order History] Page loaded, listening for notifications...');

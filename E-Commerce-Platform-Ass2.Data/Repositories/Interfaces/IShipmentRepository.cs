@@ -15,5 +15,6 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories.Interfaces
         Task<IEnumerable<Shipment>> GetByStatusAsync(string status);
         Task<Shipment> AddAsync(Shipment shipment);
         Task<Shipment> UpdateAsync(Shipment shipment);
+        Task<bool> ExistsTrackingCodeAsync(string trackingCode);
     }
 }
