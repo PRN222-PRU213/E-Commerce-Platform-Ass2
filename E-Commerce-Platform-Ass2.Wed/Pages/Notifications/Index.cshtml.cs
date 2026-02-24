@@ -51,5 +51,29 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Notifications
             await _notificationService.MarkAllAsReadAsync(userId);
             return new JsonResult(new { success = true });
         }
+
+        public async Task<IActionResult> OnPostDeleteAsync(Guid notificationId)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdStr, out Guid userId))
+            {
+                return Unauthorized();
+            }
+
+            await _notificationService.DeleteAsync(userId, notificationId);
+            return new JsonResult(new { success = true });
+        }
+
+        public async Task<IActionResult> OnPostDeleteAllAsync()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdStr, out Guid userId))
+            {
+                return Unauthorized();
+            }
+
+            await _notificationService.DeleteAllAsync(userId);
+            return new JsonResult(new {success = true});
+        }
     }
 }

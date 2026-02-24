@@ -26,6 +26,11 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories
             return shipment;
         }
 
+        public async Task<bool> ExistsTrackingCodeAsync(string trackingCode)
+        {
+            return await _context.Shipments.AnyAsync(x => x.TrackingCode == trackingCode);
+        }
+
         public async Task<IEnumerable<Shipment>> GetAllAsync()
         {
             return await _context.Shipments.ToListAsync();

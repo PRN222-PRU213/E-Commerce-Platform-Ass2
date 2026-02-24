@@ -12,5 +12,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services.IServices
         Task<NotificationDto> CreateNotificationAsync(Guid userId, string type, string message, string? link = null);
         Task MarkAllAsReadAsync(Guid userId);
         Task MarkAsReadAsync(Guid id);
+        Task DeleteAsync(Guid userId, Guid notificationId);
+        Task DeleteAllAsync(Guid userId);
     }
 }

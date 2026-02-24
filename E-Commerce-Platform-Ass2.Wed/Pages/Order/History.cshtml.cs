@@ -11,10 +11,12 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Order
     public class HistoryModel : PageModel
     {
         private readonly IOrderService _orderService;
+        private readonly IRefundService _refundService;
 
-        public HistoryModel(IOrderService orderService)
+        public HistoryModel(IOrderService orderService, IRefundService refundService)
         {
             _orderService = orderService;
+            _refundService = refundService;
         }
 
         public PagedResult<OrderHistoryViewModel> ViewModel { get; set; } = new();
@@ -31,17 +33,22 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Order
 
             var orders = await _orderService.GetOrderHistoryAsync(userId);
 
-            var model = orders.Select(o => new OrderHistoryViewModel
+            // Sequential loop to avoid concurrent DbContext operations (EF Core is not thread-safe)
+            var model = new List<OrderHistoryViewModel>();
+            foreach (var o in orders)
             {
-                OrderId = o.Id,
-                OrderDate = o.CreatedAt,
-                TotalAmount = o.TotalAmount,
-                Status = o.Status,
-                ShippingAddress = o.ShippingAddress,
-                IsRefunded = false
-            })
-            .OrderByDescending(o => o.OrderDate)
-            .ToList();
+                model.Add(new OrderHistoryViewModel
+                {
+                    OrderId = o.Id,
+                    OrderDate = o.CreatedAt,
+                    TotalAmount = o.TotalAmount,
+                    Status = o.Status,
+                    ShippingAddress = o.ShippingAddress,
+                    IsRefunded = await _refundService.IsRefundedAsync(o.Id)
+                });
+            }
+
+            model = model.OrderByDescending(o => o.OrderDate).ToList();
 
             ViewModel = new PagedResult<OrderHistoryViewModel>
             {

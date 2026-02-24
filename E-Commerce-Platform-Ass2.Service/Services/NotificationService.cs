@@ -90,5 +90,27 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             if (span.TotalDays < 7) return $"{(int)span.TotalDays} ngày trước";
             return dateTime.ToString("dd/MM/yyyy");
         }
+
+        public async Task DeleteAsync(Guid userId, Guid notificationId)
+        {
+            var notification = await _notificationRepository.GetByUserAndNotificationIdAsync(userId, notificationId);
+            if (notification == null)
+            {
+                throw new Exception("Bạn không có thông báo này.");
+            }
+
+            await _notificationRepository.DeleteAsync(notification);
+        }
+
+        public async Task DeleteAllAsync(Guid userId)
+        {
+            var notifications = await _notificationRepository.GetNotificationsByUserIdAsync(userId);
+            if (notifications == null)
+            {
+                throw new Exception("Bạn không có thông báo nào.");
+            }
+
+            await _notificationRepository.DeleteAllAsync(notifications);
+        }
     }
 }
