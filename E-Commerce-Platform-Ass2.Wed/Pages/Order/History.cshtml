@@ -344,24 +344,24 @@
                     <li class="page-item @(Model.ViewModel.CurrentPage == 1 ? "disabled" : "")">
                         <a class="page-link"
                            asp-page="/Order/History"
-                           asp-route-page="@(Model.ViewModel.CurrentPage - 1)">
+                           asp-route-pageIndex="@(Model.ViewModel.CurrentPage - 1)">
                             <i class="fas fa-chevron-left"></i>
                         </a>
                     </li>
 
                     @for (int i = 1; i <= Model.ViewModel.TotalPages; i++)
                     {
-                        <li class="page-item @(i == Model.ViewModel.CurrentPage ? "Active" : "")">
+                        <li class="page-item @(i == Model.ViewModel.CurrentPage ? "active" : "")">
                             <a class="page-link"
                                asp-page="/Order/History"
-                               asp-route-page="@i">@i</a>
+                               asp-route-pageIndex="@i">@i</a>
                         </li>
                     }
 
                     <li class="page-item @(Model.ViewModel.CurrentPage == Model.ViewModel.TotalPages ? "disabled" : "")">
                         <a class="page-link"
                            asp-page="/Order/History"
-                           asp-route-page="@(Model.ViewModel.CurrentPage + 1)">
+                           asp-route-pageIndex="@(Model.ViewModel.CurrentPage + 1)">
                             <i class="fas fa-chevron-right"></i>
                         </a>
                     </li>
