@@ -40,22 +40,7 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
                    .HasMaxLength(50)
                    .IsRequired();
 
-            builder.Property(r => r.SpamScore)
-                   .HasColumnType("decimal(5,2)")
-                   .HasDefaultValue(0);
-
-            builder.Property(r => r.ToxicityScore)
-                   .HasColumnType("decimal(5,2)")
-                   .HasDefaultValue(0);
-
-            builder.Property(r => r.ModerationReason)
-                   .HasMaxLength(255)
-                   .IsRequired(false);
-
             builder.Property(r => r.ModeratedAt)
-                   .IsRequired(false);
-
-            builder.Property(r => r.ModeratedBy)
                    .IsRequired(false);
 
             builder.Property(r => r.CreatedAt)

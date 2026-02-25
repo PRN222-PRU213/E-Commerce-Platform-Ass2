@@ -230,7 +230,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Models
         public List<ProductVariantItemViewModel> Variants { get; set; } = new();
 
         // Reviews
-        public List<ProductReviewViewModel> Reviews { get; set; } = new();
+        public List<ReviewViewModel> Reviews { get; set; } = new();
 
         public int ReviewCount => Reviews.Count;
 
@@ -278,15 +278,4 @@ namespace E_Commerce_Platform_Ass2.Wed.Models
         public bool IsInStock => Stock > 0 && Status == "active";
     }
 
-    /// <summary>
-    /// ViewModel cho Review
-    /// </summary>
-    public class ProductReviewViewModel
-    {
-        public Guid Id { get; set; }
-        public string UserName { get; set; } = string.Empty;
-        public int Rating { get; set; }
-        public string Comment { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-    }
 }
