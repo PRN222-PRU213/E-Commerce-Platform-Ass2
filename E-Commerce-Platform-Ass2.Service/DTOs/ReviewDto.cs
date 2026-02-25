@@ -1,14 +1,17 @@
-namespace E_Commerce_Platform_Ass2.Data.Database.Entities
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace E_Commerce_Platform_Ass2.Service.DTOs
 {
-    public class Review
+    public class ReviewDto
     {
         public Guid Id { get; set; }
-
         public Guid UserId { get; set; }
-
+        public string UserName { get; set; } = string.Empty;
         public Guid ProductId { get; set; }
-
-        public Guid OrderItemId { get; set; }
 
         public int Rating { get; set; }
 
@@ -19,12 +22,5 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
         public DateTime? ModeratedAt { get; set; }
 
         public DateTime CreatedAt { get; set; }
-
-        // Navigation Properties
-        public User User { get; set; } = null!;
-
-        public Product Product { get; set; } = null!;
-
-        public OrderItem OrderItem { get; set; } = null!;
     }
 }

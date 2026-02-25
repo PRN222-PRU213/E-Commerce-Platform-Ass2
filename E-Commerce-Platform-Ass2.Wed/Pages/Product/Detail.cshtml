@@ -298,21 +298,28 @@
                     <div class="row">
                         <div class="col-md-6">
                             <h4 class="mb-4">@Model.ViewModel.Reviews.Count review for "@Model.ViewModel.Name"</h4>
-                            @foreach (var review in Model.ViewModel.Reviews)
+                            @if (!Model.ViewModel.Reviews.Any())
                             {
-                                <div class="media mb-4">
-                                    <img src="/img/user.jpg" alt="Image" class="img-fluid mr-3 mt-1" style="width: 45px;">
-                                    <div class="media-body">
-                                        <h6>@review.UserName<small> - <i>@review.CreatedAt.ToString("dd MMM yyyy")</i></small></h6>
-                                        <div class="text-primary mb-2">
-                                            @for (int i = 1; i <= 5; i++)
-                                            {
-                                                <i class="@(i <= review.Rating ? "fas" : "far") fa-star"></i>
-                                            }
+                                <p class="text-muted">Chưa có bình luận nào cho sản phẩm này.</p>
+                            }
+                            else
+                            {
+                                @foreach (var review in Model.ViewModel.Reviews)
+                                {
+                                    <div class="media mb-4">
+                                        <img src="/img/user.jpg" alt="Image" class="img-fluid mr-3 mt-1" style="width: 45px;">
+                                        <div class="media-body">
+                                            <h6>@review.UserName<small> - <i>@review.CreatedAt.ToString("dd MMM yyyy")</i></small></h6>
+                                            <div class="text-primary mb-2">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <i class="@(i <= review.Rating ? "fas" : "far") fa-star"></i>
+                                                }
+                                            </div>
+                                            <p>@review.Comment</p>
                                         </div>
-                                        <p>@review.Comment</p>
                                     </div>
-                                </div>
+                                }
                             }
                         </div>
                         <div class="col-md-6">
@@ -332,14 +339,6 @@
                                 <div class="form-group">
                                     <label for="message">Your Review *</label>
                                     <textarea id="message" cols="30" rows="5" class="form-control"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="name">Your Name *</label>
-                                    <input type="text" class="form-control" id="name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="email">Your Email *</label>
-                                    <input type="email" class="form-control" id="email">
                                 </div>
                                 <div class="form-group mb-0">
                                     <input type="submit" value="Leave Your Review" class="btn btn-primary px-3">

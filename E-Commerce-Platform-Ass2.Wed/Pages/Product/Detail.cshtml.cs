@@ -8,10 +8,12 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Product
     public class DetailModel : PageModel
     {
         private readonly IProductService _productService;
+        private readonly IReviewService _reviewService;
 
-        public DetailModel(IProductService productService)
+        public DetailModel(IProductService productService, IReviewService reviewService)
         {
             _productService = productService;
+            _reviewService = reviewService;
         }
 
         public ProductDetailViewModel ViewModel { get; set; } = new();
@@ -52,6 +54,16 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Product
                         ImageUrl = v.ImageUrl,
                     })
                     .ToList(),
+                Reviews = (await _reviewService.GetReviewsByProductIdAsync(id))
+                    ?.Select(r => new ReviewViewModel
+                    {
+                        Id = r.Id,
+                        UserName = r.UserName,
+                        Rating = r.Rating,
+                        Comment = r.Comment,
+                        CreatedAt = r.CreatedAt,
+                        ModerateAt = r.ModeratedAt
+                    }).ToList() ?? new List<ReviewViewModel>()
             };
 
             return Page();

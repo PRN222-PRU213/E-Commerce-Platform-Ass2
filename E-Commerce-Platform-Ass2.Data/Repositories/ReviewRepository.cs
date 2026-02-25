@@ -26,9 +26,25 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories
             return newReview;
         }
 
+        public async Task DeleteAsync(Review review)
+        {
+            _context.Reviews.Remove(review);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<IEnumerable<Review>> GetAllAsync()
         {
-            return await _context.Reviews.ToListAsync();
+            return await _context.Reviews
+                .Include(x => x.User)
+                .ToListAsync();
+        }
+
+        public async Task<Review?> GetByIdAndUserIdAsync(Guid id, Guid userId)
+        {
+            return await _context.Reviews
+                .Where(x => x.Id == id && x.UserId == userId)
+                .Include(x => x.User)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<Review?> GetByIdAsync(Guid id)
@@ -36,17 +52,27 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories
             return await _context.Reviews.FindAsync(id);
         }
 
-        public async Task<Review?> GetByProductIdAsync(Guid productId)
+        public async Task<IEnumerable<Review>> GetByProductIdAsync(Guid productId)
         {
             return await _context.Reviews
                 .Where(r => r.ProductId == productId)
-                .FirstOrDefaultAsync();
+                .Include(x => x.User)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Review>> GetByRatingAsync(int rating)
+        {
+            return await _context.Reviews
+                .Where(x => x.Rating == rating)
+                .Include(x => x.User)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Review>> GetByUserIdAsync(Guid userId)
         {
             return await _context.Reviews
                 .Where(r => r.UserId == userId)
+                .Include(r => r.User)
                 .ToListAsync();
         }
 
