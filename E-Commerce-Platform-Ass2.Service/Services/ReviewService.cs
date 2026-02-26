@@ -14,14 +14,16 @@ namespace E_Commerce_Platform_Ass2.Service.Services
     {
         private readonly IReviewRepository _reviewRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IOrderRepository _orderRepository;
 
-        public ReviewService(IReviewRepository reviewRepository, IUserRepository userRepository)
+        public ReviewService(IReviewRepository reviewRepository, IUserRepository userRepository, IOrderRepository orderRepository)
         {
             _reviewRepository = reviewRepository;
             _userRepository = userRepository;
+            _orderRepository = orderRepository;
         }
 
-        public async Task<ReviewDto> CreateReviewAsync(Guid userId, int rating, string comment)
+        public async Task<ReviewDto> CreateReviewAsync(Guid userId, Guid productId, int rating, string comment)
         {
             // 1️⃣ Validate rating
             if (rating < 1 || rating > 5)
@@ -58,10 +60,18 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 }
             }
 
+            // Kiểm tra xem user đã mua sản phẩm này chưa
+            var exists = await _orderRepository.ExistsOrderAsync(userId, productId);
+            if (!exists)
+            {
+                throw new Exception("Bạn không thể đánh giá sản phẩm chưa từng mua.");
+            }
+
             var review = new Review
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
+                ProductId = productId,
                 Rating = rating,
                 Comment = comment,
                 Status = "Pending",
@@ -74,11 +84,58 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             {
                 Id = review.Id,
                 UserId = review.UserId,
-                UserName = review.User.Name,
+                UserName = (await _userRepository.GetByIdAsync(userId))?.Name ?? "N/A",
+                ProductId = review.ProductId,
                 Rating = review.Rating,
                 Comment = review.Comment,
                 Status = review.Status,
                 CreatedAt = review.CreatedAt
+            };
+        }
+
+        public async Task<ReviewDto> ApproveReviewAsync(Guid id)
+        {
+            var review = await _reviewRepository.GetByIdAsync(id);
+            if (review == null) throw new Exception("Không tìm thấy review.");
+
+            review.Status = "Approved";
+            review.ModeratedAt = DateTime.UtcNow;
+            await _reviewRepository.UpdateAsync(review);
+
+            return new ReviewDto
+            {
+                Id = review.Id,
+                UserId = review.UserId,
+                UserName = review.User?.Name ?? "N/A",
+                ProductId = review.ProductId,
+                Rating = review.Rating,
+                Comment = review.Comment,
+                Status = review.Status,
+                CreatedAt = review.CreatedAt,
+                ModeratedAt = review.ModeratedAt
+            };
+        }
+
+        public async Task<ReviewDto> RejectReviewAsync(Guid id)
+        {
+            var review = await _reviewRepository.GetByIdAsync(id);
+            if (review == null) throw new Exception("Không tìm thấy review.");
+
+            review.Status = "Rejected";
+            review.ModeratedAt = DateTime.UtcNow;
+            await _reviewRepository.UpdateAsync(review);
+
+            return new ReviewDto
+            {
+                Id = review.Id,
+                UserId = review.UserId,
+                UserName = review.User?.Name ?? "N/A",
+                ProductId = review.ProductId,
+                Rating = review.Rating,
+                Comment = review.Comment,
+                Status = review.Status,
+                CreatedAt = review.CreatedAt,
+                ModeratedAt = review.ModeratedAt
             };
         }
 
@@ -162,7 +219,9 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return new List<ReviewDto>();
             }
 
-            return reviews.Select(r => new ReviewDto
+            return reviews
+                .Where(r => r.Status == "Approved")
+                .Select(r => new ReviewDto
             {
                 Id = r.Id,
                 UserId = r.UserId,

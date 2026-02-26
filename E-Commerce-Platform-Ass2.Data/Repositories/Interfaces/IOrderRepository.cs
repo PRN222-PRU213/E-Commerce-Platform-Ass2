@@ -18,5 +18,6 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories.Interfaces
         Task<IEnumerable<Order>> GetAllWithDetailsAsync();
         Task<Order> AddAsync(Order order);
         Task<Order> UpdateAsync(Order order);
+        Task<bool> ExistsOrderAsync(Guid userId, Guid productId);
     }
 }

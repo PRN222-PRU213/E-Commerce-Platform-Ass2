@@ -1,0 +1,176 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Admin.Reviews.IndexModel
+@{
+    ViewData["Title"] = "Manage Reviews";
+    Layout = "~/Pages/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-comments"></i> Manage All Reviews</h2>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">All Product Reviews</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Product ID</th>
+                            <th>Rating</th>
+                            <th>Comment</th>
+                            <th>Status</th>
+                            <th>Submitted At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviews-table-body">
+                        @if (!Model.AllReviews.Any())
+                        {
+                            <tr id="no-reviews-row">
+                                <td colspan="7" class="text-center text-muted">No reviews found.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var review in Model.AllReviews)
+                            {
+                                <tr>
+                                    <td>@review.UserName</td>
+                                    <td><small>@review.ProductId</small></td>
+                                    <td>
+                                        <div class="text-warning">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="@(i <= review.Rating ? "fas" : "far") fa-star"></i>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>@review.Comment</td>
+                                    <td>
+                                        @if (review.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        }
+                                        else if (review.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success">Approved</span>
+                                        }
+                                        else if (review.Status == "Rejected")
+                                        {
+                                            <span class="badge bg-danger">Rejected</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@review.Status</span>
+                                        }
+                                    </td>
+                                    <td>@review.CreatedAt.ToString("g")</td>
+                                    <td>
+                                        @if (review.Status == "Pending")
+                                        {
+                                            <div class="d-flex gap-2">
+                                                <form method="post" asp-page-handler="Approve" asp-route-id="@review.Id">
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        <i class="fas fa-check"></i> Approve
+                                                    </button>
+                                                </form>
+                                                <form method="post" asp-page-handler="Reject" asp-route-id="@review.Id">
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted"><i class="fas fa-lock"></i> Moderated</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('rt:review-submitted', function (e) {
+            const review = e.detail;
+            console.log("[Admin Reviews] New review submitted real-time:", review);
+
+            // 1. Remove "no reviews" row if it exists
+            $('#no-reviews-row').remove();
+
+            // 2. Build star rating HTML
+            let starsHtml = '';
+            for (let i = 1; i <= 5; i++) {
+                starsHtml += `<i class="${i <= review.rating ? 'fas' : 'far'} fa-star"></i>`;
+            }
+
+            // 3. Format date
+            const date = new Date(review.createdAt);
+            const dateStr = date.toLocaleString('en-US', { 
+                month: 'numeric', 
+                day: 'numeric', 
+                year: 'numeric', 
+                hour: 'numeric', 
+                minute: 'numeric', 
+                hour12: true 
+            });
+
+            // 4. Build row HTML (Note: URLs for approve/reject need id)
+            // Using a simple template for the row
+            const html = `
+                <tr class="table-info animated fadeIn">
+                    <td>${review.userName || 'N/A'}</td>
+                    <td><small>${review.productId}</small></td>
+                    <td><div class="text-warning">${starsHtml}</div></td>
+                    <td>${review.comment}</td>
+                    <td><span class="badge bg-warning text-dark">Pending</span></td>
+                    <td>${dateStr}</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <form method="post" action="/Admin/Reviews/Index?handler=Approve&id=${review.id}">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                ${$('input[name="__RequestVerificationToken"]').first().prop('outerHTML') || ''}
+                            </form>
+                            <form method="post" action="/Admin/Reviews/Index?handler=Reject&id=${review.id}">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                                ${$('input[name="__RequestVerificationToken"]').first().prop('outerHTML') || ''}
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            // 5. Prepend to table
+            $('#reviews-table-body').prepend(html);
+
+            // 6. Show notification via layout function
+            if (typeof showAdminToast === 'function') {
+                showAdminToast('info', 'Có bình luận mới vừa được gửi!');
+            }
+        });
+    </script>
+}

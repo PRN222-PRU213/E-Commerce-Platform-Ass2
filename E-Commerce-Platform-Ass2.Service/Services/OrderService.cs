@@ -19,6 +19,11 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             _orderRepository = orderRepository;
         }
 
+        public async Task<bool> ExistsOrderAsync(Guid userId, Guid productId)
+        {
+            return await _orderRepository.ExistsOrderAsync(userId, productId);
+        }
+
         public async Task<IEnumerable<OrderDto>> GetOrderHistoryAsync(Guid userId)
         {
             var orders = await _orderRepository.GetByUserIdAsync(userId);

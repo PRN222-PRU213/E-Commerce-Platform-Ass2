@@ -49,6 +49,20 @@
     );
   });
 
+  connection.on("ReviewApproved", (review) => {
+    console.log("[SignalR] ReviewApproved received:", review);
+    document.dispatchEvent(
+      new CustomEvent("rt:review-approved", { detail: review }),
+    );
+  });
+
+  connection.on("ReviewSubmitted", (review) => {
+    console.log("[SignalR] ReviewSubmitted received:", review);
+    document.dispatchEvent(
+      new CustomEvent("rt:review-submitted", { detail: review }),
+    );
+  });
+
   async function start() {
     if (
       connection.state === signalR.HubConnectionState.Connected ||

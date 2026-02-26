@@ -95,5 +95,14 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
+
+        public async Task<bool> ExistsOrderAsync(Guid userId, Guid productId)
+        {
+            return await _context.Orders
+                .Where(o => o.UserId == userId && o.Status != "Pending"
+                         && o.OrderItems.Any(oi => 
+                            oi.ProductVariant.ProductId == productId))
+                .AnyAsync();
+        }
     }
 }

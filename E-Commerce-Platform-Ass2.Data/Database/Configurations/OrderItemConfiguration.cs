@@ -52,10 +52,10 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
                    .HasForeignKey(oi => oi.ProductVariantId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasMany(oi => oi.Reviews)
-                   .WithOne(r => r.OrderItem)
-                   .HasForeignKey(r => r.OrderItemId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            //builder.HasMany(oi => oi.Reviews)
+            //       .WithOne(r => r.OrderItem)
+            //       .HasForeignKey(r => r.OrderItemId)
+            //       .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
