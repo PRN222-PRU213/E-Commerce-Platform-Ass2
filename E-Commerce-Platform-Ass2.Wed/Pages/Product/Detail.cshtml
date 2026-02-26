@@ -296,8 +296,8 @@
                 </div>
                 <div class="tab-pane fade" id="tab-pane-3">
                     <div class="row">
-                        <div class="col-md-6">
-                            <h4 class="mb-4">@Model.ViewModel.Reviews.Count review for "@Model.ViewModel.Name"</h4>
+                        <div class="col-md-6" id="reviews-list-container">
+                            <h4 class="mb-4" id="reviews-count-header">@Model.ViewModel.Reviews.Count review for "@Model.ViewModel.Name"</h4>
                             @if (!Model.ViewModel.Reviews.Any())
                             {
                                 <p class="text-muted">Chưa có bình luận nào cho sản phẩm này.</p>
@@ -327,18 +327,20 @@
                             <small>Your email address will not be published. Required fields are marked *</small>
                             <div class="d-flex my-3">
                                 <p class="mb-0 mr-2">Your Rating * :</p>
-                                <div class="text-primary">
-                                    <i class="far fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                    <i class="far fa-star"></i>
+                                <div class="text-primary" id="star-rating">
+                                    <i class="far fa-star rating-star" data-value="1"></i>
+                                    <i class="far fa-star rating-star" data-value="2"></i>
+                                    <i class="far fa-star rating-star" data-value="3"></i>
+                                    <i class="far fa-star rating-star" data-value="4"></i>
+                                    <i class="far fa-star rating-star" data-value="5"></i>
                                 </div>
                             </div>
-                            <form>
+                            <form asp-page="/Review/Create" method="post">
+                                <input type="hidden" name="productId" value="@Model.ViewModel.Id" />
+                                <input type="hidden" name="rating" id="review-rating" value="5" />
                                 <div class="form-group">
                                     <label for="message">Your Review *</label>
-                                    <textarea id="message" cols="30" rows="5" class="form-control"></textarea>
+                                    <textarea id="message" name="comment" cols="30" rows="5" class="form-control" required></textarea>
                                 </div>
                                 <div class="form-group mb-0">
                                     <input type="submit" value="Leave Your Review" class="btn btn-primary px-3">
@@ -412,11 +414,65 @@
                     e.preventDefault();
                 }
             });
+
+            // Review star rating logic
+            function updateStars(rating) {
+                $('.rating-star').each(function() {
+                    var val = $(this).data('value');
+                    if (val <= rating) {
+                        $(this).removeClass('far').addClass('fas');
+                    } else {
+                        $(this).removeClass('fas').addClass('far');
+                    }
+                });
+                $('#review-rating').val(rating);
+            }
+
+            // Defaults to 5 stars
+            updateStars(5);
+
+            $('.rating-star').click(function() {
+                var rating = $(this).data('value');
+                updateStars(rating);
+            }).hover(function() {
+                var rating = $(this).data('value');
+                $('.rating-star').each(function() {
+                    var val = $(this).data('value');
+                    if (val <= rating) {
+                        $(this).removeClass('far').addClass('fas');
+                    } else {
+                        $(this).removeClass('fas').addClass('far');
+                    }
+                });
+            }, function() {
+                var currentRating = $('#review-rating').val();
+                updateStars(currentRating);
+            });
+
+            // Handle TempData success/error
+            var successMsg = '@TempData["Success"]';
+            var errorMsg = '@TempData["Error"]';
+            if (successMsg) showProductToast('success', successMsg);
+            if (errorMsg) showProductToast('error', errorMsg);
         });
+
+        function showProductToast(type, message) {
+            var bgClass = type === 'success' ? 'bg-success' : type === 'warning' ? 'bg-warning' : type === 'error' ? 'bg-danger' : 'bg-info';
+            var iconClass = type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            var html = '<div class="toast align-items-center text-white ' + bgClass + ' border-0" role="alert" style="position:fixed;top:20px;right:20px;z-index:9999;"><div class="d-flex"><div class="toast-body"><i class="fas ' + iconClass + ' me-2"></i>' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
+            var div = document.createElement('div');
+            div.innerHTML = html;
+            document.body.appendChild(div.firstElementChild);
+            var toastEl = document.body.querySelector('.toast:last-child');
+            var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toast.show();
+            toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
+        }
 
         // Real-time: listen product status changes for this product
         (function () {
             var currentProductId = '@Model.ViewModel.Id';
+            var productName = '@Html.Raw(Model.ViewModel.Name)';
             console.log('[Product Detail] Listening for product changes, id:', currentProductId);
 
             document.addEventListener('rt:product-changed', function (e) {
@@ -445,18 +501,48 @@
                 }
             });
 
-            function showProductToast(type, message) {
-                var bgClass = type === 'success' ? 'bg-success' : type === 'warning' ? 'bg-warning' : type === 'error' ? 'bg-danger' : 'bg-info';
-                var iconClass = type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
-                var html = '<div class="toast align-items-center text-white ' + bgClass + ' border-0" role="alert" style="position:fixed;top:20px;right:20px;z-index:9999;"><div class="d-flex"><div class="toast-body"><i class="fas ' + iconClass + ' me-2"></i>' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
-                var div = document.createElement('div');
-                div.innerHTML = html;
-                document.body.appendChild(div.firstElementChild);
-                var toastEl = document.body.querySelector('.toast:last-child');
-                var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
-                toast.show();
-                toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
-            }
+            document.addEventListener('rt:review-approved', function (e) {
+                const review = e.detail;
+                const productId = (review.productId || review.ProductId || '').toString();
+                
+                if (productId.toLowerCase() !== currentProductId.toLowerCase()) return;
+
+                console.log('[Product Detail] New review approved:', review);
+
+                // 1. Remove "no reviews" message if it exists
+                $('#reviews-list-container p.text-muted').remove();
+
+                // 2. Build review HTML
+                let starsHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    starsHtml += `<i class="${i <= review.rating ? 'fas' : 'far'} fa-star"></i> `;
+                }
+
+                const date = new Date(review.createdAt || new Date());
+                const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                const html = `
+                    <div class="media mb-4 animated fadeIn">
+                        <img src="/img/user.jpg" alt="Image" class="img-fluid mr-3 mt-1" style="width: 45px;">
+                        <div class="media-body">
+                            <h6>${review.userName || 'User'}<small> - <i>${dateStr}</i></small></h6>
+                            <div class="text-primary mb-2">
+                                ${starsHtml}
+                            </div>
+                            <p>${review.comment}</p>
+                        </div>
+                    </div>
+                `;
+
+                // 3. Append to container (after header)
+                $('#reviews-count-header').after(html);
+
+                // 4. Update count header
+                const count = $('#reviews-list-container .media').length;
+                $('#reviews-count-header').text(`${count} review for "${productName}"`);
+
+                showProductToast('success', 'Một đánh giá mới vừa được duyệt!');
+            });
         })();
     </script>
 }

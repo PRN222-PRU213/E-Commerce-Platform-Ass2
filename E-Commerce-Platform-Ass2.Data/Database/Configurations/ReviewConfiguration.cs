@@ -26,9 +26,6 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
             builder.Property(r => r.ProductId)
                    .IsRequired();
 
-            builder.Property(r => r.OrderItemId)
-                   .IsRequired();
-
             builder.Property(r => r.Rating)
                    .IsRequired();
 
@@ -51,9 +48,6 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
             builder.HasIndex(r => r.ProductId);
             builder.HasIndex(r => r.UserId);
 
-            builder.HasIndex(r => r.OrderItemId)
-                   .IsUnique(); // 1 OrderItem chỉ được review 1 lần
-
             // Relationships (one-way navigation)
             builder.HasOne(r => r.User)
                    .WithMany()
@@ -65,10 +59,10 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
                    .HasForeignKey(r => r.ProductId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(r => r.OrderItem)
-                   .WithOne()
-                   .HasForeignKey<Review>(r => r.OrderItemId)
-                   .OnDelete(DeleteBehavior.Restrict);
+            //builder.HasOne(r => r.OrderItem)
+            //       .WithOne()
+            //       .HasForeignKey<Review>(r => r.OrderItemId)
+            //       .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

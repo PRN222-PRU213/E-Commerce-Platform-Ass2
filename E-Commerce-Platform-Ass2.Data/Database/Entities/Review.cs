@@ -8,8 +8,6 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
 
         public Guid ProductId { get; set; }
 
-        public Guid OrderItemId { get; set; }
-
         public int Rating { get; set; }
 
         public string Comment { get; set; } = string.Empty;
@@ -24,7 +22,5 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
         public User User { get; set; } = null!;
 
         public Product Product { get; set; } = null!;
-
-        public OrderItem OrderItem { get; set; } = null!;
     }
 }
