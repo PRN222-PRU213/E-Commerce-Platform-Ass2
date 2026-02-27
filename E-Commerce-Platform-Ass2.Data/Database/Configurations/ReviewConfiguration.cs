@@ -44,6 +44,9 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
                    .HasDefaultValueSql("GETDATE()")
                    .IsRequired();
 
+            builder.Property(r => r.ImageUrl)
+                   .IsRequired();
+
             // Indexes
             builder.HasIndex(r => r.ProductId);
             builder.HasIndex(r => r.UserId);

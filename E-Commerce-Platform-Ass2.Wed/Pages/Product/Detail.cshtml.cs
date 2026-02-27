@@ -58,10 +58,12 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Product
                     ?.Select(r => new ReviewViewModel
                     {
                         Id = r.Id,
+                        UserId = r.UserId,
                         UserName = r.UserName,
                         Rating = r.Rating,
                         Comment = r.Comment,
                         CreatedAt = r.CreatedAt,
+                        ImageUrl = r.ImageUrl,
                         ModerateAt = r.ModeratedAt
                     }).ToList() ?? new List<ReviewViewModel>()
             };
