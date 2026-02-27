@@ -59,6 +59,8 @@ namespace E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions
             serviceCollection.AddScoped<IShopWalletService, ShopWalletService>();
             serviceCollection.AddScoped<INotificationService, NotificationService>();
             serviceCollection.AddScoped<IReviewService, ReviewService>();
+            serviceCollection.AddScoped<IAIReviewService, AIReviewService>();
+            serviceCollection.AddHttpClient<IGeminiService, GeminiService>();
 
             // Register External APIs
             serviceCollection.AddScoped<IMomoApi, MomoApi>();

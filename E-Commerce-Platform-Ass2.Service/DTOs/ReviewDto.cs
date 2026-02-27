@@ -23,5 +23,7 @@ namespace E_Commerce_Platform_Ass2.Service.DTOs
 
         public DateTime CreatedAt { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
+        public string? AISuggestion { get; set; }
+        public string? AIReason { get; set; }
     }
 }
