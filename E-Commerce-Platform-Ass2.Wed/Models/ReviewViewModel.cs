@@ -5,6 +5,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Models
     public class ReviewViewModel
     {
         public Guid Id { get; set; }
+        public Guid UserId { get; set; }
 
         public string UserName { get; set; } = string.Empty;
         [Required]
@@ -20,7 +21,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Models
             CreatedAt.ToString("dd/MM/yyyy HH:mm");
 
         public DateTime CreatedAt { get; set; }
-
+        public string ImageUrl { get; set; } = string.Empty;
         public DateTime? ModerateAt { get; set; }
     }
 }

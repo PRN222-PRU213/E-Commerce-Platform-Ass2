@@ -1,0 +1,93 @@
+﻿@page "{id:guid}"
+@model E_Commerce_Platform_Ass2.Wed.Pages.Review.EditModel
+@{
+    ViewData["Title"] = "Chỉnh sửa bình luận";
+    Layout = "~/Pages/Shared/_EShopperLayout.cshtml";
+}
+
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 200px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Chỉnh sửa bình luận</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Index">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Edit Review</p>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid pt-5">
+    <div class="row px-xl-5 justify-content-center">
+        <div class="col-md-6 border p-4 shadow-sm bg-white rounded">
+            <h4 class="mb-4">Thông tin bình luận</h4>
+            
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="ReviewUpdate.Id" />
+                <input type="hidden" asp-for="ReviewUpdate.ProductId" />
+                <input type="hidden" asp-for="ReviewUpdate.Rating" id="review-rating" />
+
+                <div class="d-flex my-3">
+                    <p class="mb-0 mr-2">Đánh giá của bạn * :</p>
+                    <div class="text-primary" id="star-rating">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <i class="@(i <= Model.ReviewUpdate.Rating ? "fas" : "far") fa-star edit-rating-star" data-value="@i" style="cursor: pointer;"></i>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="ReviewUpdate.Comment">Nội dung bình luận *</label>
+                    <textarea asp-for="ReviewUpdate.Comment" class="form-control" rows="5" required></textarea>
+                    <span asp-validation-for="ReviewUpdate.Comment" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <a asp-page="/Product/Detail" asp-route-id="@Model.ReviewUpdate.ProductId" class="btn btn-outline-secondary">
+                        <i class="fa fa-arrow-left mr-2"></i>Quay lại
+                    </a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fa fa-save mr-2"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function updateStars(rating) {
+                $('.edit-rating-star').each(function() {
+                    var val = $(this).data('value');
+                    if (val <= rating) {
+                        $(this).removeClass('far').addClass('fas');
+                    } else {
+                        $(this).removeClass('fas').addClass('far');
+                    }
+                });
+                $('#review-rating').val(rating);
+            }
+
+            $('.edit-rating-star').click(function() {
+                var rating = $(this).data('value');
+                updateStars(rating);
+            }).hover(function() {
+                var rating = $(this).data('value');
+                $('.edit-rating-star').each(function() {
+                    var val = $(this).data('value');
+                    if (val <= rating) {
+                        $(this).removeClass('far').addClass('fas');
+                    } else {
+                        $(this).removeClass('fas').addClass('far');
+                    }
+                });
+            }, function() {
+                var currentRating = $('#review-rating').val();
+                updateStars(currentRating);
+            });
+        });
+    </script>
+}

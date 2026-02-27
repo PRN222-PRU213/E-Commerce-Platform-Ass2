@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using E_Commerce_Platform_Ass2.Data.Database.Entities;
 using E_Commerce_Platform_Ass2.Data.Repositories.Interfaces;
+using Microsoft.AspNetCore.Http;
 using E_Commerce_Platform_Ass2.Service.DTOs;
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
 
@@ -15,15 +16,17 @@ namespace E_Commerce_Platform_Ass2.Service.Services
         private readonly IReviewRepository _reviewRepository;
         private readonly IUserRepository _userRepository;
         private readonly IOrderRepository _orderRepository;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public ReviewService(IReviewRepository reviewRepository, IUserRepository userRepository, IOrderRepository orderRepository)
+        public ReviewService(IReviewRepository reviewRepository, IUserRepository userRepository, IOrderRepository orderRepository, ICloudinaryService cloudinaryService)
         {
             _reviewRepository = reviewRepository;
             _userRepository = userRepository;
             _orderRepository = orderRepository;
+            _cloudinaryService = cloudinaryService;
         }
 
-        public async Task<ReviewDto> CreateReviewAsync(Guid userId, Guid productId, int rating, string comment)
+        public async Task<ReviewDto> CreateReviewAsync(Guid userId, Guid productId, int rating, string comment, IFormFile? image)
         {
             // 1️⃣ Validate rating
             if (rating < 1 || rating > 5)
@@ -67,6 +70,12 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 throw new Exception("Bạn không thể đánh giá sản phẩm chưa từng mua.");
             }
 
+            var imageUrl = string.Empty;
+            if (image != null && image.Length > 0)
+            {
+                imageUrl = await _cloudinaryService.UploadImageAsync(image, "reviews");
+            }
+
             var review = new Review
             {
                 Id = Guid.NewGuid(),
@@ -74,8 +83,9 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 ProductId = productId,
                 Rating = rating,
                 Comment = comment,
+                ImageUrl = imageUrl,
                 Status = "Pending",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             await _reviewRepository.AddAsync(review);
@@ -89,7 +99,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Rating = review.Rating,
                 Comment = review.Comment,
                 Status = review.Status,
-                CreatedAt = review.CreatedAt
+                CreatedAt = review.CreatedAt,
+                ImageUrl = review.ImageUrl
             };
         }
 
@@ -99,7 +110,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             if (review == null) throw new Exception("Không tìm thấy review.");
 
             review.Status = "Approved";
-            review.ModeratedAt = DateTime.UtcNow;
+            review.ModeratedAt = DateTime.Now;
             await _reviewRepository.UpdateAsync(review);
 
             return new ReviewDto
@@ -112,7 +123,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Comment = review.Comment,
                 Status = review.Status,
                 CreatedAt = review.CreatedAt,
-                ModeratedAt = review.ModeratedAt
+                ModeratedAt = review.ModeratedAt,
+                ImageUrl = review.ImageUrl
             };
         }
 
@@ -122,7 +134,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             if (review == null) throw new Exception("Không tìm thấy review.");
 
             review.Status = "Rejected";
-            review.ModeratedAt = DateTime.UtcNow;
+            review.ModeratedAt = DateTime.Now;
             await _reviewRepository.UpdateAsync(review);
 
             return new ReviewDto
@@ -162,7 +174,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Rating = review.Rating,
                 Comment = review.Comment,
                 Status = review.Status,
-                CreatedAt = review.CreatedAt
+                CreatedAt = review.CreatedAt,
+                ImageUrl = review.ImageUrl
             });
         }
 
@@ -184,7 +197,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Rating = review.Rating,
                 Comment = review.Comment,
                 Status = review.Status,
-                CreatedAt = review.CreatedAt
+                CreatedAt = review.CreatedAt,
+                ImageUrl = review.ImageUrl
             };
         }
 
@@ -206,7 +220,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Rating = r.Rating,
                 Comment = r.Comment,
                 Status = r.Status,
-                CreatedAt = r.CreatedAt
+                CreatedAt = r.CreatedAt,
+                ImageUrl = r.ImageUrl
             });
         }
 
@@ -230,7 +245,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Rating = r.Rating,
                 Comment = r.Comment,
                 Status = r.Status,
-                CreatedAt = r.CreatedAt
+                CreatedAt = r.CreatedAt,
+                ImageUrl = r.ImageUrl
             });
         }
 
@@ -251,7 +267,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Rating = r.Rating,
                 Comment = r.Comment,
                 Status = r.Status,
-                CreatedAt = r.CreatedAt
+                CreatedAt = r.CreatedAt,
+                ImageUrl = r.ImageUrl
             });
         }
 
@@ -263,8 +280,44 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 throw new Exception("Bạn không có bình luận này.");
             }
 
+            if (rating < 1 || rating > 5)
+            {
+                throw new ArgumentException("Rating phải từ 1 đến 5.");
+            }
+
+            // 2️⃣ Validate comment null / empty
+            if (string.IsNullOrWhiteSpace(comment))
+            {
+                throw new ArgumentException("Nội dung đánh giá không được để trống.");
+            }
+
+            comment = comment.Trim();
+
+            // 3️⃣ Kiểm tra viết tắt phổ biến
+            var forbiddenWords = new List<string>
+            {
+                "ko", "k", "dc", "đc", "ok", "tks", "sp", "nv",
+                "cx", "vs", "bt", "mik", "mk", "j", "z"
+            };
+
+            var lowerComment = comment.ToLower();
+
+            foreach (var word in forbiddenWords)
+            {
+                // kiểm tra theo word boundary để tránh dính chữ khác
+                if (lowerComment.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                .Contains(word))
+                {
+                    throw new ArgumentException(
+                        $"Không được sử dụng từ viết tắt '{word}'. Vui lòng viết đầy đủ và rõ ràng."
+                    );
+                }
+            }
+
             review.Rating = rating;
             review.Comment = comment;
+            review.Status = "Pending";
+            review.ModeratedAt = null;
             await _reviewRepository.UpdateAsync(review);
 
             return new ReviewDto
@@ -277,7 +330,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Comment = review.Comment,
                 Status = review.Status,
                 CreatedAt = review.CreatedAt,
-                ModeratedAt = DateTime.UtcNow
+                ImageUrl = review.ImageUrl
             };
         }
     }

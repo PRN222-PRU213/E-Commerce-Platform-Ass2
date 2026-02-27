@@ -31,6 +31,7 @@
                             <th>Product ID</th>
                             <th>Rating</th>
                             <th>Comment</th>
+                            <th>Image</th>
                             <th>Status</th>
                             <th>Submitted At</th>
                             <th>Actions</th>
@@ -59,6 +60,16 @@
                                         </div>
                                     </td>
                                     <td>@review.Comment</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(review.ImageUrl))
+                                        {
+                                            <img src="@review.ImageUrl" alt="Review Image" class="img-thumbnail" style="max-width: 100px; cursor: pointer;" onclick="window.open(this.src)">
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No Image</span>
+                                        }
+                                    </td>
                                     <td>
                                         @if (review.Status == "Pending")
                                         {
@@ -142,7 +153,12 @@
                     <td>${review.userName || 'N/A'}</td>
                     <td><small>${review.productId}</small></td>
                     <td><div class="text-warning">${starsHtml}</div></td>
-                    <td>${review.comment}</td>
+                    <td>${review.comment || review.Comment}</td>
+                    <td>
+                        ${(review.imageUrl || review.ImageUrl) ? 
+                            `<img src="${review.imageUrl || review.ImageUrl}" alt="Review Image" class="img-thumbnail" style="max-width: 100px; cursor: pointer;" onclick="window.open(this.src)">` : 
+                            '<span class="text-muted">No Image</span>'}
+                    </td>
                     <td><span class="badge bg-warning text-dark">Pending</span></td>
                     <td>${dateStr}</td>
                     <td>

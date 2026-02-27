@@ -211,7 +211,11 @@
                         <div id="notification-items-container">
                             <div class="no-notifications">Không có thông báo mới</div>
                         </div>
-                        <a class="dropdown-item text-center small text-gray-500 py-2" href="/Admin/Reviews/Index">Xem tất cả bình luận</a>
+                        <div class="dropdown-divider"></div>
+                        <div class="d-flex justify-content-between px-3 py-2">
+                             <a class="small text-gray-500" href="#" id="mark-all-read">Đánh dấu tất cả đã đọc</a>
+                             <a class="small text-gray-500" href="/Admin/Reviews/Index">Xem tất cả</a>
+                        </div>
                     </div>
                 </div>
 
@@ -312,12 +316,18 @@
                 const message = e.detail;
                 console.log("[Admin Layout] New notification received:", message);
 
+                // Handle both camelCase from SignalR default and PascalCase from some C# emitters
+                const msgType = message.type || message.Type || 'info';
+                const msgText = message.message || message.Message || 'Có thông báo mới';
+                const msgLink = message.link || message.Link || '/Admin/Reviews/Index';
+                const msgTimestamp = message.timestampUtc || message.TimestampUtc || new Date().toISOString();
+
                 const newNotif = {
                     id: Date.now() + Math.random().toString(36).substr(2, 9),
-                    type: message.type || 'info',
-                    message: message.message,
-                    link: message.link || '/Admin/Reviews/Index',
-                    timestamp: new Date().toISOString(),
+                    type: msgType,
+                    message: msgText,
+                    link: msgLink,
+                    timestamp: msgTimestamp,
                     isRead: false
                 };
 
@@ -343,7 +353,17 @@
                     notif.isRead = true;
                     saveNotifications();
                     updateBadge();
+                    renderNotifications();
                 }
+            });
+
+            // Mark all as read
+            $('#mark-all-read').on('click', function(e) {
+                e.preventDefault();
+                notifications.forEach(n => n.isRead = true);
+                saveNotifications();
+                updateBadge();
+                renderNotifications();
             });
 
             function showAdminToast(type, message) {

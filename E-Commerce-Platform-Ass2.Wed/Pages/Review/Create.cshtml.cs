@@ -1,7 +1,10 @@
 ﻿using System.Security.Claims;
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
+using E_Commerce_Platform_Ass2.Wed.Hubs;
+using E_Commerce_Platform_Ass2.Wed.Models.SignalR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
 
 namespace E_Commerce_Platform_Ass2.Wed.Pages.Review
 {
@@ -9,19 +12,19 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Review
     {
         private readonly IReviewService _reviewService;
         private readonly IOrderService _orderService;
-        private readonly Microsoft.AspNetCore.SignalR.IHubContext<E_Commerce_Platform_Ass2.Wed.Hubs.NotificationHub, E_Commerce_Platform_Ass2.Wed.Models.SignalR.INotificationClient> _hubContext;
+        private readonly IHubContext<NotificationHub, INotificationClient> _hubContext;
 
         public CreateModel(
             IReviewService reviewService, 
             IOrderService orderService,
-            Microsoft.AspNetCore.SignalR.IHubContext<E_Commerce_Platform_Ass2.Wed.Hubs.NotificationHub, E_Commerce_Platform_Ass2.Wed.Models.SignalR.INotificationClient> hubContext)
+            IHubContext<NotificationHub, INotificationClient> hubContext)
         {
             _reviewService = reviewService;
             _orderService = orderService;
             _hubContext = hubContext;
         }
 
-        public async Task<IActionResult> OnPostAsync(Guid productId, int rating, string comment)
+        public async Task<IActionResult> OnPostAsync(Guid productId, int rating, string comment, IFormFile? reviewImage)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!Guid.TryParse(userIdStr, out Guid userId))
@@ -38,7 +41,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Review
 
             try
             {
-                var review = await _reviewService.CreateReviewAsync(userId, productId, rating, comment);
+                var review = await _reviewService.CreateReviewAsync(userId, productId, rating, comment, reviewImage);
                 
                 // Broadcast to admins for real-time table update
                 await _hubContext.Clients.Group("admins").ReviewSubmitted(review);

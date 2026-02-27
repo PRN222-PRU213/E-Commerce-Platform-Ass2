@@ -49,7 +49,9 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories
 
         public async Task<Review?> GetByIdAsync(Guid id)
         {
-            return await _context.Reviews.FindAsync(id);
+            return await _context.Reviews
+                .Include(x => x.User)
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<IEnumerable<Review>> GetByProductIdAsync(Guid productId)

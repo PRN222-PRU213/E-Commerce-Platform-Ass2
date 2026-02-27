@@ -17,6 +17,7 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
         public DateTime? ModeratedAt { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
 
         // Navigation Properties
         public User User { get; set; } = null!;
