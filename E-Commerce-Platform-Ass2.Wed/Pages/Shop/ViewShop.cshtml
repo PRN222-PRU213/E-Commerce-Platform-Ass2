@@ -244,7 +244,8 @@
                                                  <div class="text-warning small">
                                                     @for (int i = 1; i <= 5; i++)
                                                     {
-                                                        if (i <= Math.Round(product.AvgRating)) { <i class="fa fa-star"></i> }
+                                                        if (i <= Math.Floor(product.AvgRating)) { <i class="fas fa-star"></i> }
+                                                        else if (i - 1 < product.AvgRating) { <i class="fas fa-star-half-alt"></i> }
                                                         else { <i class="far fa-star"></i> }
                                                     }
                                                     <span class="text-muted ml-1">(@product.AvgRating.ToString("F1"))</span>

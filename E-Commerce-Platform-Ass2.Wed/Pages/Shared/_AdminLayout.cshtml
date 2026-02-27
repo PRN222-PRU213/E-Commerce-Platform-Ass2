@@ -33,11 +33,10 @@
         }
         .notification-list {
             width: 320px !important;
-            max-height: 400px;
-            overflow-y: auto;
             padding: 0;
             border-radius: 0.5rem;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            overflow: hidden;
         }
         .notification-header {
             background-color: #4e73df;
@@ -97,6 +96,33 @@
             text-align: center;
             color: #858796;
             font-size: 0.85rem;
+        }
+        .delete-notif {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            color: #d1d3e2;
+            transition: all 0.2s;
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 0.9rem;
+        }
+        .notification-item:hover .delete-notif, .delete-notif {
+            opacity: 1;
+        }
+        .delete-notif:hover {
+            color: #e74a3b !important;
+            transform: translateY(-50%) scale(1.1);
+        }
+        .notification-item {
+            position: relative;
+        }
+        .notification-item .notification-content {
+            padding-right: 20px;
         }
     </style>
     @await RenderSectionAsync("Styles", required: false)
@@ -205,16 +231,18 @@
                     </a>
                     <!-- Dropdown - Alerts -->
                     <div class="dropdown-list dropdown-menu dropdown-menu-end shadow animated--grow-in notification-list" aria-labelledby="alertsDropdown">
-                        <div class="notification-header text-uppercase">
-                            Trung tâm thông báo
+                        <div class="notification-header d-flex justify-content-between align-items-center">
+                            <span class="text-uppercase">Trung tâm thông báo</span>
+                            <a href="#" class="text-white-50" id="delete-all-notifs" title="Xóa tất cả">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
                         </div>
-                        <div id="notification-items-container">
+                        <div class="d-flex justify-content-between px-3 py-2 bg-light border-bottom">
+                             <a class="small text-primary fw-bold text-decoration-none" href="#" id="mark-all-read">Đánh dấu tất cả đã đọc</a>
+                             <a class="small text-primary fw-bold text-decoration-none" href="/Admin/Reviews/Index">Xem tất cả</a>
+                        </div>
+                        <div id="notification-items-container" style="max-height: 350px; overflow-y: auto;">
                             <div class="no-notifications">Không có thông báo mới</div>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <div class="d-flex justify-content-between px-3 py-2">
-                             <a class="small text-gray-500" href="#" id="mark-all-read">Đánh dấu tất cả đã đọc</a>
-                             <a class="small text-gray-500" href="/Admin/Reviews/Index">Xem tất cả</a>
                         </div>
                     </div>
                 </div>
@@ -283,8 +311,8 @@
                 // Sort by timestamp descending
                 const sorted = [...notifications].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 
-                // Show latest 10
-                sorted.slice(0, 10).forEach(msg => {
+                // Show latest 15
+                sorted.slice(0, 15).forEach(msg => {
                     const timeStr = new Date(msg.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                     const iconClass = msg.type === 'success' ? 'fa-check-circle bg-success' 
                                    : msg.type === 'error' ? 'fa-exclamation-circle bg-danger' 
@@ -292,17 +320,22 @@
                                    : 'fa-info-circle bg-primary';
 
                     const html = `
-                        <a class="notification-item ${msg.isRead ? '' : 'unread'}" 
-                           href="${msg.link || '/Admin/Reviews/Index'}" 
-                           data-id="${msg.id}">
-                            <div class="notification-icon">
-                                <i class="fas ${iconClass}"></i>
-                            </div>
-                            <div class="notification-content">
-                                <span class="notification-text">${msg.message}</span>
-                                <span class="notification-time">${timeStr}</span>
-                            </div>
-                        </a>
+                        <div class="position-relative">
+                            <a class="notification-item ${msg.isRead ? '' : 'unread'}" 
+                               href="${msg.link || '/Admin/Reviews/Index'}" 
+                               data-id="${msg.id}">
+                                <div class="notification-icon">
+                                    <i class="fas ${iconClass}"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <span class="notification-text">${msg.message}</span>
+                                    <span class="notification-time">${timeStr}</span>
+                                </div>
+                            </a>
+                            <button class="delete-notif" data-id="${msg.id}" title="Xóa">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
                     `;
                     $container.append(html);
                 });
@@ -364,6 +397,30 @@
                 saveNotifications();
                 updateBadge();
                 renderNotifications();
+            });
+
+            // Delete individual notification
+            $container.on('click', '.delete-notif', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (confirm('Bạn có muốn xóa thông báo này không?')) {
+                    const id = $(this).data('id');
+                    notifications = notifications.filter(n => n.id != id);
+                    saveNotifications();
+                    updateBadge();
+                    renderNotifications();
+                }
+            });
+
+            // Delete all notifications
+            $('#delete-all-notifs').on('click', function(e) {
+                e.preventDefault();
+                if (confirm('Bạn có chắc chắn muốn xóa tất cả thông báo?')) {
+                    notifications = [];
+                    saveNotifications();
+                    updateBadge();
+                    renderNotifications();
+                }
             });
 
             function showAdminToast(type, message) {

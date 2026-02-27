@@ -18,6 +18,8 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
 
         public DateTime CreatedAt { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
+        public string? AISuggestion { get; set; }
+        public string? AIReason { get; set; }
 
         // Navigation Properties
         public User User { get; set; } = null!;

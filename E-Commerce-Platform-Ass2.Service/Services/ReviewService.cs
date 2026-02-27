@@ -17,13 +17,17 @@ namespace E_Commerce_Platform_Ass2.Service.Services
         private readonly IUserRepository _userRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IProductRepository _productRepository;
+        private readonly IAIReviewService _aiReviewService;
 
-        public ReviewService(IReviewRepository reviewRepository, IUserRepository userRepository, IOrderRepository orderRepository, ICloudinaryService cloudinaryService)
+        public ReviewService(IReviewRepository reviewRepository, IUserRepository userRepository, IOrderRepository orderRepository, ICloudinaryService cloudinaryService, IProductRepository productRepository, IAIReviewService aiReviewService)
         {
             _reviewRepository = reviewRepository;
             _userRepository = userRepository;
             _orderRepository = orderRepository;
             _cloudinaryService = cloudinaryService;
+            _productRepository = productRepository;
+            _aiReviewService = aiReviewService;
         }
 
         public async Task<ReviewDto> CreateReviewAsync(Guid userId, Guid productId, int rating, string comment, IFormFile? image)
@@ -76,6 +80,9 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 imageUrl = await _cloudinaryService.UploadImageAsync(image, "reviews");
             }
 
+            // Perform AI Analysis
+            var aiResult = await _aiReviewService.AnalyzeReviewAsync(comment);
+
             var review = new Review
             {
                 Id = Guid.NewGuid(),
@@ -85,22 +92,27 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Comment = comment,
                 ImageUrl = imageUrl,
                 Status = "Pending",
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
+                AISuggestion = aiResult.Suggestion,
+                AIReason = aiResult.Reason
             };
 
             await _reviewRepository.AddAsync(review);
 
+            var user = await _userRepository.GetByIdAsync(userId);
             return new ReviewDto
             {
                 Id = review.Id,
                 UserId = review.UserId,
-                UserName = (await _userRepository.GetByIdAsync(userId))?.Name ?? "N/A",
+                UserName = user?.Name ?? "N/A",
                 ProductId = review.ProductId,
                 Rating = review.Rating,
                 Comment = review.Comment,
                 Status = review.Status,
                 CreatedAt = review.CreatedAt,
-                ImageUrl = review.ImageUrl
+                ImageUrl = review.ImageUrl,
+                AISuggestion = review.AISuggestion,
+                AIReason = review.AIReason
             };
         }
 
@@ -112,6 +124,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             review.Status = "Approved";
             review.ModeratedAt = DateTime.Now;
             await _reviewRepository.UpdateAsync(review);
+            
+            await RecalculateProductRatingAsync(review.ProductId);
 
             return new ReviewDto
             {
@@ -124,7 +138,9 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Status = review.Status,
                 CreatedAt = review.CreatedAt,
                 ModeratedAt = review.ModeratedAt,
-                ImageUrl = review.ImageUrl
+                ImageUrl = review.ImageUrl,
+                AISuggestion = review.AISuggestion,
+                AIReason = review.AIReason
             };
         }
 
@@ -136,6 +152,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             review.Status = "Rejected";
             review.ModeratedAt = DateTime.Now;
             await _reviewRepository.UpdateAsync(review);
+            
+            await RecalculateProductRatingAsync(review.ProductId);
 
             return new ReviewDto
             {
@@ -159,7 +177,44 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 throw new Exception("Bạn không có bình luận này.");
             }
 
+            var productId = review.ProductId;
             await _reviewRepository.DeleteAsync(review);
+            
+            await RecalculateProductRatingAsync(productId);
+        }
+
+        public async Task DeleteReviewByAdminAsync(Guid id)
+        {
+            var review = await _reviewRepository.GetByIdAsync(id);
+            if (review == null)
+            {
+                throw new Exception("Không tìm thấy bình luận.");
+            }
+
+            var productId = review.ProductId;
+            await _reviewRepository.DeleteAsync(review);
+
+            await RecalculateProductRatingAsync(productId);
+        }
+
+        public async Task RecalculateProductRatingAsync(Guid productId)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null) return;
+
+            var reviews = await _reviewRepository.GetByProductIdAsync(productId);
+            var approvedReviews = reviews.Where(r => r.Status == "Approved").ToList();
+
+            if (approvedReviews.Any())
+            {
+                product.AvgRating = (decimal)approvedReviews.Average(r => r.Rating);
+            }
+            else
+            {
+                product.AvgRating = 0;
+            }
+
+            await _productRepository.UpdateAsync(product);
         }
 
         public async Task<IEnumerable<ReviewDto>> GetAllAsync()
@@ -169,14 +224,16 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             {
                 Id = review.Id,
                 UserId = review.UserId,
-                UserName = review.User.Name,
+                UserName = review.User?.Name ?? "N/A",
                 ProductId = review.ProductId,
                 Rating = review.Rating,
                 Comment = review.Comment,
                 Status = review.Status,
                 CreatedAt = review.CreatedAt,
-                ImageUrl = review.ImageUrl
-            });
+                ImageUrl = review.ImageUrl,
+                AISuggestion = review.AISuggestion,
+                AIReason = review.AIReason
+            }).ToList();
         }
 
         public async Task<ReviewDto> GetReviewByIdAsync(Guid id)
@@ -192,13 +249,15 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             {
                 Id = review.Id,
                 UserId = review.UserId,
-                UserName = review.User.Name,
+                UserName = review.User?.Name ?? "N/A",
                 ProductId = review.ProductId,
                 Rating = review.Rating,
                 Comment = review.Comment,
                 Status = review.Status,
                 CreatedAt = review.CreatedAt,
-                ImageUrl = review.ImageUrl
+                ImageUrl = review.ImageUrl,
+                AISuggestion = review.AISuggestion,
+                AIReason = review.AIReason
             };
         }
 
@@ -206,33 +265,25 @@ namespace E_Commerce_Platform_Ass2.Service.Services
         {
             var reviews = await _reviewRepository.GetByRatingAsync(rating);
 
-            if (!reviews.Any())
-            {
-                return new List<ReviewDto>();
-            }
-
             return reviews.Select(r => new ReviewDto
             {
                 Id = r.Id,
                 UserId = r.UserId,
-                UserName = r.User.Name,
+                UserName = r.User?.Name ?? "N/A",
                 ProductId = r.ProductId,
                 Rating = r.Rating,
                 Comment = r.Comment,
                 Status = r.Status,
                 CreatedAt = r.CreatedAt,
-                ImageUrl = r.ImageUrl
-            });
+                ImageUrl = r.ImageUrl,
+                AISuggestion = r.AISuggestion,
+                AIReason = r.AIReason
+            }).ToList();
         }
 
         public async Task<IEnumerable<ReviewDto>> GetReviewsByProductIdAsync(Guid productId)
         {
             var reviews = await _reviewRepository.GetByProductIdAsync(productId);
-
-            if (!reviews.Any())
-            {
-                return new List<ReviewDto>();
-            }
 
             return reviews
                 .Where(r => r.Status == "Approved")
@@ -240,36 +291,36 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             {
                 Id = r.Id,
                 UserId = r.UserId,
-                UserName = r.User.Name,
+                UserName = r.User?.Name ?? "N/A",
                 ProductId = r.ProductId,
                 Rating = r.Rating,
                 Comment = r.Comment,
                 Status = r.Status,
                 CreatedAt = r.CreatedAt,
-                ImageUrl = r.ImageUrl
-            });
+                ImageUrl = r.ImageUrl,
+                AISuggestion = r.AISuggestion,
+                AIReason = r.AIReason
+            }).ToList();
         }
 
         public async Task<IEnumerable<ReviewDto>> GetReviewsByUserIdAsync(Guid userId)
         {
             var reviews = await _reviewRepository.GetByUserIdAsync(userId);
-            if (!reviews.Any())
-            {
-                return new List<ReviewDto>();
-            }
 
             return reviews.Select(r => new ReviewDto
             {
                 Id = r.Id,
                 UserId = r.UserId,
-                UserName = r.User.Name,
+                UserName = r.User?.Name ?? "N/A",
                 ProductId = r.ProductId,
                 Rating = r.Rating,
                 Comment = r.Comment,
                 Status = r.Status,
                 CreatedAt = r.CreatedAt,
-                ImageUrl = r.ImageUrl
-            });
+                ImageUrl = r.ImageUrl,
+                AISuggestion = r.AISuggestion,
+                AIReason = r.AIReason
+            }).ToList();
         }
 
         public async Task<ReviewDto> UpdateReviewAsync(Guid id, Guid userId, int rating, string comment)
@@ -319,6 +370,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             review.Status = "Pending";
             review.ModeratedAt = null;
             await _reviewRepository.UpdateAsync(review);
+            
+            await RecalculateProductRatingAsync(review.ProductId);
 
             return new ReviewDto
             {
@@ -330,7 +383,9 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Comment = review.Comment,
                 Status = review.Status,
                 CreatedAt = review.CreatedAt,
-                ImageUrl = review.ImageUrl
+                ImageUrl = review.ImageUrl,
+                AISuggestion = review.AISuggestion,
+                AIReason = review.AIReason
             };
         }
     }

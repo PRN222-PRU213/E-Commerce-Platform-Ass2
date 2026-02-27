@@ -20,5 +20,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services.IServices
         Task<ReviewDto> RejectReviewAsync(Guid id);
         Task<ReviewDto> UpdateReviewAsync(Guid id, Guid userId, int rating, string comment);
         Task DeleteReviewAsync(Guid id, Guid userId);
+        Task DeleteReviewByAdminAsync(Guid id);
+        Task RecalculateProductRatingAsync(Guid productId);
     }
 }

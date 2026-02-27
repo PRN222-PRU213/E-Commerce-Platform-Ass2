@@ -10,13 +10,16 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Admin.Reviews
     public class IndexModel : PageModel
     {
         private readonly IReviewService _reviewService;
+        private readonly IAIReviewService _aiReviewService;
         private readonly Microsoft.AspNetCore.SignalR.IHubContext<E_Commerce_Platform_Ass2.Wed.Hubs.NotificationHub, E_Commerce_Platform_Ass2.Wed.Models.SignalR.INotificationClient> _hubContext;
 
         public IndexModel(
             IReviewService reviewService,
+            IAIReviewService aiReviewService,
             Microsoft.AspNetCore.SignalR.IHubContext<E_Commerce_Platform_Ass2.Wed.Hubs.NotificationHub, E_Commerce_Platform_Ass2.Wed.Models.SignalR.INotificationClient> hubContext)
         {
             _reviewService = reviewService;
+            _aiReviewService = aiReviewService;
             _hubContext = hubContext;
         }
 
@@ -24,7 +27,20 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Admin.Reviews
 
         public async Task OnGetAsync()
         {
-            AllReviews = (await _reviewService.GetAllAsync()).OrderByDescending(r => r.CreatedAt);
+            var reviews = await _reviewService.GetAllAsync();
+            
+            // Re-analyze all reviews that are NOT Approved to ensure latest accuracy
+            // This fixes cases where old reviews had bad AI data or misclassifications
+            foreach (var review in reviews.Where(r => r.Status != "Approved"))
+            {
+                var analysis = await _aiReviewService.AnalyzeReviewAsync(review.Comment);
+                review.AISuggestion = analysis.Suggestion;
+                review.AIReason = analysis.Reason;
+            }
+
+            AllReviews = reviews
+                .OrderBy(r => r.Status != "Pending")
+                .ThenByDescending(r => r.CreatedAt);
         }
 
         public async Task<IActionResult> OnPostApproveAsync(Guid id)
@@ -47,6 +63,13 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Admin.Reviews
         {
             await _reviewService.RejectReviewAsync(id);
             TempData["Success"] = "Review rejected successfully.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync(Guid id)
+        {
+            await _reviewService.DeleteReviewByAdminAsync(id);
+            TempData["Success"] = "Review deleted successfully.";
             return RedirectToPage();
         }
     }
