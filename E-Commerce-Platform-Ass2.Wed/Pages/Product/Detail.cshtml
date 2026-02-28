@@ -226,7 +226,7 @@
                 </div>
             </form>
             <div class="d-flex pt-2">
-                <p class="text-dark font-weight-medium mb-0 mr-2">Share on:</p>
+                <p class="text-dark font-weight-medium mb-0 mr-2">Chia sẻ:</p>
                 <div class="d-inline-flex">
                     <a class="text-dark px-2" href="">
                         <i class="fab fa-facebook-f"></i>
@@ -247,17 +247,17 @@
     <div class="row px-xl-5">
         <div class="col">
             <div class="nav nav-tabs justify-content-center border-secondary mb-4">
-                <a class="nav-item nav-link active" data-toggle="tab" href="#tab-pane-1">Description</a>
-                <a class="nav-item nav-link" data-toggle="tab" href="#tab-pane-2">Information</a>
-                <a class="nav-item nav-link" data-toggle="tab" href="#tab-pane-3">Reviews (@Model.ViewModel.Reviews.Count)</a>
+                <a class="nav-item nav-link active" data-toggle="tab" href="#tab-pane-1">Mô tả</a>
+                <a class="nav-item nav-link" data-toggle="tab" href="#tab-pane-2">Thông tin</a>
+                <a class="nav-item nav-link" data-toggle="tab" href="#tab-pane-3">Đánh giá (@Model.ViewModel.Reviews.Count)</a>
             </div>
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="tab-pane-1">
-                    <h4 class="mb-3">Product Description</h4>
+                    <h4 class="mb-3">Mô tả sản phẩm</h4>
                     <p>@Model.ViewModel.Description</p>
                 </div>
                 <div class="tab-pane fade" id="tab-pane-2">
-                    <h4 class="mb-3">Additional Information</h4>
+                    <h4 class="mb-3">Thông tin bổ sung</h4>
                     <p>Eos no lorem eirmod diam diam, eos elitr et gubergren diam sea. At et gubergren lorem est amet ea vero eos. Et no sea erat diam stet sit ipsum amet sed clita kasd lorem stet eirmod iusto accusam eos neque aliquyam eirmod duo eos, augue invidunt vero est sit ut diam lorem kasd ut.</p>
                     <div class="row">
                         <div class="col-md-6">
@@ -297,7 +297,7 @@
                 <div class="tab-pane fade" id="tab-pane-3">
                     <div class="row">
                         <div class="col-md-6" id="reviews-list-container">
-                            <h4 class="mb-4" id="reviews-count-header">@Model.ViewModel.Reviews.Count review for "@Model.ViewModel.Name"</h4>
+                            <h4 class="mb-4" id="reviews-count-header">@Model.ViewModel.Reviews.Count đánh giá cho "@Model.ViewModel.Name"</h4>
                             <div id="reviews-scroll-container" style="max-height: 600px; overflow-y: auto; padding-right: 15px;">
                                 @if (!Model.ViewModel.Reviews.Any())
                                 {
@@ -353,33 +353,47 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <h4 class="mb-4">Leave a review</h4>
-                            <small>Your email address will not be published. Required fields are marked *</small>
-                            <div class="d-flex my-3">
-                                <p class="mb-0 mr-2">Your Rating * :</p>
-                                <div class="text-primary" id="star-rating">
-                                    <i class="far fa-star rating-star" data-value="1"></i>
-                                    <i class="far fa-star rating-star" data-value="2"></i>
-                                    <i class="far fa-star rating-star" data-value="3"></i>
-                                    <i class="far fa-star rating-star" data-value="4"></i>
-                                    <i class="far fa-star rating-star" data-value="5"></i>
+                            @if (User.Identity != null && User.Identity.IsAuthenticated)
+                            {
+                                <h4 class="mb-4">Để lại đánh giá</h4>
+                                <small>Địa chỉ email của bạn sẽ không được hiển thị. Các trường bắt buộc được đánh dấu *</small>
+                                <div class="d-flex my-3">
+                                    <p class="mb-0 mr-2">Đánh giá của bạn * :</p>
+                                    <div class="text-primary" id="star-rating">
+                                        <i class="far fa-star rating-star" data-value="1"></i>
+                                        <i class="far fa-star rating-star" data-value="2"></i>
+                                        <i class="far fa-star rating-star" data-value="3"></i>
+                                        <i class="far fa-star rating-star" data-value="4"></i>
+                                        <i class="far fa-star rating-star" data-value="5"></i>
+                                    </div>
                                 </div>
-                            </div>
-                            <form asp-page="/Review/Create" method="post" enctype="multipart/form-data">
-                                <input type="hidden" name="productId" value="@Model.ViewModel.Id" />
-                                <input type="hidden" name="rating" id="review-rating" value="5" />
-                                <div class="form-group">
-                                    <label for="message">Your Review *</label>
-                                    <textarea id="message" name="comment" cols="30" rows="5" class="form-control" required></textarea>
+                                <form asp-page="/Review/Create" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="productId" value="@Model.ViewModel.Id" />
+                                    <input type="hidden" name="rating" id="review-rating" value="5" />
+                                    <div class="form-group">
+                                        <label for="message">Bình luận của bạn *</label>
+                                        <textarea id="message" name="comment" cols="30" rows="5" class="form-control" required></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reviewImage">Thêm ảnh minh họa (không bắt buộc)</label>
+                                        <input type="file" id="reviewImage" name="reviewImage" class="form-control-file" accept="image/*">
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <input type="submit" value="Gửi đánh giá" class="btn btn-primary px-3">
+                                    </div>
+                                </form>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info py-4 text-center">
+                                    <i class="fas fa-lock fa-2x mb-3 text-muted"></i>
+                                    <h5 class="mb-3">Vui lòng đăng nhập để đánh giá</h5>
+                                    <p class="mb-3">Chỉ khách hàng có tài khoản mới có thể viết đánh giá cho sản phẩm này.</p>
+                                    <a asp-page="/Auth/Login" asp-route-returnUrl="/Product/Detail?id=@Model.ViewModel.Id" class="btn btn-primary px-4">
+                                        Đăng nhập ngay
+                                    </a>
                                 </div>
-                                <div class="form-group">
-                                    <label for="reviewImage">Add Image (optional)</label>
-                                    <input type="file" id="reviewImage" name="reviewImage" class="form-control-file" accept="image/*">
-                                </div>
-                                <div class="form-group mb-0">
-                                    <input type="submit" value="Leave Your Review" class="btn btn-primary px-3">
-                                </div>
-                            </form>
+                            }
                         </div>
                     </div>
                 </div>
@@ -587,7 +601,7 @@
 
                 // 4. Update count header
                 const count = $('#reviews-scroll-container .media').length;
-                $('#reviews-count-header').text(`${count} review for "${productName}"`);
+                $('#reviews-count-header').text(`${count} đánh giá cho "${productName}"`);
 
                 showProductToast('success', 'Một đánh giá mới vừa được duyệt!');
             });

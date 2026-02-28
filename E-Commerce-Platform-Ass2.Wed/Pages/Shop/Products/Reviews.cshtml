@@ -1,0 +1,150 @@
+@page "{id:guid}"
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products.ReviewsModel
+@{
+    ViewData["Title"] = "Đánh giá sản phẩm";
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="fas fa-comments text-primary"></i> Đánh giá sản phẩm</h2>
+            <p class="text-muted mb-0">Quản lý phản hồi của khách hàng về sản phẩm của bạn.</p>
+        </div>
+        <a asp-page="/Shop/ViewShop" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle mr-2"></i>@TempData["Success"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle mr-2"></i>@TempData["Error"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Thông tin sản phẩm cơ bản -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-box mr-2"></i>Sản phẩm</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="@(!string.IsNullOrEmpty(Model.Product.ImageUrl) ? Model.Product.ImageUrl : Url.Content("~/img/product-1.jpg"))" 
+                         alt="@Model.Product.Name" 
+                         class="img-thumbnail mb-3" 
+                         style="width: 150px; height: 150px; object-fit: cover;">
+                    
+                    <h5 class="font-weight-bold mb-2">@Model.Product.Name</h5>
+                    <p class="text-primary font-weight-bold mb-3" style="font-size: 1.2rem;">@Model.Product.BasePrice.ToString("N0") ₫</p>
+                    
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <div class="text-warning mr-2">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= Math.Round(Model.Product.AvgRating))
+                                {
+                                    <i class="fas fa-star"></i>
+                                }
+                                else
+                                {
+                                    <i class="far fa-star"></i>
+                                }
+                            }
+                        </div>
+                        <span class="text-muted">(@Model.Product.AvgRating.ToString("F1"))</span>
+                    </div>
+                    
+                    <hr>
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span><i class="fas fa-tag mr-1"></i>@Model.Product.CategoryName</span>
+                        <span><i class="fas fa-comment mr-1"></i>@Model.Reviews.Count đánh giá</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách đánh giá -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list mr-2"></i>Danh sách Khách hàng đánh giá</h5>
+                    <span class="badge badge-primary badge-pill" style="font-size: 1rem;">@Model.Reviews.Count</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Reviews.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt))
+                            {
+                                <div class="list-group-item p-4">
+                                    <div class="d-flex w-100 justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 45px; height: 45px;">
+                                                <i class="fas fa-user text-secondary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 font-weight-bold">@review.UserName</h6>
+                                                <small class="text-muted"><i class="far fa-clock mr-1"></i>@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-warning" style="font-size: 1.1rem;">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="@(i <= review.Rating ? "fas" : "far") fa-star"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-3 pl-5 border-left border-primary ml-4" style="border-width: 3px !important;">
+                                        <p class="mb-2 text-dark" style="font-size: 1.05rem;">@review.Comment</p>
+                                        
+                                        @if (!string.IsNullOrEmpty(review.ImageUrl))
+                                        {
+                                            <div class="mt-2 text-center text-sm-left">
+                                                <img src="@review.ImageUrl" alt="Review Image" 
+                                                     class="img-thumbnail rounded" 
+                                                     style="max-width: 150px; cursor: zoom-in;"
+                                                     onclick="window.open(this.src)">
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                    @* Cửa hàng không có quyền xoá bình luận, chỉ Admin mới xoá được. *@
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="far fa-comment-dots fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted font-weight-normal">Chưa có đánh giá nào cho sản phẩm này</h5>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        transition: background-color 0.2s ease;
+    }
+</style>
