@@ -38,7 +38,7 @@
     }
 
     <div class="row">
-        <!-- Product Image & Basic Info -->
+        <!-- Ảnh sản phẩm & Thông tin cơ bản -->
         <div class="col-lg-4 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
@@ -58,7 +58,13 @@
                             <span class="badge bg-danger">Bị từ chối</span>
                             break;
                         default:
-                            <span class="badge bg-secondary">@Model.Product.Status</span>
+                            <span class="badge bg-secondary">
+                                @(Model.Product.Status switch {
+                                    "deleted" => "Đã xóa",
+                                    "inactive" => "Ngừng hoạt động",
+                                    _ => Model.Product.Status
+                                })
+                            </span>
                             break;
                     }
                 </div>
@@ -89,7 +95,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="text-muted small">Shop</label>
+                        <label class="text-muted small">Cửa hàng</label>
                         <p>
                             <a asp-page="/Admin/Shops/Details" asp-route-id="@Model.Product.ShopId" class="text-decoration-none">
                                 <i class="fas fa-store"></i> @Model.Product.ShopName
@@ -125,7 +131,7 @@
 
                     <hr />
 
-                    <!-- Actions -->
+                    <!-- Thao tác -->
                     @if (Model.Product.Status == "pending")
                     {
                         <div class="d-grid gap-2">
@@ -143,7 +149,7 @@
             </div>
         </div>
 
-        <!-- Variants -->
+        <!-- Biến thể sản phẩm -->
         <div class="col-lg-8 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
@@ -161,9 +167,9 @@
                                         <th>#</th>
                                         <th>Ảnh</th>
                                         <th>Tên biến thể</th>
-                                        <th>SKU</th>
-                                        <th>Màu</th>
-                                        <th>Size</th>
+                                        <th>Mã SKU</th>
+                                        <th>Màu sắc</th>
+                                        <th>Kích cỡ</th>
                                         <th>Giá</th>
                                         <th>Tồn kho</th>
                                         <th>Trạng thái</th>
@@ -222,13 +228,25 @@
                                                 }
                                             </td>
                                             <td>
-                                                @if (variant.Status == "active")
+                                                @switch (variant.Status)
                                                 {
-                                                    <span class="badge bg-success">Active</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary">@variant.Status</span>
+                                                    case "active":
+                                                        <span class="badge bg-success">Hoạt động</span>
+                                                        break;
+                                                    case "inactive":
+                                                        <span class="badge bg-secondary">Ngừng hoạt động</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary">
+                                                            @(variant.Status switch {
+                                                                "deleted" => "Đã xóa",
+                                                                "pending" => "Chờ duyệt",
+                                                                "draft" => "Nháp",
+                                                                "rejected" => "Bị từ chối",
+                                                                _ => variant.Status
+                                                            })
+                                                        </span>
+                                                        break;
                                                 }
                                             </td>
                                         </tr>
@@ -278,7 +296,7 @@
     </div>
 </div>
 
-<!-- Reject Modal -->
+<!-- Modal Từ chối -->
 <div class="modal fade" id="rejectModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

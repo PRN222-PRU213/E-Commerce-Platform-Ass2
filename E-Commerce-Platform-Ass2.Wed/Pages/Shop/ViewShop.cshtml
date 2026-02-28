@@ -259,11 +259,14 @@
                                             </div>
 
                                             <div class="mt-auto pt-3 border-top d-flex justify-content-between">
-                                                <a class="btn btn-sm btn-outline-primary" asp-page="/Shop/Products/Edit" asp-route-id="@product.Id" title="Chỉnh sửa">
-                                                    <i class="fa fa-edit mr-1"></i>Sửa
+                                                <a class="btn btn-sm btn-outline-primary flex-fill mr-1 text-center" asp-page="/Shop/Products/Edit" asp-route-id="@product.Id" title="Chỉnh sửa">
+                                                    <i class="fa fa-edit d-block d-md-inline mr-md-1"></i>Sửa
                                                 </a>
-                                                <a class="btn btn-sm btn-outline-info" asp-page="/Shop/Products/Detail" asp-route-id="@product.Id" title="Xem chi tiết">
-                                                    <i class="fa fa-eye mr-1"></i>Xem
+                                                <a class="btn btn-sm btn-outline-success flex-fill mr-1 text-center" asp-page="/Shop/Products/Reviews" asp-route-id="@product.Id" title="Xem bình luận">
+                                                    <i class="fa fa-comments d-block d-md-inline mr-md-1"></i>Bình luận
+                                                </a>
+                                                <a class="btn btn-sm btn-outline-info flex-fill text-center" asp-page="/Product/Detail" asp-route-id="@product.Id" title="Xem chi tiết trên cửa hàng">
+                                                    <i class="fa fa-eye d-block d-md-inline mr-md-1"></i>Xem
                                                 </a>
                                             </div>
                                         </div>
