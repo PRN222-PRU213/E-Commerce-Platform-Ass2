@@ -65,22 +65,25 @@
                 </a>
             </div>
             <div class="col-lg-6 col-6 text-left">
-                @if (!isProductDetailPage)
+                @{
+                    var isIndexPage = currentPath == "/" || currentPath == "/index";
+                }
+                @if (!isProductDetailPage && !isIndexPage)
                 {
-                    <form action="">
+                    <form action="/" method="get">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm">
+                            <input type="text" name="SearchKeyword" class="form-control" placeholder="Tìm kiếm sản phẩm">
                             <div class="input-group-append">
-                                <span class="input-group-text bg-transparent text-primary">
+                                <button type="submit" class="input-group-text bg-transparent text-primary border-0">
                                     <i class="fa fa-search"></i>
-                                </span>
+                                </button>
                             </div>
                         </div>
                     </form>
                 }
                 else
                 {
-                    @* Search bar is hidden on detail page, button moved to banner *@
+                    @* Search bar chuyển xuống phần sản phẩm ở Index page *@
                 }
             </div>
             <div class="col-lg-3 col-6 text-right">
