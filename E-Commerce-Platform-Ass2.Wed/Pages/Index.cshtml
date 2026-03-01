@@ -162,72 +162,47 @@
 <!-- Offer End -->
 
 <!-- Products Start -->
-<div class="container-fluid pt-5">
+<div class="container-fluid pt-5" id="products-section">
     <div class="text-center mb-4">
         <h2 class="section-title px-5"><span class="px-2">Tất cả sản phẩm</span></h2>
     </div>
-    @if (Model.ViewModel.Products.Any())
-    {
-        <div class="row px-xl-5 pb-3">
-            @foreach (var product in Model.ViewModel.Products)
-            {
-                <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                    <div class="card product-item border-0 mb-4">
-                        <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                            <img class="img-fluid w-100" src="@(string.IsNullOrEmpty(product.ImageUrl) ? "img/product-1.jpg" : product.ImageUrl)" alt="">
-                        </div>
-                        <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                            <h6 class="text-truncate mb-3">@product.Name</h6>
-                            <div class="d-flex justify-content-center">
-                                <h6>@product.BasePrice.ToString("N0") đ</h6><h6 class="text-muted ml-2"><del>@product.BasePrice.ToString("N0") đ</del></h6>
-                            </div>
-                        </div>
-                        <div class="card-footer d-flex justify-content-between bg-light border">
-                            <a asp-page="/Product/Detail" asp-route-id="@product.Id" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>Xem chi tiết</a>
-                            <a href="javascript:void(0);" onclick="openQuickView('@product.Id')" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm vào giỏ</a>
-                        </div>
-                    </div>
+
+    <!-- Search Box -->
+    <div class="row px-xl-5 mb-4">
+        <div class="col-md-6 offset-md-3">
+            <div class="input-group shadow-sm">
+                <input type="text"
+                       id="searchInput"
+                       class="form-control form-control-lg border-primary"
+                       placeholder="Tìm kiếm sản phẩm, danh mục, cửa hàng..."
+                       value="@Model.ViewModel.SearchKeyword"
+                       autocomplete="off" />
+                <div class="input-group-append">
+                    <button type="button" id="searchBtn" class="btn btn-primary px-4">
+                        <i class="fa fa-search mr-1"></i> Tìm kiếm
+                    </button>
+                    <button type="button" id="clearBtn" class="btn btn-outline-secondary px-3" title="Xóa tìm kiếm" style="display:@(string.IsNullOrWhiteSpace(Model.ViewModel.SearchKeyword) ? "none" : "block")">
+                        <i class="fa fa-times"></i>
+                    </button>
                 </div>
-            }
-        </div>
-
-        <!-- Pagination -->
-        @if (Model.ViewModel.TotalPages > 1)
-        {
-            <div class="d-flex justify-content-center mb-5">
-                <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                        <!-- Previous -->
-                        <li class="page-item @(Model.ViewModel.CurrentPage <= 1 ? "disabled" : "")">
-                            <a class="page-link" asp-page="/Index" asp-route-currentpage="@(Model.ViewModel.CurrentPage - 1)" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-
-                        @for (int i = 1; i <= Model.ViewModel.TotalPages; i++)
-                        {
-                            <li class="page-item @(i == Model.ViewModel.CurrentPage ? "active" : "")">
-                                <a class="page-link" asp-page="/Index" asp-route-currentpage="@i">@i</a>
-                            </li>
-                        }
-
-                        <!-- Next -->
-                        <li class="page-item @(Model.ViewModel.CurrentPage >= Model.ViewModel.TotalPages ? "disabled" : "")">
-                            <a class="page-link" asp-page="/Index" asp-route-currentpage="@(Model.ViewModel.CurrentPage + 1)" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
             </div>
-        }
-    }
-    else
-    {
-        <div class="text-center py-5">
-            <p class="text-muted">Hiện chưa có sản phẩm nào.</p>
         </div>
-    }
+    </div>
+
+    <!-- Search result info -->
+    <div class="row px-xl-5 mb-3" id="searchInfo" style="display:@(string.IsNullOrWhiteSpace(Model.ViewModel.SearchKeyword) ? "none" : "flex")">
+        <div class="col-12">
+            <p class="text-muted" id="searchInfoText">
+                Kết quả tìm kiếm cho <strong id="searchKeywordDisplay">"@Model.ViewModel.SearchKeyword"</strong>:
+                <span class="badge badge-primary ml-1" id="searchCountBadge">@Model.ViewModel.TotalCount sản phẩm</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Products Grid (AJAX target) -->
+    <div id="products-grid">
+        @await Html.PartialAsync("Partials/_ProductGrid", Model.ViewModel)
+    </div>
 </div>
 <!-- Products End -->
 
@@ -284,29 +259,121 @@
             });
         }
 
-        // Real-time: reload khi sản phẩm thay đổi trạng thái (approved, draft, rejected...)
+        // ====== AJAX Search ======
+        var searchTimeout = null;
+        var currentPage = 1;
+
+        function doSearch(keyword, page, scrollToProducts) {
+            page = page || 1;
+            currentPage = page;
+            var $grid = $('#products-grid');
+            var $info = $('#searchInfo');
+
+            // Loading spinner
+            $grid.css('opacity', '0.4').css('pointer-events', 'none');
+
+            $.ajax({
+                url: '/?handler=ProductsPartial',
+                type: 'GET',
+                data: { SearchKeyword: keyword, currentpage: page },
+                success: function (html) {
+                    $grid.html(html).css('opacity', '1').css('pointer-events', '');
+
+                    // Cập nhật info bar
+                    if (keyword && keyword.trim() !== '') {
+                        var count = $grid.find('[data-total-count]').data('total-count') || 0;
+                        $('#searchKeywordDisplay').text('"' + keyword.trim() + '"');
+                        $('#searchCountBadge').text(count + ' sản phẩm');
+                        $info.show();
+                    } else {
+                        $info.hide();
+                    }
+
+                    // Nút clear
+                    $('#clearBtn').toggle(!!(keyword && keyword.trim() !== ''));
+
+                    // Cập nhật URL không reload trang
+                    var params = new URLSearchParams();
+                    if (keyword && keyword.trim()) params.set('SearchKeyword', keyword.trim());
+                    if (page > 1) params.set('currentpage', page);
+                    var newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                    history.replaceState(null, '', newUrl);
+
+                    // Gắn lại event cho pagination AJAX
+                    bindPagination();
+
+                    // Scroll nhẹ xuống vùng sản phẩm nếu cần
+                    if (scrollToProducts) {
+                        var offset = $('#products-section').offset().top - 80;
+                        $('html, body').animate({ scrollTop: offset }, 300);
+                    }
+                },
+                error: function () {
+                    $grid.css('opacity', '1').css('pointer-events', '');
+                }
+            });
+        }
+
+        function bindPagination() {
+            $('#products-grid').find('.pagination .page-link').off('click.ajax').on('click.ajax', function (e) {
+                e.preventDefault();
+                var href = $(this).attr('href');
+                if (!href || href === '#' || $(this).closest('.page-item').hasClass('disabled')) return;
+                var params = new URLSearchParams(href.split('?')[1] || '');
+                var page = parseInt(params.get('currentpage')) || 1;
+                var keyword = $('#searchInput').val();
+                doSearch(keyword, page, true);
+            });
+        }
+
+        $(document).ready(function () {
+            // Search khi nhấn nút
+            $('#searchBtn').on('click', function () {
+                doSearch($('#searchInput').val(), 1, true);
+            });
+
+            // Search khi nhấn Enter
+            $('#searchInput').on('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    clearTimeout(searchTimeout);
+                    doSearch($(this).val(), 1, true);
+                }
+            });
+
+            // Search tự động khi dừng gõ 400ms
+            $('#searchInput').on('input', function () {
+                clearTimeout(searchTimeout);
+                var keyword = $(this).val();
+                searchTimeout = setTimeout(function () {
+                    doSearch(keyword, 1, false);
+                }, 400);
+            });
+
+            // Nút xóa
+            $('#clearBtn').on('click', function () {
+                $('#searchInput').val('').focus();
+                doSearch('', 1, false);
+            });
+
+            // Gắn pagination cho lần render đầu
+            bindPagination();
+        });
+
+        // Real-time: reload khi sản phẩm được duyệt
         document.addEventListener('rt:product-changed', function (e) {
             var d = e.detail;
             if (!d) return;
             var changeType = (d.changeType || d.ChangeType || '').toLowerCase();
             var status = (d.status || d.Status || '').toLowerCase();
-            console.log('[Homepage] rt:product-changed received, changeType:', changeType, 'status:', status);
-
-            // Reload khi sản phẩm được duyệt (hiện ra) hoặc bị gỡ (ẩn đi)
             var shouldReload =
                 changeType === 'approved' ||
                 (changeType === 'statuschanged' && (
-                    status === 'active' ||
-                    status === 'approved' ||
-                    status === 'draft' ||
-                    status === 'inactive' ||
-                    status === 'rejected'
+                    status === 'active' || status === 'approved' ||
+                    status === 'draft' || status === 'inactive' || status === 'rejected'
                 ));
-
             if (shouldReload) {
-                console.log('[Homepage] Status changed to:', status, '→ reloading in 1.5s');
                 setTimeout(function () {
-                    window.location.reload();
+                    doSearch($('#searchInput').val(), currentPage, false);
                 }, 1500);
             }
         });

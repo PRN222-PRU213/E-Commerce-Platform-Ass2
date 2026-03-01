@@ -10,6 +10,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Models
         public int TotalPages { get; set; } = 1;
         public int PageSize { get; set; } = 8;
         public int TotalCount { get; set; }
+        public string? SearchKeyword { get; set; }
     }
 
     /// <summary>
