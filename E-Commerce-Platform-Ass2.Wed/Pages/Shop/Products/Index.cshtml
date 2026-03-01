@@ -65,6 +65,19 @@
                 </div>
             }
 
+            <!-- Search Bar -->
+            @if (Model.ViewModel.Products.Any())
+            {
+                <div class="mb-3">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                        </div>
+                        <input type="text" id="productSearchInput" class="form-control border-left-0" placeholder="Tìm kiếm sản phẩm theo tên, mô tả, danh mục..." />
+                    </div>
+                </div>
+            }
+
             <!-- Products Table -->
             @if (Model.ViewModel.Products.Any())
             {
@@ -85,7 +98,7 @@
                             <tbody>
                                 @foreach (var item in Model.ViewModel.Products)
                                 {
-                                    <tr id="product-row-@item.Id">
+                                    <tr id="product-row-@item.Id" class="product-row" data-name="@item.Name.ToLower()" data-desc="@((item.Description ?? "").ToLower())" data-category="@((item.CategoryName ?? "").ToLower())">
                                         <td class="align-middle">
                                             @if (!string.IsNullOrEmpty(item.ImageUrl))
                                             {
@@ -124,6 +137,12 @@
                                         </td>
                                     </tr>
                                 }
+                                <tr id="noProductResults" style="display:none;">
+                                    <td colspan="7" class="text-center py-4">
+                                        <i class="fas fa-search fa-2x text-muted mb-2 d-block"></i>
+                                        <span class="text-muted">Không tìm thấy sản phẩm nào phù hợp</span>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -149,16 +168,46 @@
 
 @section Scripts {
     <script>
+        // Keyword search
+        (function() {
+            var searchTimer;
+            var input = document.getElementById('productSearchInput');
+            if (input) {
+                input.addEventListener('input', function() {
+                    clearTimeout(searchTimer);
+                    searchTimer = setTimeout(filterProducts, 250);
+                });
+            }
+
+            function filterProducts() {
+                var keyword = (input ? input.value : '').toLowerCase().trim();
+                var rows = document.querySelectorAll('.product-row');
+                var visibleCount = 0;
+
+                rows.forEach(function(row) {
+                    var name = (row.getAttribute('data-name') || '');
+                    var desc = (row.getAttribute('data-desc') || '');
+                    var category = (row.getAttribute('data-category') || '');
+                    var match = !keyword || name.indexOf(keyword) !== -1 || desc.indexOf(keyword) !== -1 || category.indexOf(keyword) !== -1;
+
+                    row.style.display = match ? '' : 'none';
+                    if (match) visibleCount++;
+                });
+
+                var noResults = document.getElementById('noProductResults');
+                if (noResults) {
+                    noResults.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+                }
+            }
+        })();
+
+        // Real-time product status update (existing)
         document.addEventListener('rt:product-changed', function (e) {
-            console.log('[Shop Product Index] Received product change:', e.detail);
             var d = e.detail;
             var productId = d.productId || d.ProductId;
-            
-            // Check if this product exists in our table
             var row = document.getElementById('product-row-' + productId);
             if (!row) return;
 
-            // Handle status change
             if (d.changeType === 'statusChanged' || d.changeType === 'updated' || d.changeType === 'approved' || d.changeType === 'rejected') {
                 var status = d.status || d.Status || '';
                 var statusCell = row.querySelector('.status-cell');
@@ -167,31 +216,16 @@
                     var badgeClass = 'badge-secondary';
                     var statusText = status;
 
-                    if (status.toLowerCase() === 'active') {
-                        badgeClass = 'badge-success';
-                        statusText = 'Đang bán';
-                    } else if (status.toLowerCase() === 'pending') {
-                        badgeClass = 'badge-warning';
-                        statusText = 'Chờ duyệt';
-                    } else if (status.toLowerCase() === 'rejected') {
-                        badgeClass = 'badge-danger';
-                        statusText = 'Bị từ chối';
-                    } else if (status.toLowerCase() === 'draft') {
-                        badgeClass = 'badge-secondary';
-                        statusText = 'Nháp';
-                    } else if (status.toLowerCase() === 'inactive') { // Assuming inactive is 'Ngừng bán' or similar
-                         badgeClass = 'badge-secondary';
-                         statusText = 'Ngừng bán';
-                    }
+                    if (status.toLowerCase() === 'active') { badgeClass = 'badge-success'; statusText = 'Đang bán'; }
+                    else if (status.toLowerCase() === 'pending') { badgeClass = 'badge-warning'; statusText = 'Chờ duyệt'; }
+                    else if (status.toLowerCase() === 'rejected') { badgeClass = 'badge-danger'; statusText = 'Bị từ chối'; }
+                    else if (status.toLowerCase() === 'draft') { badgeClass = 'badge-secondary'; statusText = 'Nháp'; }
+                    else if (status.toLowerCase() === 'inactive') { badgeClass = 'badge-secondary'; statusText = 'Ngừng bán'; }
 
                     statusCell.innerHTML = `<span class="badge ${badgeClass}">${statusText}</span>`;
-                    
-                    // Add highlight animation
                     row.style.transition = 'background-color 2s';
-                    row.style.backgroundColor = '#d4edda'; // light green highligh
-                    setTimeout(() => {
-                        row.style.backgroundColor = '';
-                    }, 2000);
+                    row.style.backgroundColor = '#d4edda';
+                    setTimeout(() => { row.style.backgroundColor = ''; }, 2000);
                 }
             }
         });

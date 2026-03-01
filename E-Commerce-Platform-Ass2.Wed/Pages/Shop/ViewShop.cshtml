@@ -190,7 +190,7 @@
         <div class="col-lg-8">
             <div class="card border-0">
                 <div class="card-header bg-light py-3">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <h5 class="mb-0">
                             <i class="fas fa-box text-primary mr-2"></i>Sản phẩm của shop
                         </h5>
@@ -209,6 +209,14 @@
                             </button>
                         </div>
                     </div>
+                    <div class="mt-3">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                            </div>
+                            <input type="text" id="searchInput" class="form-control border-left-0" placeholder="Tìm kiếm sản phẩm theo tên, danh mục..." />
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     @if (Model.ViewModel.Products.Any())
@@ -216,7 +224,7 @@
                         <div class="row" id="products-container">
                             @foreach (var product in Model.ViewModel.Products)
                             {
-                                <div class="col-lg-4 col-md-6 mb-4 product-item" data-status="@product.Status">
+                                <div class="col-lg-4 col-md-6 mb-4 product-item" data-status="@product.Status" data-name="@product.Name.ToLower()" data-category="@((product.CategoryName ?? "").ToLower())">
                                     <div class="card border-0 h-100">
                                         <div class="position-relative overflow-hidden">
                                             <img class="card-img-top" src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : Url.Content("~/img/product-1.jpg"))" alt="@product.Name" style="height: 200px; object-fit: cover;">
@@ -274,6 +282,11 @@
                                 </div>
                             }
                         </div>
+                        <div id="noResultsMessage" class="col-12 text-center py-5" style="display:none;">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Không tìm thấy sản phẩm nào</h5>
+                            <p class="text-muted">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc.</p>
+                        </div>
                     }
                     else
                     {
@@ -296,25 +309,45 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Product filter functionality
+            function applyFilters() {
+                var statusFilter = $('.filter-btn.active').data('filter');
+                var keyword = $('#searchInput').val().toLowerCase().trim();
+                var $products = $('.product-item');
+                var visibleCount = 0;
+
+                $products.each(function() {
+                    var matchStatus = (statusFilter === 'all') || ($(this).data('status') === statusFilter);
+                    var name = ($(this).data('name') || '').toString();
+                    var category = ($(this).data('category') || '').toString();
+                    var matchKeyword = !keyword || name.indexOf(keyword) !== -1 || category.indexOf(keyword) !== -1;
+
+                    if (matchStatus && matchKeyword) {
+                        $(this).fadeIn(300);
+                        visibleCount++;
+                    } else {
+                        $(this).fadeOut(300);
+                    }
+                });
+
+                if (visibleCount === 0 && $products.length > 0) {
+                    $('#noResultsMessage').fadeIn(300);
+                } else {
+                    $('#noResultsMessage').fadeOut(300);
+                }
+            }
+
+            // Status filter
             $('.filter-btn').on('click', function() {
                 $('.filter-btn').removeClass('active');
                 $(this).addClass('active');
-                
-                var filter = $(this).data('filter');
-                var $products = $('.product-item');
-                
-                if (filter === 'all') {
-                    $products.fadeIn(300);
-                } else {
-                    $products.each(function() {
-                        if ($(this).data('status') === filter) {
-                            $(this).fadeIn(300);
-                        } else {
-                            $(this).fadeOut(300);
-                        }
-                    });
-                }
+                applyFilters();
+            });
+
+            // Keyword search (debounced)
+            var searchTimer;
+            $('#searchInput').on('input', function() {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(applyFilters, 250);
             });
         });
     </script>
