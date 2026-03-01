@@ -257,7 +257,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
                     BasePrice = productDetail?.BasePrice ?? 0,
                     CategoryName = productDetail?.CategoryName,
                     ShopName = productDetail?.ShopName ?? shop.ShopName,
-                    Description = productDetail?.Description
+                    Description = productDetail?.Description,
                 };
 
                 await Task.WhenAll(
@@ -288,7 +288,18 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Products
             {
                 TempData["SuccessMessage"] =
                     "Đã gỡ sản phẩm thành công! Bạn có thể chỉnh sửa và gửi duyệt lại.";
-                await NotifyProductChangedAsync(id, shop.Id, "statusChanged", "draft", Input.Name);
+
+                // Broadcast tới TẤT CẢ client vì bất kỳ customer nào cũng có thể đang xem sản phẩm này
+                var unpublishMessage = new ProductChangedMessage
+                {
+                    ProductId = id,
+                    ShopId = shop.Id,
+                    ChangeType = "statusChanged",
+                    Status = "draft",
+                    Name = Input.Name,
+                    TriggeredBy = User.Identity?.Name,
+                };
+                await _hubContext.Clients.All.ProductChanged(unpublishMessage);
             }
 
             return RedirectToPage("/Shop/Products/Edit", new { id });

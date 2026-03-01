@@ -258,6 +258,19 @@
 </style>
 
 
+<!-- Cart Page Header / Breadcrumb -->
+<div class="cart-header text-center">
+    <div class="container">
+        <h1><i class="fas fa-shopping-bag mr-2" style="color:#D19C97;font-size:1.3rem;"></i>Giỏ hàng</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center">
+                <li class="breadcrumb-item"><a asp-page="/Index">Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Giỏ hàng</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
 <div class="container py-4">
     @if (Model.ViewModel.Items == null || !Model.ViewModel.Items.Any())
     {

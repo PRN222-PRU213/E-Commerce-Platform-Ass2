@@ -709,6 +709,56 @@
                 initializeCategoryDropdown();
             });
         });
+
+        // SignalR: lắng nghe trạng thái sản phẩm này thay đổi khi admin duyệt/từ chối
+        (function () {
+            var currentProductId = '@Model.Input.Id'.toLowerCase();
+            console.log('[Shop Edit] Listening for product changes, id:', currentProductId);
+
+            document.addEventListener('rt:product-changed', function (e) {
+                var d = e.detail;
+                if (!d) return;
+
+                var pid = (d.productId || d.ProductId || '').toString().toLowerCase();
+                if (pid !== currentProductId) return;
+
+                console.log('[Shop Edit] Product changed event for this product:', d);
+
+                var changeType = (d.changeType || d.ChangeType || '').toLowerCase();
+                var status = (d.status || d.Status || '').toLowerCase();
+
+                // Admin duyệt → status = 'active', changeType = 'approved'
+                var isApproved = changeType === 'approved' ||
+                                 (changeType === 'statuschanged' && (status === 'active' || status === 'approved'));
+
+                // Admin từ chối → status = 'rejected'
+                var isRejected = changeType === 'rejected' ||
+                                 (changeType === 'statuschanged' && status === 'rejected');
+
+                if (isApproved) {
+                    showEditToast('success', '✅ Sản phẩm đã được Admin duyệt!', 'Đang tải lại trang để cập nhật trạng thái...');
+                    console.log('[Shop Edit] Product approved → reloading in 2s');
+                    setTimeout(function () { location.reload(); }, 2000);
+                } else if (isRejected) {
+                    showEditToast('danger', '❌ Sản phẩm bị từ chối', 'Admin đã từ chối sản phẩm này. Đang tải lại trang...');
+                    console.log('[Shop Edit] Product rejected → reloading in 2s');
+                    setTimeout(function () { location.reload(); }, 2000);
+                }
+            });
+
+            function showEditToast(type, title, message) {
+                var toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;min-width:320px;max-width:420px;';
+                toast.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible shadow" role="alert" style="margin:0;">' +
+                    '<strong>' + title + '</strong><br><small>' + message + '</small>' +
+                    '<button type="button" class="close" onclick="this.parentElement.parentElement.remove()">' +
+                    '<span>&times;</span></button></div>';
+                document.body.appendChild(toast);
+                setTimeout(function () {
+                    if (toast.parentNode) toast.remove();
+                }, 5000);
+            }
+        })();
     </script>
 }
 

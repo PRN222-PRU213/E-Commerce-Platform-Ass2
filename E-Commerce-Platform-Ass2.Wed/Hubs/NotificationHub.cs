@@ -70,5 +70,48 @@ namespace E_Commerce_Platform_Ass2.Wed.Hubs
             }
             await base.OnDisconnectedAsync(exception);
         }
+
+        /// <summary>
+        /// Client gọi sau mỗi lần reconnect để rejoin groups.
+        /// SignalR reconnect tạo connectionId mới nên server xóa user khỏi group cũ.
+        /// </summary>
+        public async Task RejoinGroups()
+        {
+            var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var role = Context.User?.FindFirstValue(ClaimTypes.Role);
+
+            Console.WriteLine(
+                $"[SignalR Hub] RejoinGroups called | UserId: {userId} | ConnectionId: {Context.ConnectionId}"
+            );
+
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                Console.WriteLine(
+                    "[SignalR Hub] RejoinGroups: invalid or missing userId, skipping"
+                );
+                return;
+            }
+
+            var userGroup = $"user-{userGuid}";
+            await Groups.AddToGroupAsync(Context.ConnectionId, userGroup);
+            Console.WriteLine($"[SignalR Hub] RejoinGroups: rejoined {userGroup}");
+
+            var shop = await _shopService.GetShopByUserIdAsync(userGuid);
+            if (shop != null)
+            {
+                var shopGroup = $"shop-{shop.Id}";
+                await Groups.AddToGroupAsync(Context.ConnectionId, shopGroup);
+                Console.WriteLine($"[SignalR Hub] RejoinGroups: rejoined {shopGroup}");
+            }
+
+            if (
+                !string.IsNullOrWhiteSpace(role)
+                && role.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, "admins");
+                Console.WriteLine("[SignalR Hub] RejoinGroups: rejoined admins group");
+            }
+        }
     }
 }

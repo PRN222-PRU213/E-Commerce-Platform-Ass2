@@ -533,18 +533,32 @@
                 var status = d.status || d.Status || '';
                 var name = d.name || d.Name || 'Sản phẩm';
 
-                if (changeType === 'statusChanged' && (status === 'draft' || status === 'inactive')) {
-                    // Product unpublished - show warning and redirect
-                    showProductToast('warning', `${name} đã bị gỡ khỏi cửa hàng.`);
-                    setTimeout(function () { window.location.href = '/'; }, 2000);
-                } else if (changeType === 'rejected') {
-                    showProductToast('warning', `${name} đã bị từ chối và không còn khả dụng.`);
-                    setTimeout(function () { window.location.href = '/'; }, 2000);
-                } else if (changeType === 'updated') {
-                    showProductToast('info', `${name} vừa được cập nhật.`);
+                // Normalize về lowercase để so sánh nhất quán
+                var changeTypeLower = changeType.toLowerCase();
+                var statusLower = status.toLowerCase();
+
+                if (changeTypeLower === 'statuschanged' && (statusLower === 'draft' || statusLower === 'inactive')) {
+                    // Shop gỡ sản phẩm xuống → cảnh báo và redirect
+                    showProductToast('warning', `⚠️ ${name} đã bị shop gỡ xuống. Đang chuyển trang...`);
+                    console.log('[Product Detail] Product unpublished (draft/inactive) → redirecting in 3s');
+                    setTimeout(function () { window.location.href = '/'; }, 3000);
+                } else if (changeTypeLower === 'statuschanged' && statusLower === 'rejected') {
+                    // Admin từ chối
+                    showProductToast('warning', `❌ ${name} đã bị từ chối và không còn khả dụng.`);
+                    console.log('[Product Detail] Product rejected → redirecting in 3s');
+                    setTimeout(function () { window.location.href = '/'; }, 3000);
+                } else if (changeTypeLower === 'rejected') {
+                    // Broadcast từ BroadcastProductChangedAsync dùng changeType='rejected'
+                    showProductToast('warning', `❌ ${name} đã bị từ chối và không còn khả dụng.`);
+                    console.log('[Product Detail] Product rejected (broadcast) → redirecting in 3s');
+                    setTimeout(function () { window.location.href = '/'; }, 3000);
+                } else if (changeTypeLower === 'updated') {
+                    showProductToast('info', `ℹ️ ${name} vừa được cập nhật. Đang tải lại...`);
+                    console.log('[Product Detail] Product updated → reloading in 1.5s');
                     setTimeout(function () { location.reload(); }, 1500);
-                } else if (changeType === 'approved') {
-                    showProductToast('success', `${name} đã được duyệt!`);
+                } else if (changeTypeLower === 'approved' || (changeTypeLower === 'statuschanged' && (statusLower === 'active' || statusLower === 'approved'))) {
+                    showProductToast('success', `✅ ${name} đã được duyệt và cập nhật!`);
+                    console.log('[Product Detail] Product approved/active → reloading in 1.5s');
                     setTimeout(function () { location.reload(); }, 1500);
                 }
             });

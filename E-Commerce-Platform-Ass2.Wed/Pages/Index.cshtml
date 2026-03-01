@@ -284,14 +284,30 @@
             });
         }
 
-        // Real-time: reload when a product is approved/changed
+        // Real-time: reload khi sản phẩm thay đổi trạng thái (approved, draft, rejected...)
         document.addEventListener('rt:product-changed', function (e) {
-            var detail = e.detail;
-            if (detail && (detail.changeType === 'approved' || detail.ChangeType === 'approved')) {
-                console.log('Product approved! Reloading homepage...');
+            var d = e.detail;
+            if (!d) return;
+            var changeType = (d.changeType || d.ChangeType || '').toLowerCase();
+            var status = (d.status || d.Status || '').toLowerCase();
+            console.log('[Homepage] rt:product-changed received, changeType:', changeType, 'status:', status);
+
+            // Reload khi sản phẩm được duyệt (hiện ra) hoặc bị gỡ (ẩn đi)
+            var shouldReload =
+                changeType === 'approved' ||
+                (changeType === 'statuschanged' && (
+                    status === 'active' ||
+                    status === 'approved' ||
+                    status === 'draft' ||
+                    status === 'inactive' ||
+                    status === 'rejected'
+                ));
+
+            if (shouldReload) {
+                console.log('[Homepage] Status changed to:', status, '→ reloading in 1.5s');
                 setTimeout(function () {
-                    window.location.href = window.location.href;
-                }, 1000);
+                    window.location.reload();
+                }, 1500);
             }
         });
     </script>

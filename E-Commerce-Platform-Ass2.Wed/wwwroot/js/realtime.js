@@ -23,9 +23,16 @@
     notifyConnection("reconnecting");
   });
 
-  connection.onreconnected(() => {
+  connection.onreconnected(async () => {
     console.log("[SignalR] Reconnected!");
     notifyConnection("connected");
+    // Rejoin groups vì reconnect tạo connectionId mới → server xóa khỏi group cũ
+    try {
+      await connection.invoke("RejoinGroups");
+      console.log("[SignalR] Groups rejoined after reconnect");
+    } catch (err) {
+      console.error("[SignalR] Failed to rejoin groups:", err);
+    }
   });
 
   connection.onclose(() => {
@@ -37,7 +44,7 @@
     console.log("[SignalR] ProductChanged received:", message);
     callbacks.productChanged.forEach((fn) => fn(message));
     document.dispatchEvent(
-      new CustomEvent("rt:product-changed", { detail: message }),
+      new CustomEvent("rt:product-changed", { detail: message, bubbles: true }),
     );
   });
 
@@ -45,21 +52,21 @@
     console.log("[SignalR] NotificationReceived:", message);
     callbacks.notification.forEach((fn) => fn(message));
     document.dispatchEvent(
-      new CustomEvent("rt:notification", { detail: message }),
+      new CustomEvent("rt:notification", { detail: message, bubbles: true }),
     );
   });
 
   connection.on("ReviewApproved", (review) => {
     console.log("[SignalR] ReviewApproved received:", review);
     document.dispatchEvent(
-      new CustomEvent("rt:review-approved", { detail: review }),
+      new CustomEvent("rt:review-approved", { detail: review, bubbles: true }),
     );
   });
 
   connection.on("ReviewSubmitted", (review) => {
     console.log("[SignalR] ReviewSubmitted received:", review);
     document.dispatchEvent(
-      new CustomEvent("rt:review-submitted", { detail: review }),
+      new CustomEvent("rt:review-submitted", { detail: review, bubbles: true }),
     );
   });
 
