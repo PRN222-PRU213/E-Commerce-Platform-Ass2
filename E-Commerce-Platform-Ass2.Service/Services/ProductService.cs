@@ -160,6 +160,45 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             return ServiceResult<List<ProductDto>>.Success(productDtos);
         }
 
+        public async Task<
+            ServiceResult<(List<ProductDto> Products, int TotalCount)>
+        > GetByShopIdPagedAsync(Guid shopId, int page, int pageSize)
+        {
+            var shop = await _shopRepository.GetByIdAsync(shopId);
+            if (shop == null)
+            {
+                return ServiceResult<(List<ProductDto>, int)>.Failure("Shop không tồn tại.");
+            }
+
+            var productsQuery = await _productRepository.GetByShopIdAsync(shopId);
+            var totalCount = productsQuery.Count();
+            var products = productsQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => MapToDto(p, shop.ShopName))
+                .ToList();
+
+            return ServiceResult<(List<ProductDto>, int)>.Success((products, totalCount));
+        }
+
+        public async Task<
+            ServiceResult<(int Total, int Active, int Inactive)>
+        > GetProductCountsByShopIdAsync(Guid shopId)
+        {
+            var shop = await _shopRepository.GetByIdAsync(shopId);
+            if (shop == null)
+            {
+                return ServiceResult<(int, int, int)>.Failure("Shop không tồn tại.");
+            }
+
+            var products = await _productRepository.GetByShopIdAsync(shopId);
+            var total = products.Count();
+            var active = products.Count(p => p.Status == "Active");
+            var inactive = total - active;
+
+            return ServiceResult<(int, int, int)>.Success((total, active, inactive));
+        }
+
         /// <summary>
         /// Lấy sản phẩm theo Id
         /// </summary>

@@ -5,7 +5,7 @@
 -- Run this script after running migrations
 -- Password for all users: "123456" (BCrypt hash)
 
-USE [ECommercePlatformDB2]; -- Database name from appsettings.json
+USE [ECommercePlatformDB]; -- Database name from appsettings.json
 GO
 
 -- Delete old data (if needed) - Order matters due to foreign key constraints
@@ -314,3 +314,9 @@ UPDATE users
 SET PasswordHash = '123456'
 UPDATE products SET Status = 'active' WHERE Status = 'Active';
 UPDATE product_variants SET Status = 'active' WHERE Status = 'Active';
+
+
+Update users SET PasswordHash = '123456' WHERE Email = 'seller1@example.com';
+Update users SET PasswordHash = '123456' WHERE Email = 'seller2@example.com';
+Update users SET PasswordHash = '123456' WHERE Email = 'customer1@example.com';
+Update users SET PasswordHash = '123456' WHERE Email = 'customer2@example.com';

@@ -31,6 +31,16 @@ namespace E_Commerce_Platform_Ass2.Service.Services.IServices
 
         Task<ServiceResult<List<ProductDto>>> GetByShopIdAsync(Guid shopId);
 
+        Task<ServiceResult<(List<ProductDto> Products, int TotalCount)>> GetByShopIdPagedAsync(
+            Guid shopId,
+            int page,
+            int pageSize
+        );
+
+        Task<ServiceResult<(int Total, int Active, int Inactive)>> GetProductCountsByShopIdAsync(
+            Guid shopId
+        );
+
         /// <summary>
         /// Lấy sản phẩm theo Id
         /// </summary>

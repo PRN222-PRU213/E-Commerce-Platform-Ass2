@@ -16,8 +16,8 @@ namespace E_Commerce_Platform_Ass2.Wed.Models
         public List<ShopProductViewModel> Products { get; set; } = new();
 
         // Statistics
-        public int TotalProducts => Products.Count;
-        public int ActiveProducts => Products.Count(p => p.Status == "active");
+        public int TotalProducts { get; set; }
+        public int ActiveProducts { get; set; }
         public int PendingProducts => Products.Count(p => p.Status == "pending");
         public int DraftProducts => Products.Count(p => p.Status == "draft");
 
