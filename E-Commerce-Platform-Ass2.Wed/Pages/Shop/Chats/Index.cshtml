@@ -1,0 +1,161 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.Chats.IndexModel
+@{
+    ViewData["Title"] = "Tin nhắn - " + Model.ViewModel.ShopName;
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+}
+
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-4">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">
+            <i class="fas fa-comments text-primary mr-2"></i>Tin nhắn với khách hàng
+        </h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Shop/ViewShop" class="text-dark">Dashboard</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Tin nhắn</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Chat Sessions List -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold">Danh sách hội thoại</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="height: 500px; overflow-y: auto;">
+                        @foreach (var session in Model.Sessions)
+                        {
+                            <a href="#" class="list-group-item list-group-item-action chat-session flex-column align-items-start" data-session-id="@session.Id">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1 text-primary">@session.Customer?.Name</h5>
+                                    <small class="text-muted">@session.UpdatedAt.ToString("HH:mm dd/MM")</small>
+                                </div>
+                            </a>
+                        }
+                        @if (!Model.Sessions.Any())
+                        {
+                            <div class="p-3 text-center text-muted">Không có tin nhắn nào.</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="col-md-8">
+            <div class="card shadow mb-4 d-none" id="chatArea">
+                <div class="card-header py-3 bg-info text-white d-flex justify-content-between">
+                    <h6 class="m-0 font-weight-bold" id="chatCustomerName">Đang chat...</h6>
+                </div>
+                <div class="card-body" id="chatMessages" style="height: 400px; overflow-y: auto; background: #f8f9fa;">
+                    <!-- Messages will be loaded here -->
+                </div>
+                <div class="card-footer bg-white border-top-0">
+                    <div class="input-group">
+                        <input type="text" id="chatInputContent" class="form-control" placeholder="Nhập tin nhắn..." />
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" id="chatSendBtn" type="button"><i class="fas fa-paper-plane"></i> Gửi</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="noChatSelected" class="text-center py-5 text-muted h-100 d-flex flex-column justify-content-center">
+                <i class="fas fa-comments fa-4x mb-3 text-light"></i>
+                <h5>Chọn một cuộc hội thoại để bắt đầu</h5>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="shopUserId" value="@Model.UserId" />
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let currentSessionId = null;
+            let shopUserId = $('#shopUserId').val();
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/chat")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveMessage", function (message) {
+                if (message.chatSessionId === currentSessionId) {
+                    appendMessage(message.content, message.senderRole, message.createdAt);
+                }
+            });
+
+            connection.start().catch(err => console.error(err));
+
+            $('.chat-session').on('click', async function(e) {
+                e.preventDefault();
+                $('.chat-session').removeClass('active');
+                $(this).addClass('active');
+
+                const sessionId = $(this).data('session-id');
+                const custName = $(this).find('h5').text();
+                
+                $('#noChatSelected').addClass('d-none');
+                $('#chatArea').removeClass('d-none');
+                $('#chatCustomerName').text(custName);
+
+                if (currentSessionId && currentSessionId !== sessionId) {
+                    await connection.invoke("LeaveSession", currentSessionId);
+                }
+                currentSessionId = sessionId;
+                await connection.invoke("JoinSession", currentSessionId);
+
+                $('#chatMessages').html('<div class="text-center text-muted mt-5"><i class="fas fa-spinner fa-spin fa-2x"></i></div>');
+
+                $.get(`/Api/Chat/History?sessionId=${currentSessionId}`, function(data) {
+                    $('#chatMessages').empty();
+                    data.forEach(m => appendMessage(m.content, m.senderRole, m.createdAt));
+                });
+            });
+
+            $('#chatSendBtn').on('click', async function() {
+                const content = $('#chatInputContent').val().trim();
+                if (content && currentSessionId) {
+                    $('#chatInputContent').val('');
+                    await connection.invoke("SendMessage", currentSessionId, shopUserId, "Shop", content);
+                }
+            });
+
+            $('#chatInputContent').on('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    $('#chatSendBtn').click();
+                }
+            });
+
+            function appendMessage(content, role, createdAt) {
+                const isShopOrAI = role === 'Shop' || role === 'AI';
+                const timeStr = new Date(createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const alignClass = isShopOrAI ? 'text-right' : 'text-left';
+                const bgClass = role === 'Shop' ? 'bg-primary text-white' : (role === 'AI' ? 'bg-success text-white' : 'bg-white border');
+                const nameStr = role === 'AI' ? '<i>AI Assistant</i>' : (role === 'Shop' ? 'Bạn' : 'Khách hàng');
+                const textMutedClass = (role === 'Shop' || role === 'AI') ? 'text-light' : 'text-muted';
+
+                const msgHtml = `
+                    <div class="mb-3 ${alignClass}">
+                        <div class="d-inline-block text-left p-2 rounded shadow-sm ${bgClass}" style="max-width: 75%;">
+                            <div class="small mb-1 font-weight-bold opacity-75">${nameStr}</div>
+                            <div>${content}</div>
+                            <div class="small mt-1 text-right ${textMutedClass}" style="font-size: 0.75rem;">${timeStr}</div>
+                        </div>
+                    </div>
+                `;
+                $('#chatMessages').append(msgHtml);
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+    </script>
+}

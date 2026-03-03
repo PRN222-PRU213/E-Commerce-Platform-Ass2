@@ -1,0 +1,271 @@
+@using E_Commerce_Platform_Ass2.Service.Services.IServices
+@using System.Security.Claims
+@inject IShopService ShopService
+
+@{
+    var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    Guid? shopId = null;
+    Guid userId = Guid.Empty;
+
+    if (!string.IsNullOrEmpty(userIdStr) && Guid.TryParse(userIdStr, out userId))
+    {
+        var shop = await ShopService.GetShopByUserIdAsync(userId);
+        if (shop != null)
+        {
+            shopId = shop.Id;
+        }
+    }
+}
+
+@if (shopId.HasValue)
+{
+    <div id="shopInboxWidget" class="chat-widget shadow" style="display: none; position: fixed; bottom: 20px; left: 20px; width: 380px; height: 500px; background: white; border-radius: 10px; z-index: 1050; border: 1px solid #dee2e6; display: flex; flex-direction: column;">
+        
+        <!-- Header -->
+        <div class="chat-header text-white px-3 py-2 d-flex justify-content-between align-items-center rounded-top" style="background: #17a2b8; min-height: 40px;">
+            <div id="shopInboxHeaderTitle" class="d-flex align-items-center">
+                <i class="fas fa-inbox mr-2"></i>
+                <h6 class="m-0">Hộp thư khách hàng</h6>
+            </div>
+            <div class="d-flex align-items-center">
+                <span id="shopInboxBackBtn" class="text-white mr-3" style="cursor: pointer; display: none;" title="Quay lại danh sách">
+                    <i class="fas fa-arrow-left"></i>
+                </span>
+                <span id="closeShopInboxBtn" class="text-white" style="cursor: pointer; font-size: 1.2rem;">&times;</span>
+            </div>
+        </div>
+
+        <!-- Session List View -->
+        <div id="shopInboxListView" class="flex-grow-1 overflow-auto" style="display: block; background: #fff;">
+            <div class="p-2 border-bottom bg-light">
+                <input type="text" id="shopInboxSearch" class="form-control form-control-sm" placeholder="Tìm kiếm khách hàng...">
+            </div>
+            <div id="shopInboxSessionList" class="list-group list-group-flush">
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Detail View -->
+        <div id="shopInboxChatView" class="flex-grow-1 d-flex flex-column" style="display: none; height: 100%; overflow: hidden;">
+            <div id="shopInboxMessages" class="chat-messages p-3 flex-grow-1" style="overflow-y: auto; background: #f8f9fa;">
+                <!-- Messages will load here -->
+            </div>
+            <div class="chat-input p-2 border-top d-flex bg-white">
+                <input type="hidden" id="shopInboxShopId" value="@shopId.Value" />
+                <input type="hidden" id="shopInboxUserId" value="@userId" />
+                <input type="text" id="shopInboxInput" class="form-control me-2 mr-2" placeholder="Nhập tin nhắn..." autocomplete="off" />
+                <button id="shopInboxSendBtn" class="btn btn-info"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggle Button -->
+    <button id="openShopInboxBtn" class="btn btn-info rounded-circle shadow d-flex align-items-center justify-content-center" style="position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; z-index: 1040; font-size: 24px;">
+        <i class="fas fa-inbox"></i>
+        <span id="shopInboxUnreadBadge" class="badge badge-danger position-absolute" style="top: -5px; right: -5px; display: none;">0</span>
+    </button>
+
+    <style>
+        .shop-inbox-msg { max-width: 85%; padding: 8px 12px; border-radius: 15px; margin-bottom: 10px; font-size: 0.9rem;}
+        .shop-inbox-msg.shop { background: #17a2b8; color: white; margin-left: auto; border-bottom-right-radius: 0; }
+        .shop-inbox-msg.customer { background: #e9ecef; color: black; margin-right: auto; border-bottom-left-radius: 0; }
+        .shop-inbox-msg.ai { background: #d4edda; color: #155724; margin-right: auto; border-bottom-left-radius: 0; font-style: italic; }
+        .shop-inbox-time { font-size: 0.7rem; color: #6c757d; display: block; margin-top: 4px; }
+        .shop-inbox-msg.shop .shop-inbox-time { color: #e2e3e5; text-align: right; }
+        
+        .session-item { cursor: pointer; transition: background-color 0.2s; border-left: 3px solid transparent;}
+        .session-item:hover { background-color: #f8f9fa; }
+        .session-item.unread { border-left-color: #17a2b8; background-color: #f0f8ff; }
+    </style>
+
+    <!-- SignalR Client -->
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const openBtn = document.getElementById('openShopInboxBtn');
+            const closeBtn = document.getElementById('closeShopInboxBtn');
+            const backBtn = document.getElementById('shopInboxBackBtn');
+            const widget = document.getElementById('shopInboxWidget');
+            
+            const listView = document.getElementById('shopInboxListView');
+            const chatView = document.getElementById('shopInboxChatView');
+            const sessionList = document.getElementById('shopInboxSessionList');
+            const messagesContainer = document.getElementById('shopInboxMessages');
+            
+            const headerTitle = document.getElementById('shopInboxHeaderTitle');
+            const searchInput = document.getElementById('shopInboxSearch');
+            
+            const sendBtn = document.getElementById('shopInboxSendBtn');
+            const inputField = document.getElementById('shopInboxInput');
+            
+            const shopId = document.getElementById('shopInboxShopId')?.value;
+            const userId = document.getElementById('shopInboxUserId')?.value;
+            
+            if (!shopId) return;
+
+            let currentSessionId = null;
+            let loadedSessions = [];
+            
+            // Toggle Widget
+            openBtn.addEventListener('click', () => {
+                widget.style.display = 'flex';
+                openBtn.style.display = 'none';
+                loadSessions();
+            });
+
+            closeBtn.addEventListener('click', () => {
+                widget.style.display = 'none';
+                openBtn.style.display = 'flex';
+            });
+            
+            // View Navigation
+            backBtn.addEventListener('click', () => {
+                showListView();
+            });
+            
+            function showListView() {
+                chatView.style.setProperty('display', 'none', 'important');
+                listView.style.display = 'block';
+                backBtn.style.display = 'none';
+                headerTitle.innerHTML = '<i class="fas fa-inbox mr-2"></i><h6 class="m-0">Hộp thư khách hàng</h6>';
+                
+                if (currentSessionId) {
+                    // We don't leave session anymore since we rely on JoinShop globally
+                    // connection.invoke("LeaveSession", currentSessionId).catch(console.error);
+                    currentSessionId = null;
+                }
+                loadSessions();
+            }
+            
+            function showChatView(sessionId, customerName) {
+                listView.style.display = 'none';
+                chatView.style.setProperty('display', 'flex', 'important');
+                backBtn.style.display = 'block';
+                headerTitle.innerHTML = `<h6 class="m-0 text-truncate" style="max-width: 250px;">${customerName}</h6>`;
+                
+                currentSessionId = sessionId;
+                loadChatHistory(sessionId);
+                
+                // connection.invoke("JoinSession", sessionId).catch(console.error); // Shop already receives all through global JoinShop
+            }
+
+            // SignalR Setup
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/chat")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.start().then(() => {
+                if (shopId) {
+                    connection.invoke("JoinShop", shopId).catch(console.error);
+                }
+            }).catch(console.error);
+
+            connection.on("ReceiveMessage", function (message) {
+                if (currentSessionId && currentSessionId.toLowerCase() === message.chatSessionId.toLowerCase()) {
+                    appendMessage(message.content, message.senderRole, message.createdAt);
+                } else {
+                    // Re-load list if hidden or update badge
+                    if (widget.style.display !== 'flex' || listView.style.display === 'block') {
+                        loadSessions(); // Quick refresh
+                    }
+                }
+            });
+
+            // Load Data
+            async function loadSessions() {
+                try {
+                    // We need a specific endpoint to list sessions for the widget
+                    // Let's create a quick fetch to the existing Index page logic if possible or build a new API
+                    const response = await fetch(`/Api/Chat/ShopSessions?shopId=${shopId}`);
+                    if (response.ok) {
+                        loadedSessions = await response.json();
+                        renderSessionList(loadedSessions);
+                    }
+                } catch (err) {
+                    console.error("Failed to load sessions", err);
+                }
+            }
+            
+            function renderSessionList(sessions) {
+                sessionList.innerHTML = '';
+                if (sessions.length === 0) {
+                    sessionList.innerHTML = '<div class="p-3 text-center text-muted">Chưa có tin nhắn nào.</div>';
+                    return;
+                }
+                
+                sessions.forEach(s => {
+                    const timeStr = new Date(s.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const div = document.createElement('div');
+                    div.className = 'list-group-item list-group-item-action flex-column align-items-start session-item flex-row p-3';
+                    div.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 text-primary text-truncate" style="max-width: 200px;">${s.customerName}</h6>
+                            <small class="text-muted ml-2" style="white-space: nowrap;">${timeStr}</small>
+                        </div>
+                        <p class="mb-0 text-muted small text-truncate">${s.lastMessage || 'Chưa có nhắn tin'}</p>
+                    `;
+                    div.addEventListener('click', () => showChatView(s.id, s.customerName));
+                    sessionList.appendChild(div);
+                });
+            }
+
+            searchInput.addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase();
+                const filtered = loadedSessions.filter(s => s.customerName.toLowerCase().includes(term));
+                renderSessionList(filtered);
+            });
+
+            async function loadChatHistory(sessionId) {
+                messagesContainer.innerHTML = '<div class="text-center p-3 text-muted"><i class="fas fa-spinner fa-spin"></i></div>';
+                try {
+                    const response = await fetch(`/Api/Chat/History?sessionId=${sessionId}`);
+                    if (response.ok) {
+                        const messages = await response.json();
+                        messagesContainer.innerHTML = '';
+                        messages.forEach(m => appendMessage(m.content, m.senderRole, m.createdAt));
+                    }
+                } catch (err) {
+                    console.error("Failed to load history", err);
+                }
+            }
+
+            // Send Logic
+            sendBtn.addEventListener('click', sendMessage);
+            inputField.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            async function sendMessage() {
+                const content = inputField.value.trim();
+                if (content && currentSessionId) {
+                    inputField.value = '';
+                    try {
+                        await connection.invoke("SendMessage", currentSessionId, userId, "Shop", content);
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+            }
+
+            function appendMessage(content, role, createdAt) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `shop-inbox-msg ${role.toLowerCase()}`;
+                
+                const timeStr = new Date(createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                msgDiv.innerHTML = `
+                    <div>${content}</div>
+                    <span class="shop-inbox-time">${timeStr}</span>
+                `;
+                messagesContainer.appendChild(msgDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            // Hide widget on load
+            widget.style.setProperty('display', 'none', 'important');
+        });
+    </script>
+}

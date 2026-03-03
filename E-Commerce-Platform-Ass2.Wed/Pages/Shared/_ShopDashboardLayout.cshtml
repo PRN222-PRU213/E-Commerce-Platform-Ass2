@@ -74,6 +74,8 @@
 
     <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
 
+    @await Html.PartialAsync("_ShopInboxPartial")
+
     @await Html.PartialAsync("Partials/_Scripts")
     @await Html.PartialAsync("Partials/_Notifications")
     @await RenderSectionAsync("Scripts", required: false)

@@ -283,6 +283,8 @@
 </div>
 <!-- Shop Info End -->
 
+<partial name="_ChatboxPartial" model="Model.ViewModel.Id" view-data='new ViewDataDictionary(ViewData) { { "ShopName", Model.ViewModel.ShopName } }' />
+
 @section Scripts {
     <style>
         /* Product Card Styles */

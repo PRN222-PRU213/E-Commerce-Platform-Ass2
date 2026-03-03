@@ -403,6 +403,8 @@
 </div>
 <!-- Shop Detail End -->
 
+@await Html.PartialAsync("_ChatboxPartial", Model.ViewModel.ShopId, new ViewDataDictionary(ViewData) { { "ShopName", Model.ViewModel.ShopName } })
+
 @section Scripts {
     <script>
         $(document).ready(function () {

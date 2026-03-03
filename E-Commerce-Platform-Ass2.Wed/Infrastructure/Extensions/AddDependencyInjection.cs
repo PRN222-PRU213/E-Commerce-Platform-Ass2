@@ -37,6 +37,8 @@ namespace E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions
             serviceCollection.AddScoped<IShopWalletRepository, ShopWalletRepository>();
             serviceCollection.AddScoped<IShopWalletTransactionRepository, ShopWalletTransactionRepository>();
             serviceCollection.AddScoped<INotificationRepository, NotificationRepository>();
+            serviceCollection.AddScoped<IChatSessionRepository, ChatSessionRepository>();
+            serviceCollection.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 
             // Register Services
             serviceCollection.AddScoped<IEmailService, EmailService>();
@@ -61,6 +63,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions
             serviceCollection.AddScoped<IReviewService, ReviewService>();
             serviceCollection.AddScoped<IAIReviewService, AIReviewService>();
             serviceCollection.AddHttpClient<IGeminiService, GeminiService>();
+            serviceCollection.AddScoped<IChatService, ChatService>();
 
             // Register External APIs
             serviceCollection.AddScoped<IMomoApi, MomoApi>();

@@ -3,6 +3,8 @@ using E_Commerce_Platform_Ass2.Data.Momo;
 using E_Commerce_Platform_Ass2.Service.Common.Configurations;
 using E_Commerce_Platform_Ass2.Service.DTOs;
 using E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions;
+using E_Commerce_Platform_Ass2.Wed.Hubs;
+using E_Commerce_Platform_Ass2.Wed.Infrastructure.BackgroundJobs;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -54,6 +56,7 @@ builder.Services.Configure<E_Commerce_Platform_Ass2.Service.Options.RefundBusine
 
 // Register all repositories & services via extension method
 builder.Services.AddService();
+builder.Services.AddHostedService<AiChatFallbackWorker>();
 
 var app = builder.Build();
 
@@ -77,5 +80,6 @@ app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 
 app.MapHub<E_Commerce_Platform_Ass2.Wed.Hubs.NotificationHub>("/hubs/notifications");
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();

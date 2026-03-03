@@ -1,0 +1,35 @@
+@model Guid
+
+<div id="chatWidget" class="chat-widget shadow" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 350px; background: white; border-radius: 10px; z-index: 1050; border: 1px solid #dee2e6;">
+    <div class="chat-header text-white px-3 py-2 d-flex justify-content-between align-items-center rounded-top" style="background: #007bff; cursor: pointer;">
+        <h6 class="m-0">Chat với @(ViewData["ShopName"] ?? "Shop")</h6>
+        <div>
+            <span id="closeChatBtn" class="text-white">&times;</span>
+        </div>
+    </div>
+    <div id="chatMessages" class="chat-messages p-3" style="height: 300px; overflow-y: auto; background: #f8f9fa;">
+        <!-- Messages will be dynamically inserted here -->
+    </div>
+    <div class="chat-input p-2 border-top d-flex">
+        <input type="hidden" id="chatShopId" value="@Model" />
+        <input type="text" id="chatInputContent" class="form-control me-2" placeholder="Tin nhắn..." />
+        <button id="chatSendBtn" class="btn btn-primary"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<button id="openChatBtn" class="btn btn-primary rounded-circle shadow d-flex align-items-center justify-content-center" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; z-index: 1040; font-size: 24px;">
+    <i class="fas fa-comment-dots"></i>
+</button>
+
+<style>
+    .message { max-width: 80%; padding: 8px 12px; border-radius: 15px; margin-bottom: 10px; }
+    .message.customer { background: #007bff; color: white; margin-left: auto; border-bottom-right-radius: 0; }
+    .message.shop { background: #e9ecef; color: black; margin-right: auto; border-bottom-left-radius: 0; }
+    .message.ai { background: #d4edda; color: #155724; margin-right: auto; border-bottom-left-radius: 0; font-style: italic; }
+    .msg-time { font-size: 0.75rem; color: #6c757d; display: block; margin-top: 4px; }
+    .message.customer .msg-time { color: #e2e3e5; text-align: right; }
+</style>
+
+<!-- Requires SignalR JS client to be referenced on the page -->
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+<script src="~/js/chatbox.js" asp-append-version="true"></script>

@@ -58,13 +58,15 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
                 return RedirectToPage("/Shop/RegisterShop");
             }
 
-            ReturnReq = await _returnRequestService.GetShopRequestDetailAsync(id, shopId.Value);
+            var requestDetail = await _returnRequestService.GetShopRequestDetailAsync(id, shopId.Value);
 
-            if (ReturnReq == null)
+            if (requestDetail == null)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy yêu cầu này.";
                 return RedirectToPage("./ReturnRequests");
             }
+
+            ReturnReq = requestDetail;
 
             return Page();
         }
