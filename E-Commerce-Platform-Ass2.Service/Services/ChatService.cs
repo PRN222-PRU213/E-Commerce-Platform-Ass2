@@ -12,7 +12,10 @@ namespace E_Commerce_Platform_Ass2.Service.Services
         private readonly IChatSessionRepository _sessionRepository;
         private readonly IChatMessageRepository _messageRepository;
 
-        public ChatService(IChatSessionRepository sessionRepository, IChatMessageRepository messageRepository)
+        public ChatService(
+            IChatSessionRepository sessionRepository,
+            IChatMessageRepository messageRepository
+        )
         {
             _sessionRepository = sessionRepository;
             _messageRepository = messageRepository;
@@ -29,7 +32,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                     CustomerId = customerId,
                     ShopId = shopId,
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTime.UtcNow,
                 };
                 await _sessionRepository.CreateAsync(session);
             }
@@ -51,7 +54,13 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             return await _messageRepository.GetMessagesBySessionIdAsync(sessionId);
         }
 
-        public async Task<ChatMessage> SendMessageAsync(Guid sessionId, Guid? senderId, string senderRole, string content, Guid? productId = null)
+        public async Task<ChatMessage> SendMessageAsync(
+            Guid sessionId,
+            Guid? senderId,
+            string senderRole,
+            string content,
+            Guid? productId = null
+        )
         {
             var message = new ChatMessage
             {
@@ -62,17 +71,14 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Content = content,
                 ProductId = productId,
                 CreatedAt = DateTime.UtcNow,
-                IsRead = false
+                IsRead = false,
             };
-            
+
             await _messageRepository.CreateAsync(message);
 
-            var session = await _sessionRepository.GetByIdAsync(sessionId);
-            if (session != null)
-            {
-                session.UpdatedAt = DateTime.UtcNow;
-                await _sessionRepository.UpdateAsync(session);
-            }
+            // Use a targeted SQL UPDATE instead of loading the full entity graph with navigation
+            // properties (Customer, Shop, Shop.User) just to update a single timestamp.
+            await _sessionRepository.UpdateTimestampAsync(sessionId);
 
             return message;
         }

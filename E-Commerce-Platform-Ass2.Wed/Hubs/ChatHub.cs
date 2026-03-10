@@ -1,13 +1,15 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR;
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce_Platform_Ass2.Wed.Hubs
 {
-    public class ChatHub(IChatService chatService) : Hub
+    public class ChatHub(IChatService chatService, ILogger<ChatHub> logger) : Hub
     {
         private readonly IChatService _chatService = chatService;
+        private readonly ILogger<ChatHub> _logger = logger;
 
         public async Task JoinSession(string sessionId)
         {
@@ -29,33 +31,61 @@ namespace E_Commerce_Platform_Ass2.Wed.Hubs
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Shop_{shopId}");
         }
 
-        public async Task SendMessage(string sessionId, string senderId, string senderRole, string content, string? productId = null)
+        public async Task SendMessage(
+            string sessionId,
+            string senderId,
+            string senderRole,
+            string content,
+            string? productId = null
+        )
         {
-            var sessionGuid = Guid.Parse(sessionId);
-            Guid? parsedSenderId = string.IsNullOrEmpty(senderId) ? null : Guid.Parse(senderId);
-            Guid? parsedProductId = string.IsNullOrEmpty(productId) ? null : Guid.Parse(productId);
-
-            var message = await _chatService.SendMessageAsync(sessionGuid, parsedSenderId, senderRole, content, parsedProductId);
-            var session = await _chatService.GetSessionByIdAsync(sessionGuid);
-
-            var payload = new
+            try
             {
-                id = message.Id,
-                chatSessionId = message.ChatSessionId.ToString(),
-                senderId = message.SenderId,
-                senderRole = message.SenderRole,
-                content = message.Content,
-                productId = message.ProductId,
-                createdAt = message.CreatedAt.ToString("o")
-            };
+                var sessionGuid = Guid.Parse(sessionId);
+                Guid? parsedSenderId = string.IsNullOrEmpty(senderId) ? null : Guid.Parse(senderId);
+                Guid? parsedProductId = string.IsNullOrEmpty(productId)
+                    ? null
+                    : Guid.Parse(productId);
 
-            if (session != null)
-            {
-                await Clients.Groups(sessionId, $"Shop_{session.ShopId}").SendAsync("ReceiveMessage", payload);
+                var message = await _chatService.SendMessageAsync(
+                    sessionGuid,
+                    parsedSenderId,
+                    senderRole,
+                    content,
+                    parsedProductId
+                );
+                var session = await _chatService.GetSessionByIdAsync(sessionGuid);
+
+                var payload = new
+                {
+                    id = message.Id,
+                    chatSessionId = message.ChatSessionId.ToString(),
+                    senderId = message.SenderId,
+                    senderRole = message.SenderRole,
+                    content = message.Content,
+                    productId = message.ProductId,
+                    createdAt = message.CreatedAt.ToString("o"),
+                };
+
+                if (session != null)
+                {
+                    await Clients
+                        .Groups(sessionId, $"Shop_{session.ShopId}")
+                        .SendAsync("ReceiveMessage", payload);
+                }
+                else
+                {
+                    await Clients.Group(sessionId).SendAsync("ReceiveMessage", payload);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await Clients.Group(sessionId).SendAsync("ReceiveMessage", payload);
+                _logger.LogError(
+                    ex,
+                    "Error in ChatHub.SendMessage for session {SessionId}",
+                    sessionId
+                );
+                throw; // Re-throw so SignalR returns the error to the client (visible via EnableDetailedErrors)
             }
         }
     }

@@ -36,6 +36,11 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
                    .WithMany(s => s.Messages)
                    .HasForeignKey(m => m.ChatSessionId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(m => m.Product)
+                   .WithMany()
+                   .HasForeignKey(m => m.ProductId)
+                   .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

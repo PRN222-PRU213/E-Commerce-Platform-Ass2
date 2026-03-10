@@ -76,7 +76,6 @@
 <input type="hidden" id="shopUserId" value="@Model.UserId" />
 
 @section Scripts {
-    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
     <script>
         $(document).ready(function() {
             let currentSessionId = null;
@@ -88,12 +87,20 @@
                 .build();
 
             connection.on("ReceiveMessage", function (message) {
-                if (message.chatSessionId === currentSessionId) {
+                if (currentSessionId && message.chatSessionId.toLowerCase() === currentSessionId.toLowerCase()) {
                     appendMessage(message.content, message.senderRole, message.createdAt);
                 }
             });
 
-            connection.start().catch(err => console.error(err));
+            // Re-join the active session group after SignalR auto-reconnects (groups are cleared on reconnect)
+            connection.onreconnected(() => {
+                if (currentSessionId) {
+                    connection.invoke("JoinSession", currentSessionId).catch(console.error);
+                }
+            });
+
+            // Store the promise so click handlers can await it before invoking hub methods
+            const startPromise = connection.start().catch(err => console.error(err));
 
             $('.chat-session').on('click', async function(e) {
                 e.preventDefault();
@@ -102,10 +109,12 @@
 
                 const sessionId = $(this).data('session-id');
                 const custName = $(this).find('h5').text();
-                
+
                 $('#noChatSelected').addClass('d-none');
                 $('#chatArea').removeClass('d-none');
                 $('#chatCustomerName').text(custName);
+
+                await startPromise;
 
                 if (currentSessionId && currentSessionId !== sessionId) {
                     await connection.invoke("LeaveSession", currentSessionId);
@@ -125,7 +134,7 @@
                 const content = $('#chatInputContent').val().trim();
                 if (content && currentSessionId) {
                     $('#chatInputContent').val('');
-                    await connection.invoke("SendMessage", currentSessionId, shopUserId, "Shop", content);
+                    await connection.invoke("SendMessage", currentSessionId, shopUserId, "Shop", content, null);
                 }
             });
 

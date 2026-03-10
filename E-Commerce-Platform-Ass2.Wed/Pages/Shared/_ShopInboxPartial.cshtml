@@ -19,7 +19,7 @@
 
 @if (shopId.HasValue)
 {
-    <div id="shopInboxWidget" class="chat-widget shadow" style="display: none; position: fixed; bottom: 20px; left: 20px; width: 380px; height: 500px; background: white; border-radius: 10px; z-index: 1050; border: 1px solid #dee2e6; display: flex; flex-direction: column;">
+    <div id="shopInboxWidget" class="chat-widget shadow" style="display: none; position: fixed; bottom: 20px; left: 20px; width: 380px; height: 500px; background: white; border-radius: 10px; z-index: 1050; border: 1px solid #dee2e6; flex-direction: column;">
         
         <!-- Header -->
         <div class="chat-header text-white px-3 py-2 d-flex justify-content-between align-items-center rounded-top" style="background: #17a2b8; min-height: 40px;">
@@ -81,7 +81,7 @@
     </style>
 
     <!-- SignalR Client -->
-    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/signalr.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const openBtn = document.getElementById('openShopInboxBtn');
@@ -163,6 +163,13 @@
                 }
             }).catch(console.error);
 
+            // Re-join shop group after auto-reconnect
+            connection.onreconnected(() => {
+                if (shopId) {
+                    connection.invoke("JoinShop", shopId).catch(console.error);
+                }
+            });
+
             connection.on("ReceiveMessage", function (message) {
                 if (currentSessionId && currentSessionId.toLowerCase() === message.chatSessionId.toLowerCase()) {
                     appendMessage(message.content, message.senderRole, message.createdAt);
@@ -243,7 +250,7 @@
                 if (content && currentSessionId) {
                     inputField.value = '';
                     try {
-                        await connection.invoke("SendMessage", currentSessionId, userId, "Shop", content);
+                        await connection.invoke("SendMessage", currentSessionId, userId, "Shop", content, null);
                     } catch (err) {
                         console.error(err);
                     }
@@ -264,8 +271,7 @@
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
             
-            // Hide widget on load
-            widget.style.setProperty('display', 'none', 'important');
+            // Widget is already hidden via inline style on page load
         });
     </script>
 }

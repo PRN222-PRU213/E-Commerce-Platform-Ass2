@@ -2,9 +2,9 @@ using E_Commerce_Platform_Ass2.Data.Database;
 using E_Commerce_Platform_Ass2.Data.Momo;
 using E_Commerce_Platform_Ass2.Service.Common.Configurations;
 using E_Commerce_Platform_Ass2.Service.DTOs;
-using E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions;
 using E_Commerce_Platform_Ass2.Wed.Hubs;
 using E_Commerce_Platform_Ass2.Wed.Infrastructure.BackgroundJobs;
+using E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +15,14 @@ builder.Services.Configure<MomoConfig>(builder.Configuration.GetSection("MomoAPI
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    // Show full exception details in development so client-side errors are useful.
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableDetailedErrors = true;
+    }
+});
 
 // Sessions
 builder.Services.AddDistributedMemoryCache();

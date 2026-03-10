@@ -28,15 +28,29 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // Re-join session group after auto-reconnect (SignalR clears groups on reconnect)
+  connection.onreconnected(async () => {
+    if (currentSessionId) {
+      try {
+        await connection.invoke("JoinSession", currentSessionId);
+      } catch (err) {
+        console.error("Failed to re-join session after reconnect:", err);
+      }
+    }
+  });
+
   // Toggle logic
   if (openBtn) {
     openBtn.addEventListener("click", async () => {
       chatWidget.style.display = "block";
       openBtn.style.display = "none";
 
-      // Fetch session if not done yet
       if (shopIdInput && !currentSessionId && !isConnected) {
+        // First open: create/get session and connect
         await fetchAndConnectSession(shopIdInput.value);
+      } else if (currentSessionId && isConnected) {
+        // Subsequent opens: refresh history to pick up messages received while closed
+        await refreshHistory();
       }
     });
   }
@@ -58,6 +72,23 @@ document.addEventListener("DOMContentLoaded", function () {
         sendMessage();
       }
     });
+  }
+
+  async function refreshHistory() {
+    try {
+      const response = await fetch(
+        `/Api/Chat/History?sessionId=${currentSessionId}`,
+      );
+      if (response.ok) {
+        const messages = await response.json();
+        messagesContainer.innerHTML = "";
+        messages.forEach((m) =>
+          appendMessage(m.content, m.senderRole, m.createdAt),
+        );
+      }
+    } catch (err) {
+      console.error("Failed to refresh chat history:", err);
+    }
   }
 
   async function fetchAndConnectSession(shopId) {
@@ -102,6 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
           customerUserId,
           "Customer",
           content,
+          null
         );
       } catch (err) {
         console.error("Error sending message:", err);
