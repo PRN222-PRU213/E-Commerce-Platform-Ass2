@@ -9,16 +9,22 @@ namespace E_Commerce_Platform_Ass2.Service.Services
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
-        private const string ApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+        private readonly string _apiUrl;
+        private const string BaseUrl = "https://generativelanguage.googleapis.com/v1/models/";
 
         public GeminiService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
-            _apiKey = configuration["Gemini:ApiKey"] ?? throw new ArgumentNullException("Gemini:ApiKey is missing.");
+            _apiKey = configuration["Gemini:ApiKey"] ?? string.Empty;
+            var model = configuration["Gemini:Model"] ?? "gemini-2.0-flash";
+            _apiUrl = $"{BaseUrl}{model}:generateContent";
         }
 
         public async Task<string> GenerateContentAsync(string prompt)
         {
+            if (string.IsNullOrWhiteSpace(_apiKey))
+                throw new InvalidOperationException("Gemini:ApiKey chưa được cấu hình. Chạy: dotnet user-secrets set \"Gemini:ApiKey\" \"YOUR_KEY\"");
+
             var requestBody = new
             {
                 contents = new[]
@@ -43,7 +49,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             var json = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync($"{ApiUrl}?key={_apiKey}", content);
+            var response = await _httpClient.PostAsync($"{_apiUrl}?key={_apiKey}", content);
 
             if (!response.IsSuccessStatusCode)
             {

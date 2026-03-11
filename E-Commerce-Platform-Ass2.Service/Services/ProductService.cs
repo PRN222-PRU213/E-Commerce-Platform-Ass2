@@ -411,5 +411,40 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 CategoryName = product.Category?.Name,
             };
         }
+
+        public async Task<List<ProductDetailDto>> GetActiveProductsWithVariantsAsync()
+        {
+            var products = await _productRepository.GetActiveProductsWithVariantsAsync();
+            return products.Select(p => new ProductDetailDto
+            {
+                Id = p.Id,
+                ShopId = p.ShopId,
+                CategoryId = p.CategoryId,
+                Name = p.Name,
+                Description = p.Description,
+                BasePrice = p.BasePrice,
+                Status = p.Status,
+                AvgRating = p.AvgRating,
+                ImageUrl = p.ImageUrl,
+                CreatedAt = p.CreatedAt,
+                CategoryName = p.Category?.Name,
+                ShopName = p.Shop?.ShopName,
+                Variants = p.ProductVariants?
+                    .Where(v => v.Status == "active" && v.Stock > 0)
+                    .Select(v => new ProductVariantDto
+                    {
+                        Id = v.Id,
+                        ProductId = v.ProductId,
+                        VariantName = v.VariantName,
+                        Price = v.Price,
+                        Size = v.Size,
+                        Color = v.Color,
+                        Stock = v.Stock,
+                        Sku = v.Sku,
+                        Status = v.Status,
+                        ImageUrl = v.ImageUrl,
+                    }).ToList() ?? new()
+            }).ToList();
+        }
     }
 }

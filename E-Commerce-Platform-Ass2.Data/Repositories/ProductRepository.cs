@@ -75,6 +75,16 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<IEnumerable<Product>> GetActiveProductsWithVariantsAsync()
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Shop)
+                .Include(p => p.ProductVariants)
+                .Where(p => p.Status == "active")
+                .ToListAsync();
+        }
+
         public async Task<Product> UpdateAsync(Product product)
         {
             _context.Products.Update(product);

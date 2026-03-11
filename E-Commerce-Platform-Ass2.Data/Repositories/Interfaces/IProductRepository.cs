@@ -9,6 +9,7 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories.Interfaces
         Task<IEnumerable<Product>> GetByShopIdAsync(Guid shopId);
         Task<IEnumerable<Product>> GetByCategoryIdAsync(Guid categoryId);
         Task<Product?> GetProductWithVariantsAsync(Guid id);
+        Task<IEnumerable<Product>> GetActiveProductsWithVariantsAsync();
         Task<bool> ExistsAsync(Guid productId);
         Task<Product> AddAsync(Product product);
         Task<Product> UpdateAsync(Product product);

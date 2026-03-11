@@ -8,6 +8,7 @@ using E_Commerce_Platform_Ass2.Service.Services.IServices;
 using E_Commerce_Platform_Ass2.Wed.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -49,6 +50,14 @@ namespace E_Commerce_Platform_Ass2.Wed.Infrastructure.BackgroundJobs
         private async Task ProcessUnansweredChatsAsync(CancellationToken stoppingToken)
         {
             using var scope = _scopeFactory.CreateScope();
+
+            var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+            if (string.IsNullOrWhiteSpace(configuration["Gemini:ApiKey"]))
+            {
+                _logger.LogWarning("AiChatFallbackWorker: Gemini:ApiKey is not configured. Skipping. Set it via dotnet user-secrets.");
+                return;
+            }
+
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var geminiService = scope.ServiceProvider.GetRequiredService<IGeminiService>();
             var chatService = scope.ServiceProvider.GetRequiredService<IChatService>();

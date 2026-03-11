@@ -70,5 +70,10 @@ namespace E_Commerce_Platform_Ass2.Service.Services.IServices
         /// Lấy tất cả danh mục active
         /// </summary>
         Task<List<CategoryDto>> GetAllCategoriesAsync();
+
+        /// <summary>
+        /// Lấy tất cả sản phẩm active kèm theo variants (dùng cho AI Personal Shopper)
+        /// </summary>
+        Task<List<ProductDetailDto>> GetActiveProductsWithVariantsAsync();
     }
 }
