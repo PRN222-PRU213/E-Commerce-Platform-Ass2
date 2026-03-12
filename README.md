@@ -1,4 +1,95 @@
-# E-Commerce-Platform-Ass2
+# E-Commerce Platform Ass2
+
+![E-Commerce Platform Interface](image.png)
+
+## Overview
+
+This project is a robust, feature-rich e-commerce platform built using modern Web technologies. It follows a clean 3-layer architecture to ensure scalability, maintainability, and clear separation of concerns.
+
+## Key Features
+
+- **AI Personal Shopper**: Integrated AI service (via Gemini) to assist users with product recommendations and queries.
+- **Payment Integration**: Supports multiple payment gateways including Momo and VNPT eKYC for secure transactions.
+- **Real-time Notifications**: Uses SignalR for live updates and chat functionality.
+- **Background Jobs**: Automated tasks like AI chat fallback workers to ensure system reliability.
+- **Comprehensive Management**: Admin and Shop management interfaces for overseeing products, orders, and reviews.
+
+## Technology Stack
+
+- **Framework**: .NET Core 9.0 (ASP.NET Core Razor Pages)
+- **Database**: SQL Server with Entity Framework Core
+- **Real-time**: SignalR
+- **AI**: Google Gemini API
+- **Payments**: Momo API, VNPT eKYC
+- **Cloud Services**: Cloudinary for image management
+
+## System Architecture
+
+The system is designed with a standard 3-layer architecture:
+
+```mermaid
+---
+id: 9134c337-a2a4-4b2b-8e74-0806aebd4d6f
+---
+graph TD
+    subgraph Presentation_Layer ["Presentation Layer (Web)"]
+        Web["E-Commerce-Platform-Ass2.Wed"]
+        RP["Razor Pages"]
+        Hubs["SignalR Hubs"]
+        Controllers["Minimal API Endpoints"]
+    end
+
+    subgraph Application_Layer ["Application Layer (Service)"]
+        Service["E-Commerce-Platform-Ass2.Service"]
+        Services["Business Logic Services"]
+        DTOs["Data Transfer Objects (DTOs)"]
+        AI["AI & External Services (Gemini, Momo, Cloudinary)"]
+    end
+
+    subgraph Infrastructure_Layer ["Infrastructure Layer (Data)"]
+        Data["E-Commerce-Platform-Ass2.Data"]
+        DBContext["ApplicationDbContext (EF Core)"]
+        Repo["Repository Patterns"]
+        Entities["Database Entities"]
+    end
+
+    Web --> Service
+    Service --> Data
+    Data --> DB["SQL Server"]
+
+    %% Interactions
+    RP -.-> Services
+    Controllers -.-> Services
+    Services -.-> Repo
+    Repo -.-> DBContext
+
+```
+
+### Layer Descriptions
+
+1.  **Presentation Layer (`E-Commerce-Platform-Ass2.Wed`)**:
+    - Handles the user interface using Razor Pages.
+    - Manages real-time communication via SignalR Hubs (Notification, Chat).
+    - Provides Minimal API endpoints for specific AI features.
+    - Handles authentication and authorization.
+
+2.  **Application/Service Layer (`E-Commerce-Platform-Ass2.Service`)**:
+    - Contains the core business logic of the application.
+    - Integrates with external APIs (Gemini for AI, Momo for payments).
+    - Handles data mapping between entities and DTOs.
+    - Contains background workers for asynchronous tasks.
+
+3.  **Infrastructure/Data Layer (`E-Commerce-Platform-Ass2.Data`)**:
+    - Manages data persistence using Entity Framework Core.
+    - Implements the Repository pattern for data access abstraction.
+    - Defines the database schema and entities.
+    - Handles database migrations.
+
+## Getting Started
+
+1.  Configure the `appsettings.json` in the `Wed` project with your connection strings and API keys.
+2.  Apply migrations using `dotnet ef database update`.
+3.  Run the project using `dotnet run`.
 
 ## 1. Kiến trúc tổng thể
 
