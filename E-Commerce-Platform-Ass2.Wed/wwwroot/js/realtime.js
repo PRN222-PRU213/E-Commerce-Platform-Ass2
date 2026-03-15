@@ -4,8 +4,20 @@
   const callbacks = {
     productChanged: [],
     notification: [],
+    cartCountChanged: [],
     connectionChanged: [],
   };
+
+  function updateCartCountBadge(count) {
+    const safeCount = Number.isFinite(Number(count))
+      ? Math.max(0, Number(count))
+      : 0;
+    const badges = document.querySelectorAll(".js-cart-count-badge");
+    badges.forEach((badge) => {
+      badge.textContent = String(safeCount);
+      badge.setAttribute("data-cart-count", String(safeCount));
+    });
+  }
 
   const connection = new signalR.HubConnectionBuilder()
     .withUrl(hubUrl)
@@ -70,6 +82,18 @@
     );
   });
 
+  connection.on("CartCountUpdated", (count) => {
+    console.log("[SignalR] CartCountUpdated received:", count);
+    updateCartCountBadge(count);
+    callbacks.cartCountChanged.forEach((fn) => fn(count));
+    document.dispatchEvent(
+      new CustomEvent("rt:cart-count-updated", {
+        detail: { count },
+        bubbles: true,
+      }),
+    );
+  });
+
   async function start() {
     if (
       connection.state === signalR.HubConnectionState.Connected ||
@@ -106,7 +130,9 @@
     start,
     onProductChanged: (fn) => callbacks.productChanged.push(fn),
     onNotification: (fn) => callbacks.notification.push(fn),
+    onCartCountChanged: (fn) => callbacks.cartCountChanged.push(fn),
     onConnectionChanged: (fn) => callbacks.connectionChanged.push(fn),
+    updateCartCountBadge,
     connection,
   };
 

@@ -27,8 +27,25 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Api.PersonalShopper
             if (!Guid.TryParse(userIdStr, out var userId))
                 return Unauthorized();
 
-            await _shopperService.AddComboToCartAsync(userId, request.VariantIds);
-            return new JsonResult(new { success = true, count = request.VariantIds.Count });
+            var result = await _shopperService.AddComboToCartAsync(userId, request.VariantIds);
+            if (result.AddedCount == 0)
+                return BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = result.Message,
+                        result,
+                    }
+                );
+
+            return new JsonResult(
+                new
+                {
+                    success = true,
+                    count = result.AddedCount,
+                    result,
+                }
+            );
         }
     }
 }

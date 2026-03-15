@@ -147,11 +147,16 @@ Hệ thống được xây dựng theo mô hình phân tầng (Layered Architect
 
 ## 5. Quy trình hoạt động chính
 
-1. **Khách hàng:**
+1. **Khách hàng sử dụng AI Personal Shopper:**
+   - Đăng nhập → Gửi yêu cầu tư vấn cá nhân (AI Personal Shopper) → Nhận gợi ý sản phẩm/combo → Thêm combo vào giỏ → Đặt hàng → Thanh toán
+
+2. **Khách hàng:**
    - Đăng nhập → Duyệt sản phẩm → Thêm vào giỏ → Đặt hàng → Thanh toán → Xem/trả hàng → Đánh giá
-2. **Chủ shop:**
+
+3. **Chủ shop:**
    - Đăng nhập → Đăng ký shop → Thêm sản phẩm → Quản lý đơn → Xử lý đổi trả → Thống kê doanh thu
-3. **Admin:**
+
+4. **Admin:**
    - Đăng nhập → Quản lý/phê duyệt → Thống kê → Báo cáo
 
 ## 6. Sơ đồ các tầng layer hệ thống

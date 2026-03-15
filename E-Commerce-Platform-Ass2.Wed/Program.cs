@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using E_Commerce_Platform_Ass2.Data.Database;
 using E_Commerce_Platform_Ass2.Data.Momo;
 using E_Commerce_Platform_Ass2.Service.Common.Configurations;
@@ -7,8 +8,8 @@ using E_Commerce_Platform_Ass2.Wed.Hubs;
 using E_Commerce_Platform_Ass2.Wed.Infrastructure.BackgroundJobs;
 using E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,76 +95,119 @@ app.MapHub<ChatHub>("/hubs/chat");
 // ── AI Personal Shopper Minimal API endpoints ─────────────────────────────────
 // Registered as Minimal API so DisableAntiforgery() works reliably without
 // requiring an app restart (Razor Pages [IgnoreAntiforgeryToken] needs restart).
-app.MapPost("/Api/PersonalShopper/Chat", async (
-    HttpRequest httpRequest,
-    IPersonalShopperService shopperService,
-    ILoggerFactory loggerFactory) =>
-{
-    var logger = loggerFactory.CreateLogger("PersonalShopper.Chat");
-    ShopperChatRequest? req = null;
-    try
-    {
-        req = await httpRequest.ReadFromJsonAsync<ShopperChatRequest>();
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "Failed to deserialize PersonalShopper chat request");
-    }
-
-    if (req == null || string.IsNullOrWhiteSpace(req.Message))
-        return Results.Json(new { error = "Message is required." }, statusCode: 400);
-
-    try
-    {
-        var response = await shopperService.ChatAsync(req.Message, req.History ?? new());
-        return Results.Json(response);
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "PersonalShopper ChatAsync failed");
-        return Results.Json(new ShopperChatResponse
+app.MapPost(
+        "/Api/PersonalShopper/Chat",
+        async (
+            HttpRequest httpRequest,
+            IPersonalShopperService shopperService,
+            ILoggerFactory loggerFactory
+        ) =>
         {
-            Message = $"\u26a0\ufe0f Xin l\u1ed7i, t\u00f4i \u0111ang g\u1eb7p s\u1ef1 c\u1ed1: {ex.Message}",
-            Combos = null
-        });
-    }
-}).DisableAntiforgery();
+            var logger = loggerFactory.CreateLogger("PersonalShopper.Chat");
+            ShopperChatRequest? req = null;
+            try
+            {
+                req = await httpRequest.ReadFromJsonAsync<ShopperChatRequest>();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to deserialize PersonalShopper chat request");
+            }
 
-app.MapPost("/Api/PersonalShopper/AddCombo", async (
-    HttpRequest httpRequest,
-    ClaimsPrincipal user,
-    IPersonalShopperService shopperService,
-    ILoggerFactory loggerFactory) =>
-{
-    var logger = loggerFactory.CreateLogger("PersonalShopper.AddCombo");
-    var userIdStr = user.FindFirstValue(ClaimTypes.NameIdentifier);
-    if (!Guid.TryParse(userIdStr, out var userId))
-        return Results.Unauthorized();
+            if (req == null || string.IsNullOrWhiteSpace(req.Message))
+                return Results.Json(new { error = "Message is required." }, statusCode: 400);
 
-    AddComboToCartRequest? req = null;
-    try
-    {
-        req = await httpRequest.ReadFromJsonAsync<AddComboToCartRequest>();
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "Failed to deserialize AddCombo request");
-    }
+            try
+            {
+                var response = await shopperService.ChatAsync(req.Message, req.History ?? new());
+                return Results.Json(response);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "PersonalShopper ChatAsync failed");
+                return Results.Json(
+                    new ShopperChatResponse
+                    {
+                        Message =
+                            $"\u26a0\ufe0f Xin l\u1ed7i, t\u00f4i \u0111ang g\u1eb7p s\u1ef1 c\u1ed1: {ex.Message}",
+                        Combos = null,
+                    }
+                );
+            }
+        }
+    )
+    .DisableAntiforgery();
 
-    if (req == null || req.VariantIds == null || req.VariantIds.Count == 0)
-        return Results.Json(new { error = "VariantIds is required." }, statusCode: 400);
+app.MapPost(
+        "/Api/PersonalShopper/AddCombo",
+        async (
+            HttpRequest httpRequest,
+            ClaimsPrincipal user,
+            IPersonalShopperService shopperService,
+            ICartService cartService,
+            IHubContext<NotificationHub> hubContext,
+            ILoggerFactory loggerFactory
+        ) =>
+        {
+            var logger = loggerFactory.CreateLogger("PersonalShopper.AddCombo");
+            var userIdStr = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Results.Unauthorized();
 
-    try
-    {
-        await shopperService.AddComboToCartAsync(userId, req.VariantIds);
-        return Results.Json(new { success = true, count = req.VariantIds.Count });
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "PersonalShopper AddCombo failed");
-        return Results.StatusCode(500);
-    }
-}).DisableAntiforgery().RequireAuthorization();
+            AddComboToCartRequest? req = null;
+            try
+            {
+                req = await httpRequest.ReadFromJsonAsync<AddComboToCartRequest>();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to deserialize AddCombo request");
+            }
+
+            if (req == null || req.VariantIds == null || req.VariantIds.Count == 0)
+                return Results.Json(new { error = "VariantIds is required." }, statusCode: 400);
+
+            try
+            {
+                var result = await shopperService.AddComboToCartAsync(userId, req.VariantIds);
+                if (result.AddedCount == 0)
+                {
+                    return Results.Json(
+                        new
+                        {
+                            success = false,
+                            error = result.Message,
+                            result,
+                        },
+                        statusCode: 400
+                    );
+                }
+
+                var cartItemCount = await cartService.GetTotalItemCountAsync(userId);
+                await hubContext
+                    .Clients.Group($"user-{userId}")
+                    .SendAsync("CartCountUpdated", cartItemCount);
+
+                return Results.Json(
+                    new
+                    {
+                        success = true,
+                        count = result.AddedCount,
+                        cartItemCount,
+                        result,
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "PersonalShopper AddCombo failed");
+                return Results.StatusCode(500);
+            }
+        }
+    )
+    .DisableAntiforgery()
+    .RequireAuthorization();
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 app.Run();

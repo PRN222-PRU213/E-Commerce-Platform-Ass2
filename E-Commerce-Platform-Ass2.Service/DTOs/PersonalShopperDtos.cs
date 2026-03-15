@@ -43,4 +43,16 @@ namespace E_Commerce_Platform_Ass2.Service.DTOs
     {
         public List<Guid> VariantIds { get; set; } = new();
     }
+
+    public class AddComboToCartResult
+    {
+        public int RequestedCount { get; set; }
+        public int AddedCount { get; set; }
+        public int SkippedInvalidCount { get; set; }
+        public int SkippedInactiveCount { get; set; }
+        public int SkippedOutOfStockCount { get; set; }
+        public List<Guid> AddedVariantIds { get; set; } = new();
+        public List<Guid> SkippedVariantIds { get; set; } = new();
+        public string Message { get; set; } = string.Empty;
+    }
 }
