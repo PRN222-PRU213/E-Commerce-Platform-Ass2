@@ -40,16 +40,20 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Order
                 CreatedAt = order.CreatedAt,
                 ShippingAddress = order.ShippingAddress,
                 Status = order.Status,
+                OrderType = order.OrderType,
+                PreOrderStatus = order.PreOrderStatus,
                 TotalAmount = order.TotalAmount,
-                Items = order.Items.Select(o => new OrderItemViewModel
-                {
-                    ProductName = o.ProductName,
-                    ImageUrl = o.ImageUrl ?? string.Empty,
-                    Price = o.Price,
-                    Quantity = o.Quantity,
-                    Size = o.Size,
-                    Color = o.Color
-                }).ToList()
+                Items = order
+                    .Items.Select(o => new OrderItemViewModel
+                    {
+                        ProductName = o.ProductName,
+                        ImageUrl = o.ImageUrl ?? string.Empty,
+                        Price = o.Price,
+                        Quantity = o.Quantity,
+                        Size = o.Size,
+                        Color = o.Color,
+                    })
+                    .ToList(),
             };
 
             return Page();

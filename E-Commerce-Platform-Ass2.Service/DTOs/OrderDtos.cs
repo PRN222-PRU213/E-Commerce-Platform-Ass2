@@ -12,6 +12,8 @@ namespace E_Commerce_Platform_Ass2.Service.DTOs
         public decimal TotalAmount { get; set; }
         public string ShippingAddress { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public string? OrderType { get; set; }
+        public string? PreOrderStatus { get; set; }
         public DateTime CreatedAt { get; set; }
         public int ItemCount { get; set; }
 
@@ -26,6 +28,8 @@ namespace E_Commerce_Platform_Ass2.Service.DTOs
     /// </summary>
     public class OrderDetailDto : OrderDto
     {
+        public decimal PreOrderDepositedAmount { get; set; }
+        public decimal PreOrderRemainingAmount { get; set; }
         public List<OrderItemDto> Items { get; set; } = new();
         public PaymentDto? Payment { get; set; }
         public ShipmentDto? Shipment { get; set; }

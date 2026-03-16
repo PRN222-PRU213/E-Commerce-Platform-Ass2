@@ -31,14 +31,25 @@ namespace E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions
             serviceCollection.AddScoped<IShipmentRepository, ShipmentRepository>();
             serviceCollection.AddScoped<IRefundRepository, RefundRepository>();
             serviceCollection.AddScoped<IWalletRepository, WalletRepository>();
-            serviceCollection.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
+            serviceCollection.AddScoped<
+                IWalletTransactionRepository,
+                WalletTransactionRepository
+            >();
             serviceCollection.AddScoped<IEKycRepository, EKycRepository>();
             serviceCollection.AddScoped<IReturnRequestRepository, ReturnRequestRepository>();
             serviceCollection.AddScoped<IShopWalletRepository, ShopWalletRepository>();
-            serviceCollection.AddScoped<IShopWalletTransactionRepository, ShopWalletTransactionRepository>();
+            serviceCollection.AddScoped<
+                IShopWalletTransactionRepository,
+                ShopWalletTransactionRepository
+            >();
             serviceCollection.AddScoped<INotificationRepository, NotificationRepository>();
             serviceCollection.AddScoped<IChatSessionRepository, ChatSessionRepository>();
             serviceCollection.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+            serviceCollection.AddScoped<IPreOrderDetailRepository, PreOrderDetailRepository>();
+            serviceCollection.AddScoped<
+                IPreOrderPolicyItemRepository,
+                PreOrderPolicyItemRepository
+            >();
 
             // Register Services
             serviceCollection.AddScoped<IEmailService, EmailService>();
@@ -65,6 +76,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions
             serviceCollection.AddHttpClient<IGeminiService, GeminiService>();
             serviceCollection.AddScoped<IChatService, ChatService>();
             serviceCollection.AddScoped<IPersonalShopperService, PersonalShopperService>();
+            serviceCollection.AddScoped<IPreOrderService, PreOrderService>();
 
             // Register External APIs
             serviceCollection.AddScoped<IMomoApi, MomoApi>();

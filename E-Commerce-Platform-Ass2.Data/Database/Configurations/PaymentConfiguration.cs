@@ -20,40 +20,50 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
             builder.HasKey(p => p.Id);
 
             // Columns
-            builder.Property(p => p.OrderId)
-                   .IsRequired();
+            builder.Property(p => p.OrderId).IsRequired();
 
-            builder.Property(p => p.Method)
-                   .HasMaxLength(50)
-                   .IsRequired();
+            builder.Property(p => p.Method).HasMaxLength(50).IsRequired();
 
-            builder.Property(p => p.Amount)
-                   .HasColumnType("decimal(18,2)")
-                   .IsRequired();
+            builder
+                .Property(p => p.PaymentStage)
+                .HasMaxLength(30)
+                .HasDefaultValue("FULL")
+                .IsRequired();
 
-            builder.Property(p => p.Status)
-                   .HasMaxLength(50)
-                   .IsRequired();
+            builder.Property(p => p.Amount).HasColumnType("decimal(18,2)").IsRequired();
 
-            builder.Property(p => p.TransactionCode)
-                   .HasMaxLength(100)
-                   .IsRequired();
+            builder.Property(p => p.Status).HasMaxLength(50).IsRequired();
 
-            builder.Property(p => p.PaidAt)
-                   .IsRequired();
+            builder.Property(p => p.TransactionCode).HasMaxLength(100).IsRequired();
+
+            builder.Property(p => p.PaidAt).IsRequired();
 
             // Indexes
-            builder.HasIndex(p => p.OrderId)
-                   .IsUnique(); // 1 Order chỉ có 1 Payment
+            builder.HasIndex(p => p.OrderId);
 
-            builder.HasIndex(p => p.TransactionCode)
-                   .IsUnique();
+            builder.HasIndex(p => new
+            {
+                p.OrderId,
+                p.PaymentStage,
+                p.PaidAt,
+            });
 
-            // Relationship: Payment -> Order (1 - 1, one-way)
-            builder.HasOne(p => p.Order)
-                   .WithOne()
-                   .HasForeignKey<Payment>(p => p.OrderId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder.HasIndex(p => p.TransactionCode).IsUnique();
+
+            // Relationship: Payment -> Order (N - 1)
+            builder
+                .HasOne(p => p.Order)
+                .WithMany(o => o.Payments)
+                .HasForeignKey(p => p.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_payments_PaymentStage",
+                    "[PaymentStage] IN ('DEPOSIT','FINAL','FULL')"
+                );
+            });
         }
     }
 }

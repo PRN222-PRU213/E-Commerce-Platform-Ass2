@@ -67,10 +67,10 @@ namespace E_Commerce_Platform_Ass2.Service.Utils
             }
 
             // BCrypt hashes start with $2a$, $2b$, $2x$, or $2y$ followed by cost parameter
-            return hash.StartsWith("$2a$") || 
-                   hash.StartsWith("$2b$") || 
-                   hash.StartsWith("$2x$") || 
-                   hash.StartsWith("$2y$");
+            return hash.StartsWith("$2a$")
+                || hash.StartsWith("$2b$")
+                || hash.StartsWith("$2x$")
+                || hash.StartsWith("$2y$");
         }
 
         /// <summary>

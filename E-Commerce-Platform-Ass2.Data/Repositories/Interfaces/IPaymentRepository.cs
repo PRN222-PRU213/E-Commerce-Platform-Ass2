@@ -12,6 +12,8 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories.Interfaces
         Task<IEnumerable<Payment>> GetAllAsync();
         Task<Payment?> GetByIdAsync(Guid paymentId);
         Task<Payment?> GetByOrderIdAsync(Guid orderId);
+        Task<List<Payment>> GetAllByOrderIdAsync(Guid orderId);
+        Task<Payment?> GetByOrderIdAndStageAsync(Guid orderId, string paymentStage);
         Task<Payment> AddAsync(Payment payment);
         Task<Payment> UpdateAsync(Payment payment);
     }

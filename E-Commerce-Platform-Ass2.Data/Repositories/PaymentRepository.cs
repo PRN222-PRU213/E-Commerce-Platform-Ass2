@@ -33,14 +33,31 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories
 
         public async Task<Payment?> GetByIdAsync(Guid paymentId)
         {
-            return await _context.Payments
-                .FirstOrDefaultAsync(p => p.Id == paymentId);
+            return await _context.Payments.FirstOrDefaultAsync(p => p.Id == paymentId);
         }
 
         public async Task<Payment?> GetByOrderIdAsync(Guid orderId)
         {
-            return await _context.Payments
-                .FirstOrDefaultAsync(p => p.OrderId == orderId);
+            return await _context
+                .Payments.Where(p => p.OrderId == orderId)
+                .OrderByDescending(p => p.PaidAt)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<Payment>> GetAllByOrderIdAsync(Guid orderId)
+        {
+            return await _context
+                .Payments.Where(p => p.OrderId == orderId)
+                .OrderByDescending(p => p.PaidAt)
+                .ToListAsync();
+        }
+
+        public async Task<Payment?> GetByOrderIdAndStageAsync(Guid orderId, string paymentStage)
+        {
+            return await _context
+                .Payments.Where(p => p.OrderId == orderId && p.PaymentStage == paymentStage)
+                .OrderByDescending(p => p.PaidAt)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<Payment> UpdateAsync(Payment payment)

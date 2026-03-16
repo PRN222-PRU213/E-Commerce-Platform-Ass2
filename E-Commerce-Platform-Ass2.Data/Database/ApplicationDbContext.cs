@@ -6,9 +6,8 @@ namespace E_Commerce_Platform_Ass2.Data.Database
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-        {
-        }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options) { }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -33,6 +32,8 @@ namespace E_Commerce_Platform_Ass2.Data.Database
         public DbSet<Notification> Notifications { get; set; } = null!;
         public DbSet<ChatSession> ChatSessions { get; set; } = null!;
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
+        public DbSet<PreOrderDetail> PreOrderDetails { get; set; } = null!;
+        public DbSet<PreOrderPolicyItem> PreOrderPolicyItems { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -61,6 +62,8 @@ namespace E_Commerce_Platform_Ass2.Data.Database
             modelBuilder.ApplyConfiguration(new NotificationConfiguration());
             modelBuilder.ApplyConfiguration(new ChatSessionConfiguration());
             modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
+            modelBuilder.ApplyConfiguration(new PreOrderDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new PreOrderPolicyItemConfiguration());
         }
     }
 }

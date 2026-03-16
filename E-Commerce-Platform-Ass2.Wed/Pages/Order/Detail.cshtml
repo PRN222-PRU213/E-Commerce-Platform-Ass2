@@ -217,6 +217,26 @@
             </div>
         </div>
 
+        @if (string.Equals(Model.ViewModel.OrderType, "PreOrder", StringComparison.OrdinalIgnoreCase))
+        {
+            var preOrderStatus = (Model.ViewModel.PreOrderStatus ?? string.Empty).ToUpperInvariant();
+            var isPreOrderFailed = preOrderStatus == "EXPIRED";
+            var preOrderMessage = preOrderStatus switch
+            {
+                "DEPOSIT_PENDING" => "Đơn pre-order đã tạo thành công. Vui lòng thanh toán tiền cọc để tiếp tục.",
+                "DEPOSIT_PAID" => "Đơn pre-order đã thanh toán cọc thành công. Shop đang chuẩn bị hàng.",
+                "READY_FOR_FINAL_PAYMENT" => "Đơn pre-order đã sẵn sàng thanh toán phần còn lại.",
+                "COMPLETED" => "Pre-order đã hoàn tất thành công.",
+                "EXPIRED" => "Pre-order chưa thành công do đã quá hạn thanh toán phần còn lại.",
+                _ => "Đây là đơn pre-order."
+            };
+
+            <div class="alert @(isPreOrderFailed ? "alert-danger" : "alert-success")" role="alert">
+                <i class="fas @(isPreOrderFailed ? "fa-exclamation-triangle" : "fa-check-circle") me-2"></i>
+                @preOrderMessage
+            </div>
+        }
+
         <!-- Order Information Card -->
         <div class="info-card">
             <h5 class="mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Thông tin đơn hàng</h5>
@@ -247,6 +267,7 @@
                         @(Model.ViewModel.Status == "Paid" ? "bg-success-dark" :
                           Model.ViewModel.Status == "Pending" ? "bg-warning text-dark" :
                           Model.ViewModel.Status == "Cancelled" ? "bg-danger" :
+                                                    Model.ViewModel.Status == "DeliveryFailed" ? "bg-danger" :
                           Model.ViewModel.Status == "Processing" ? "bg-info" :
                           Model.ViewModel.Status == "Preparing" ? "bg-purple" :
                           Model.ViewModel.Status == "Shipped" ? "bg-primary" :
@@ -255,6 +276,7 @@
                         @(Model.ViewModel.Status == "Paid" ? "Đã thanh toán" :
                           Model.ViewModel.Status == "Pending" ? "Chờ xử lý" :
                           Model.ViewModel.Status == "Cancelled" ? "Đã hủy" :
+                                                    Model.ViewModel.Status == "DeliveryFailed" ? "Giao hàng thất bại" :
                           Model.ViewModel.Status == "Processing" ? "Đang xử lý" :
                           Model.ViewModel.Status == "Preparing" ? "Chuẩn bị hàng" :
                           Model.ViewModel.Status == "Shipped" ? "Vận chuyển" :

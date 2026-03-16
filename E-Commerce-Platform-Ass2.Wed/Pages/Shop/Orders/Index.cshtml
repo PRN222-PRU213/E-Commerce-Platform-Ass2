@@ -5,6 +5,7 @@
     Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
     var statistics = Model.Statistics ?? new E_Commerce_Platform_Ass2.Service.Services.IServices.ShopOrderStatistics();
     var currentStatus = Model.Status;
+    var currentOrderType = Model.OrderType;
 }
 
 <!-- Page Header Start -->
@@ -97,6 +98,25 @@
                 <a asp-page="./Index" class="btn @(string.IsNullOrEmpty(currentStatus) ? "btn-primary" : "btn-outline-primary")">
                     <i class="fas fa-list"></i> Tất cả
                 </a>
+                <a asp-page="./Index"
+                   asp-route-orderType="Normal"
+                   asp-route-status="@currentStatus"
+                   class="btn @(currentOrderType == "Normal" ? "btn-dark" : "btn-outline-dark")">
+                    <i class="fas fa-shopping-bag"></i> Đơn thường
+                </a>
+                <a asp-page="./Index"
+                   asp-route-orderType="PreOrder"
+                   asp-route-status="@currentStatus"
+                   class="btn @(currentOrderType == "PreOrder" ? "btn-info" : "btn-outline-info")">
+                    <i class="fas fa-hourglass-half"></i> Đơn cọc trước
+                </a>
+                <a asp-page="./Index"
+                   asp-route-orderType=""
+                   asp-route-status="@currentStatus"
+                   class="btn @(string.IsNullOrEmpty(currentOrderType) ? "btn-primary" : "btn-outline-primary")">
+                    <i class="fas fa-layer-group"></i> Mọi loại đơn
+                </a>
+                <span class="border-start mx-2"></span>
                 <a asp-page="./Index" asp-route-status="Paid" class="btn @(currentStatus == "Paid" ? "bg-success-dark text-white" : "btn-outline-success")">
                     <i class="fas fa-check-double"></i> Đã thanh toán
                 </a>
@@ -115,10 +135,16 @@
                 <a asp-page="./Index" asp-route-status="Completed" class="btn @(currentStatus == "Completed" ? "btn-success" : "btn-outline-success")">
                     <i class="fas fa-check-circle"></i> Hoàn thành
                 </a>
+                <a asp-page="./Index" asp-route-status="DeliveryFailed" class="btn @(currentStatus == "DeliveryFailed" ? "btn-danger" : "btn-outline-danger")">
+                    <i class="fas fa-exclamation-triangle"></i> Giao thất bại
+                </a>
                 <a asp-page="./Index" asp-route-status="Cancelled" class="btn @(currentStatus == "Cancelled" ? "btn-danger" : "btn-outline-danger")">
                     <i class="fas fa-times-circle"></i> Đã hủy
                 </a>
                 <span class="border-start mx-2"></span>
+                <a asp-page="/Shop/PreOrders" class="btn btn-outline-info">
+                    <i class="fas fa-hourglass-half"></i> Đơn đặt trước
+                </a>
                 <a asp-page="./ReturnRequests" class="btn btn-outline-warning">
                     <i class="fas fa-exchange-alt"></i> Yêu cầu hoàn trả
                 </a>
@@ -140,8 +166,10 @@
                             <tr>
                                 <th>Mã đơn</th>
                                 <th>Khách hàng</th>
+                                <th>Loại đơn</th>
                                 <th>Tổng tiền</th>
                                 <th>Trạng thái</th>
+                                <th>Trạng thái cọc</th>
                                 <th>Vận chuyển</th>
                                 <th>Ngày đặt</th>
                                 <th class="text-center">Thao tác</th>
@@ -158,6 +186,16 @@
                                     <td>
                                         <strong>@order.CustomerName</strong>
                                         <br><small class="text-muted">@order.CustomerEmail</small>
+                                    </td>
+                                    <td>
+                                        @if (string.Equals(order.OrderType, "PreOrder", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge badge-info status-badge-fixed">Cọc trước</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-secondary status-badge-fixed">Thường</span>
+                                        }
                                     </td>
                                     <td><strong class="text-primary">@order.TotalAmount.ToString("N0")₫</strong></td>
                                     <td>
@@ -181,12 +219,45 @@
                                             case "Completed":
                                                 <span class="badge badge-success status-badge-fixed">Hoàn thành</span>
                                                 break;
+                                            case "DeliveryFailed":
+                                                <span class="badge badge-danger status-badge-fixed">Giao thất bại</span>
+                                                break;
                                             case "Cancelled":
                                                 <span class="badge badge-danger status-badge-fixed">Đã hủy</span>
                                                 break;
                                             default:
                                                 <span class="badge badge-secondary">@order.Status</span>
                                                 break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (string.Equals(order.OrderType, "PreOrder", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            @switch (order.PreOrderStatus)
+                                            {
+                                                case "DEPOSIT_PENDING":
+                                                    <span class="badge badge-secondary status-badge-fixed">Chờ cọc</span>
+                                                    break;
+                                                case "DEPOSIT_PAID":
+                                                    <span class="badge badge-warning status-badge-fixed">Đã cọc</span>
+                                                    break;
+                                                case "READY_FOR_FINAL_PAYMENT":
+                                                    <span class="badge badge-info status-badge-fixed">Chờ thanh toán đủ</span>
+                                                    break;
+                                                case "COMPLETED":
+                                                    <span class="badge badge-success status-badge-fixed">Đã tất toán</span>
+                                                    break;
+                                                case "EXPIRED":
+                                                    <span class="badge badge-danger status-badge-fixed">Quá hạn</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge badge-light">@order.PreOrderStatus</span>
+                                                    break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">--</small>
                                         }
                                     </td>
                                     <td>

@@ -17,6 +17,8 @@ namespace E_Commerce_Platform_Ass2.Wed.Models
         public string ShippingAddress { get; set; } = "";
         public decimal TotalAmount { get; set; }
         public string Status { get; set; } = "";
+        public string? OrderType { get; set; }
+        public string? PreOrderStatus { get; set; }
 
         public List<OrderItemViewModel> Items { get; set; } = new();
     }

@@ -17,6 +17,9 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
         // Navigation property
         public ICollection<Product> Products { get; set; } = new List<Product>();
 
+        public ICollection<PreOrderDetail> PreOrderDetails { get; set; } =
+            new List<PreOrderDetail>();
+
         public User User { get; set; } = null!;
     }
 }

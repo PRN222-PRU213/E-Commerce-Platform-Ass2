@@ -14,6 +14,12 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
 
         public DateTime CreatedAt { get; set; }
 
+        public string OrderType { get; set; } = "Normal";
+
+        public string? PreOrderStatus { get; set; }
+
+        public DateTime? FinalPaymentDueAt { get; set; }
+
         /// <summary>
         /// Thời điểm đơn hàng được hoàn thành (dùng để tính deadline hoàn tiền)
         /// </summary>
@@ -27,5 +33,7 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
         public ICollection<Shipment> Shipments { get; set; } = new List<Shipment>();
 
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+        public PreOrderDetail? PreOrderDetail { get; set; }
     }
 }

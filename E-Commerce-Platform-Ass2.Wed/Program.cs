@@ -208,6 +208,205 @@ app.MapPost(
     .DisableAntiforgery()
     .RequireAuthorization();
 
+// ── Pre-order Minimal API endpoints ───────────────────────────────────────────
+app.MapPost(
+        "/Api/PreOrder/Create",
+        async (
+            ClaimsPrincipal user,
+            HttpRequest httpRequest,
+            IPreOrderService preOrderService,
+            IHubContext<NotificationHub> hubContext
+        ) =>
+        {
+            var userIdStr = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Results.Unauthorized();
+
+            var req = await httpRequest.ReadFromJsonAsync<CreatePreOrderRequest>();
+            if (req == null)
+                return Results.Json(new { error = "Invalid request body." }, statusCode: 400);
+
+            try
+            {
+                var result = await preOrderService.CreateAsync(userId, req);
+                await hubContext
+                    .Clients.Group($"user-{userId}")
+                    .SendAsync("PreOrderCreated", result);
+                await hubContext
+                    .Clients.Group($"shop-{result.ShopId}")
+                    .SendAsync("PreOrderCreated", result);
+                return Results.Json(new { success = true, result });
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { success = false, error = ex.Message }, statusCode: 400);
+            }
+        }
+    )
+    .DisableAntiforgery()
+    .RequireAuthorization();
+
+app.MapPost(
+        "/Api/PreOrder/PayDeposit",
+        async (
+            ClaimsPrincipal user,
+            HttpRequest httpRequest,
+            IPreOrderService preOrderService,
+            IHubContext<NotificationHub> hubContext
+        ) =>
+        {
+            var userIdStr = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Results.Unauthorized();
+
+            var req = await httpRequest.ReadFromJsonAsync<PayPreOrderDepositRequest>();
+            if (req == null)
+                return Results.Json(new { error = "Invalid request body." }, statusCode: 400);
+
+            try
+            {
+                var result = await preOrderService.PayDepositAsync(userId, req);
+                await hubContext
+                    .Clients.Group($"user-{userId}")
+                    .SendAsync("PreOrderDepositPaid", result);
+                await hubContext
+                    .Clients.Group($"shop-{result.ShopId}")
+                    .SendAsync("PreOrderDepositPaid", result);
+                return Results.Json(new { success = true, result });
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { success = false, error = ex.Message }, statusCode: 400);
+            }
+        }
+    )
+    .DisableAntiforgery()
+    .RequireAuthorization();
+
+app.MapPost(
+        "/Api/PreOrder/MarkReadyForFinalPayment",
+        async (
+            ClaimsPrincipal user,
+            HttpRequest httpRequest,
+            IPreOrderService preOrderService,
+            IHubContext<NotificationHub> hubContext
+        ) =>
+        {
+            var userIdStr = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Results.Unauthorized();
+
+            var req = await httpRequest.ReadFromJsonAsync<MarkPreOrderReadyRequest>();
+            if (req == null)
+                return Results.Json(new { error = "Invalid request body." }, statusCode: 400);
+
+            try
+            {
+                var result = await preOrderService.MarkReadyForFinalPaymentAsync(userId, req);
+                await hubContext
+                    .Clients.Group($"shop-{result.ShopId}")
+                    .SendAsync("PreOrderReadyForFinalPayment", result);
+                await hubContext
+                    .Clients.Group($"user-{result.UserId}")
+                    .SendAsync("PreOrderReadyForFinalPayment", result);
+                return Results.Json(new { success = true, result });
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { success = false, error = ex.Message }, statusCode: 400);
+            }
+        }
+    )
+    .DisableAntiforgery()
+    .RequireAuthorization();
+
+app.MapPost(
+        "/Api/PreOrder/PayRemaining",
+        async (
+            ClaimsPrincipal user,
+            HttpRequest httpRequest,
+            IPreOrderService preOrderService,
+            IHubContext<NotificationHub> hubContext
+        ) =>
+        {
+            var userIdStr = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Results.Unauthorized();
+
+            var req = await httpRequest.ReadFromJsonAsync<FinalizePreOrderPaymentRequest>();
+            if (req == null)
+                return Results.Json(new { error = "Invalid request body." }, statusCode: 400);
+
+            try
+            {
+                var result = await preOrderService.PayRemainingAsync(userId, req);
+                await hubContext
+                    .Clients.Group($"user-{result.UserId}")
+                    .SendAsync("PreOrderPaymentCompleted", result);
+                await hubContext
+                    .Clients.Group($"shop-{result.ShopId}")
+                    .SendAsync("PreOrderPaymentCompleted", result);
+                return Results.Json(new { success = true, result });
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { success = false, error = ex.Message }, statusCode: 400);
+            }
+        }
+    )
+    .DisableAntiforgery()
+    .RequireAuthorization();
+
+app.MapGet(
+        "/Api/PreOrder/MyOrders",
+        async (ClaimsPrincipal user, IPreOrderService preOrderService) =>
+        {
+            var userIdStr = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Results.Unauthorized();
+
+            var items = await preOrderService.GetMyPreOrdersAsync(userId);
+            return Results.Json(items);
+        }
+    )
+    .RequireAuthorization();
+
+app.MapGet(
+        "/Api/Shop/PreOrders",
+        async (ClaimsPrincipal user, IPreOrderService preOrderService) =>
+        {
+            var userIdStr = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Results.Unauthorized();
+
+            try
+            {
+                var items = await preOrderService.GetShopPreOrdersAsync(userId);
+                return Results.Json(items);
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { error = ex.Message }, statusCode: 400);
+            }
+        }
+    )
+    .RequireAuthorization();
+
+app.MapPost(
+        "/Api/PreOrder/ExpireOverdue",
+        async (ClaimsPrincipal user, IPreOrderService preOrderService) =>
+        {
+            var role = user.FindFirstValue(ClaimTypes.Role);
+            if (!string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
+                return Results.Forbid();
+
+            var count = await preOrderService.ExpireOverduePreOrdersAsync();
+            return Results.Json(new { success = true, expired = count });
+        }
+    )
+    .DisableAntiforgery()
+    .RequireAuthorization();
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 app.Run();

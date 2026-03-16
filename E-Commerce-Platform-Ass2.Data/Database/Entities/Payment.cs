@@ -8,6 +8,8 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
 
         public string Method { get; set; } = string.Empty;
 
+        public string PaymentStage { get; set; } = "FULL";
+
         public decimal Amount { get; set; }
 
         public string Status { get; set; } = string.Empty;

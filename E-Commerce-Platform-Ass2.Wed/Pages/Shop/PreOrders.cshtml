@@ -1,0 +1,154 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.PreOrdersModel
+@{
+    ViewData["Title"] = "Đơn đặt trước";
+    Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+}
+
+<div class="container-fluid bg-secondary mb-4">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">
+            <i class="fas fa-hourglass-half text-primary mr-2"></i>Đơn đặt trước
+        </h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a asp-page="/Shop/ViewShop" class="text-dark">Dashboard</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Pre-order</p>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid py-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-list mr-2"></i>Danh sách đơn đặt trước (@Model.Items.Count)</h5>
+        </div>
+        <div class="card-body">
+            @if (!Model.Items.Any())
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <p>Chưa có đơn đặt trước nào.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Sản phẩm</th>
+                                <th>Khách hàng</th>
+                                <th>Trạng thái</th>
+                                <th class="text-right">Cọc</th>
+                                <th class="text-right">Còn lại</th>
+                                <th>Dự kiến hàng về</th>
+                                <th>Hạn thanh toán còn lại</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>#@item.OrderId.ToString()[..8].ToUpper()</strong>
+                                    <div><small class="text-muted">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small></div>
+                                </td>
+                                <td>
+                                    <strong>@item.ProductName</strong>
+                                    <div><small class="text-muted">SL: @item.Quantity</small></div>
+                                </td>
+                                <td><code>@item.UserId.ToString()[..8].ToUpper()</code></td>
+                                <td><span class="badge @GetStatusClass(item.PreOrderStatus)">@GetPreOrderStatusText(item.PreOrderStatus)</span></td>
+                                <td class="text-right text-warning font-weight-bold">@item.DepositAmount.ToString("N0")₫</td>
+                                <td class="text-right text-primary font-weight-bold">@item.RemainingAmount.ToString("N0")₫</td>
+                                <td>@item.ExpectedAvailableDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (item.PreOrderStatus == "READY_FOR_FINAL_PAYMENT" && item.FinalPaymentDueAt.HasValue)
+                                    {
+                                        <strong class="text-info">@item.FinalPaymentDueAt.Value.ToString("dd/MM/yyyy HH:mm")</strong>
+                                        <div><small class="text-muted">Hiệu lực 24 giờ từ lúc mở thanh toán</small></div>
+                                    }
+                                    else if (item.PreOrderStatus == "EXPIRED")
+                                    {
+                                        <span class="text-danger">Đã quá hạn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">--</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (item.PreOrderStatus == "DEPOSIT_PAID")
+                                    {
+                                        <form method="post" asp-page-handler="MarkReady" class="d-inline-flex align-items-center" style="gap: 6px;">
+                                            <input type="hidden" name="preOrderId" value="@item.PreOrderId" />
+                                            <input type="hidden" name="deadlineHours" value="24" />
+                                            <button type="submit" class="btn btn-sm btn-info">Mở thanh toán (24h)</button>
+                                        </form>
+                                    }
+                                    else if (item.PreOrderStatus == "READY_FOR_FINAL_PAYMENT")
+                                    {
+                                        <span class="badge badge-info">Đã mở thanh toán phần còn lại</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Không có</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetPreOrderStatusText(string? status) => (status ?? string.Empty).ToUpperInvariant() switch
+    {
+        "DEPOSIT_PENDING" => "Chờ thanh toán cọc",
+        "DEPOSIT_PAID" => "Đã thanh toán cọc",
+        "READY_FOR_FINAL_PAYMENT" => "Chờ thanh toán còn lại",
+        "COMPLETED" => "Đã thanh toán đầy đủ",
+        "EXPIRED" => "Quá hạn thanh toán",
+        _ => status ?? "--"
+    };
+
+    private string GetStatusClass(string status) => status switch
+    {
+        "DEPOSIT_PENDING" => "badge-secondary",
+        "DEPOSIT_PAID" => "badge-warning",
+        "READY_FOR_FINAL_PAYMENT" => "badge-info",
+        "COMPLETED" => "badge-success",
+        "EXPIRED" => "badge-danger",
+        _ => "badge-light"
+    };
+}
+
+@section Scripts {
+<script>
+(() => {
+    document.addEventListener("rt:preorder-changed", (evt) => {
+        const payload = evt.detail?.payload;
+        if (!payload) return;
+        if (payload.shopId && payload.shopId.toLowerCase() === "@Model.CurrentShopId".toLowerCase()) {
+            window.location.reload();
+        }
+    });
+})();
+</script>
+}

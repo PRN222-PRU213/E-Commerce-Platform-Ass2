@@ -1,0 +1,145 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.PreOrder.MyOrdersModel
+@{
+    ViewData["Title"] = "Đơn đặt trước của tôi";
+    Layout = "~/Pages/Shared/_EShopperLayout.cshtml";
+}
+
+<div class="container-fluid py-4" style="background:#EDF1FF; min-height: 100vh;">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="mb-0"><i class="fas fa-hourglass-half text-primary mr-2"></i>Đơn đặt trước của tôi</h2>
+            <a asp-page="/Order/History" class="btn btn-outline-secondary btn-sm">Đơn thường</a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+
+        @if (!Model.Items.Any())
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <p class="mb-0 text-muted">Bạn chưa có đơn đặt trước nào.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Mã</th>
+                                <th>Sản phẩm</th>
+                                <th>Trạng thái</th>
+                                <th class="text-right">Giá gốc</th>
+                                <th class="text-right">Cọc</th>
+                                <th class="text-right">Còn lại</th>
+                                <th>Hạn thanh toán</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>#@item.OrderId.ToString()[..8].ToUpper()</strong>
+                                        <div><small class="text-muted">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small></div>
+                                    </td>
+                                    <td>
+                                        <strong>@item.ProductName</strong>
+                                        <div><small class="text-muted">SL: @item.Quantity</small></div>
+                                    </td>
+                                    <td>
+                                        <span class="badge @GetStatusClass(item.PreOrderStatus)">@GetPreOrderStatusText(item.PreOrderStatus)</span>
+                                    </td>
+                                    <td class="text-right font-weight-bold">@item.TotalAmount.ToString("N0")₫</td>
+                                    <td class="text-right text-warning font-weight-bold">@item.DepositAmount.ToString("N0")₫</td>
+                                    <td class="text-right text-primary font-weight-bold">@item.RemainingAmount.ToString("N0")₫</td>
+                                    <td>
+                                        @if (item.FinalPaymentDueAt.HasValue)
+                                        {
+                                            <span>@item.FinalPaymentDueAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                            <div><small class="text-muted">Trong vòng 24 giờ</small></div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">--</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.PreOrderStatus == "DEPOSIT_PENDING")
+                                        {
+                                            <form method="post" asp-page-handler="PayDeposit" class="d-inline">
+                                                <input type="hidden" name="preOrderId" value="@item.PreOrderId" />
+                                                <input type="hidden" name="paymentMethod" value="WALLET" />
+                                                <button type="submit" class="btn btn-sm btn-warning">Thanh toán cọc</button>
+                                            </form>
+                                        }
+                                        else if (item.PreOrderStatus == "READY_FOR_FINAL_PAYMENT")
+                                        {
+                                            <form method="post" asp-page-handler="PayRemaining" class="d-inline">
+                                                <input type="hidden" name="preOrderId" value="@item.PreOrderId" />
+                                                <input type="hidden" name="paymentMethod" value="WALLET" />
+                                                <button type="submit" class="btn btn-sm btn-primary">Thanh toán còn lại</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Không có</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    private string GetPreOrderStatusText(string? status) => (status ?? string.Empty).ToUpperInvariant() switch
+    {
+        "DEPOSIT_PENDING" => "Chờ thanh toán cọc",
+        "DEPOSIT_PAID" => "Đã thanh toán cọc",
+        "READY_FOR_FINAL_PAYMENT" => "Chờ thanh toán còn lại",
+        "COMPLETED" => "Đã thanh toán đầy đủ",
+        "EXPIRED" => "Quá hạn thanh toán",
+        _ => status ?? "--"
+    };
+
+    private string GetStatusClass(string status) => status switch
+    {
+        "DEPOSIT_PENDING" => "badge-secondary",
+        "DEPOSIT_PAID" => "badge-warning",
+        "READY_FOR_FINAL_PAYMENT" => "badge-info",
+        "COMPLETED" => "badge-success",
+        "EXPIRED" => "badge-danger",
+        _ => "badge-light"
+    };
+}
+
+@section Scripts {
+<script>
+(() => {
+    document.addEventListener("rt:preorder-changed", (evt) => {
+        const payload = evt.detail?.payload;
+        if (!payload) return;
+        if (payload.userId && payload.userId.toLowerCase() === "@Model.CurrentUserId".toLowerCase()) {
+            window.location.reload();
+        }
+    });
+})();
+</script>
+}

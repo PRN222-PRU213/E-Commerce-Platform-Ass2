@@ -25,6 +25,9 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
         [BindProperty(SupportsGet = true)]
         public string? Status { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public string? OrderType { get; set; }
+
         private Guid GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -66,6 +69,35 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
             else
             {
                 var orders = result.Data ?? new List<OrderDto>();
+
+                if (!string.IsNullOrWhiteSpace(OrderType))
+                {
+                    if (string.Equals(OrderType, "PreOrder", StringComparison.OrdinalIgnoreCase))
+                    {
+                        orders = orders
+                            .Where(o =>
+                                string.Equals(
+                                    o.OrderType,
+                                    "PreOrder",
+                                    StringComparison.OrdinalIgnoreCase
+                                )
+                            )
+                            .ToList();
+                    }
+                    else if (string.Equals(OrderType, "Normal", StringComparison.OrdinalIgnoreCase))
+                    {
+                        orders = orders
+                            .Where(o =>
+                                !string.Equals(
+                                    o.OrderType,
+                                    "PreOrder",
+                                    StringComparison.OrdinalIgnoreCase
+                                )
+                            )
+                            .ToList();
+                    }
+                }
+
                 if (!string.IsNullOrEmpty(Status))
                 {
                     Orders = orders.Where(o => o.Status == Status).ToList();
@@ -81,4 +113,3 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
         }
     }
 }
-

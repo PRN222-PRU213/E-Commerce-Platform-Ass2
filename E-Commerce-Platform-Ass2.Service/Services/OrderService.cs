@@ -33,15 +33,19 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return new List<OrderDto>();
             }
 
-            var orderDtos = orders.Select(o => new OrderDto
-            {
-                Id = o.Id,
-                UserId = o.UserId,
-                TotalAmount = o.TotalAmount,
-                ShippingAddress = o.ShippingAddress,
-                Status = o.Status,
-                CreatedAt = o.CreatedAt
-            }).ToList();
+            var orderDtos = orders
+                .Select(o => new OrderDto
+                {
+                    Id = o.Id,
+                    UserId = o.UserId,
+                    TotalAmount = o.TotalAmount,
+                    ShippingAddress = o.ShippingAddress,
+                    Status = o.Status,
+                    OrderType = o.OrderType,
+                    PreOrderStatus = o.PreOrderStatus,
+                    CreatedAt = o.CreatedAt,
+                })
+                .ToList();
 
             return orderDtos;
         }
@@ -62,18 +66,22 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 TotalAmount = order.TotalAmount,
                 ShippingAddress = order.ShippingAddress,
                 Status = order.Status,
+                OrderType = order.OrderType,
+                PreOrderStatus = order.PreOrderStatus,
                 CreatedAt = order.CreatedAt,
-                Items = order.OrderItems.Select(oi => new OrderItemDto
-                {
-                    Id = oi.Id,
-                    ProductVariantId = oi.ProductVariantId,
-                    ProductName = oi.ProductName,
-                    Size = oi.ProductVariant.Size,
-                    Color = oi.ProductVariant.Color,
-                    Quantity = oi.Quantity,
-                    ImageUrl = oi.ProductVariant.ImageUrl,
-                    Price = oi.Price
-                }).ToList()
+                Items = order
+                    .OrderItems.Select(oi => new OrderItemDto
+                    {
+                        Id = oi.Id,
+                        ProductVariantId = oi.ProductVariantId,
+                        ProductName = oi.ProductName,
+                        Size = oi.ProductVariant.Size,
+                        Color = oi.ProductVariant.Color,
+                        Quantity = oi.Quantity,
+                        ImageUrl = oi.ProductVariant.ImageUrl,
+                        Price = oi.Price,
+                    })
+                    .ToList(),
             };
 
             return orderDto;
@@ -82,10 +90,11 @@ namespace E_Commerce_Platform_Ass2.Service.Services
         public async Task<IEnumerable<Guid>> GetShopIdsByOrderAsync(Guid orderId)
         {
             var order = await _orderRepository.GetByIdWithDetailsAsync(orderId);
-            if (order == null) return Enumerable.Empty<Guid>();
+            if (order == null)
+                return Enumerable.Empty<Guid>();
 
-            return order.OrderItems
-                .Where(oi => oi.ProductVariant?.Product != null)
+            return order
+                .OrderItems.Where(oi => oi.ProductVariant?.Product != null)
                 .Select(oi => oi.ProductVariant.Product.ShopId)
                 .Distinct()
                 .ToList();

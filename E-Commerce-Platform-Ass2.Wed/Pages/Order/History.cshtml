@@ -268,6 +268,7 @@
                                     @(item.Status == "Paid" ? "bg-success-dark" :
                                       item.Status == "Pending" ? "bg-warning text-dark" :
                                       item.Status == "Cancelled" ? "bg-danger" :
+                                                                            item.Status == "DeliveryFailed" ? "bg-danger" :
                                       item.Status == "Processing" ? "bg-info" :
                                       item.Status == "Preparing" ? "bg-purple" :
                                       item.Status == "Shipped" ? "bg-primary" :
@@ -276,6 +277,7 @@
                                     @(item.Status == "Paid" ? "Đã thanh toán" :
                                       item.Status == "Pending" ? "Chờ xử lý" :
                                       item.Status == "Cancelled" ? "Đã hủy" :
+                                                                            item.Status == "DeliveryFailed" ? "Giao hàng thất bại" :
                                       item.Status == "Processing" ? "Đang xử lý" :
                                       item.Status == "Preparing" ? "Chuẩn bị hàng" :
                                       item.Status == "Shipped" ? "Vận chuyển" :

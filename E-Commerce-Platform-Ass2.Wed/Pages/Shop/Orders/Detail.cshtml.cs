@@ -260,6 +260,35 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
             return RedirectToPage("/Shop/Orders/Detail", new { id });
         }
 
+        public async Task<IActionResult> OnPostMarkDeliveryFailedAsync(Guid id)
+        {
+            var shopId = await GetCurrentShopIdAsync();
+            if (shopId == null)
+            {
+                TempData["ErrorMessage"] = "Bạn chưa có shop.";
+                return RedirectToPage("/Shop/Orders/Index");
+            }
+
+            var orderResult = await _shopOrderService.GetOrderDetailAsync(id, shopId.Value);
+
+            var result = await _shopOrderService.MarkAsDeliveryFailedAsync(id, shopId.Value);
+            TempData[result.IsSuccess ? "SuccessMessage" : "ErrorMessage"] = result.IsSuccess
+                ? "Đã đánh dấu giao hàng không thành công."
+                : result.ErrorMessage;
+
+            if (result.IsSuccess && orderResult.IsSuccess && orderResult.Data != null)
+            {
+                await NotifyCustomerAsync(
+                    id,
+                    orderResult.Data.UserId,
+                    "warning",
+                    $"Đơn hàng #{id.ToString()[..8].ToUpper()} giao không thành công do khách chưa nhận hàng."
+                );
+            }
+
+            return RedirectToPage("/Shop/Orders/Detail", new { id });
+        }
+
         public async Task<IActionResult> OnPostRejectAsync(Guid id, string? reason)
         {
             var shopId = await GetCurrentShopIdAsync();

@@ -49,6 +49,11 @@ namespace E_Commerce_Platform_Ass2.Service.Services.IServices
         Task<ServiceResult> MarkAsDeliveredAsync(Guid orderId, Guid shopId);
 
         /// <summary>
+        /// Đánh dấu giao hàng không thành công
+        /// </summary>
+        Task<ServiceResult> MarkAsDeliveryFailedAsync(Guid orderId, Guid shopId);
+
+        /// <summary>
         /// Từ chối đơn hàng
         /// </summary>
         Task<ServiceResult> RejectOrderAsync(Guid orderId, Guid shopId, string? reason);

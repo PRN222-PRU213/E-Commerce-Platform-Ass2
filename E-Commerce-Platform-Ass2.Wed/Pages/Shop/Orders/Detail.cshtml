@@ -74,6 +74,11 @@
                                 <i class="fas fa-check-circle mr-1"></i>Đã hoàn thành
                             </span>
                             break;
+                        case "DeliveryFailed":
+                            <span class="badge badge-danger px-3 py-2">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Giao hàng thất bại
+                            </span>
+                            break;
                         case "Cancelled":
                             <span class="badge badge-danger px-3 py-2">
                                 <i class="fas fa-times-circle mr-1"></i>Đơn hàng bị hủy
@@ -135,6 +140,26 @@
                         <h5 class="font-weight-bold">Tổng cộng:</h5>
                         <h5 class="font-weight-bold text-primary">@Model.Order.TotalAmount.ToString("N0")₫</h5>
                     </div>
+
+                    @if (string.Equals(Model.Order.OrderType, "PreOrder", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <div class="alert alert-info mt-3 mb-0">
+                            <div class="d-flex justify-content-between flex-wrap">
+                                <div class="mb-1">
+                                    <strong><i class="fas fa-wallet mr-2"></i>Đã cọc:</strong>
+                                    <span class="text-warning font-weight-bold">@Model.Order.PreOrderDepositedAmount.ToString("N0")₫</span>
+                                </div>
+                                <div class="mb-1">
+                                    <strong><i class="fas fa-coins mr-2"></i>Còn lại:</strong>
+                                    <span class="text-primary font-weight-bold">@Model.Order.PreOrderRemainingAmount.ToString("N0")₫</span>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(Model.Order.PreOrderStatus))
+                            {
+                                <div class="small text-muted mt-2">Trạng thái cọc: @GetPreOrderStatusText(Model.Order.PreOrderStatus)</div>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -271,9 +296,24 @@
                     
                     @{
                         var status = Model.Order.Status?.Trim().ToLower();
+                        var isPreOrder = string.Equals(Model.Order.OrderType, "PreOrder", StringComparison.OrdinalIgnoreCase);
+                        var isPreOrderCompleted = string.Equals(Model.Order.PreOrderStatus, "COMPLETED", StringComparison.OrdinalIgnoreCase);
+                        var canRunShopWorkflow = !isPreOrder || isPreOrderCompleted;
                     }
-                    
-                    @if (status == "pending" || status == "paid")
+
+                    @if (!canRunShopWorkflow)
+                    {
+                        <div class="alert alert-warning mb-0">
+                            <h6 class="mb-2"><i class="fas fa-lock mr-2"></i>Đơn pre-order chưa thanh toán đủ</h6>
+                            <p class="mb-1">Shop chưa thể thực hiện quy trình lên đơn cho đến khi khách thanh toán đủ.</p>
+                            <div class="small">
+                                <div><strong>Trạng thái pre-order:</strong> @GetPreOrderStatusText(Model.Order.PreOrderStatus)</div>
+                                <div><strong>Đã cọc:</strong> @Model.Order.PreOrderDepositedAmount.ToString("N0")₫</div>
+                                <div><strong>Còn lại:</strong> @Model.Order.PreOrderRemainingAmount.ToString("N0")₫</div>
+                            </div>
+                        </div>
+                    }
+                    else if (status == "pending" || status == "paid")
                     {
                         <div class="alert alert-warning mb-3">
                             <i class="fas fa-info-circle mr-2"></i>Đơn hàng mới - Chờ xử lý
@@ -340,6 +380,11 @@
                                 <i class="fas fa-check-circle mr-2"></i>Xác nhận đã giao hàng
                             </button>
                         </form>
+                        <form method="post" asp-page-handler="MarkDeliveryFailed" asp-route-id="@Model.Order.Id" class="mt-2">
+                            <button type="submit" class="btn btn-outline-danger btn-block" onclick="return confirm('Xác nhận giao hàng không thành công vì khách không nhận?')">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>Giao hàng không thành công
+                            </button>
+                        </form>
                     }
                     else if (status == "completed" || status == "delivered")
                     {
@@ -347,6 +392,14 @@
                             <i class="fas fa-check-circle fa-2x mb-2"></i>
                             <p class="mb-0 font-weight-bold">Đơn hàng đã hoàn thành</p>
                             <small class="text-muted">Giao hàng thành công</small>
+                        </div>
+                    }
+                    else if (status == "deliveryfailed")
+                    {
+                        <div class="alert alert-danger text-center mb-0">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                            <p class="mb-0 font-weight-bold">Giao hàng không thành công</p>
+                            <small class="text-muted">Khách hàng không nhận hàng</small>
                         </div>
                     }
                     else if (status == "cancelled" || status == "rejected")
@@ -376,7 +429,7 @@
             @{
                 var shipmentStatus = Model.Order.Status?.Trim().ToLower();
             }
-            @if (shipmentStatus == "shipped" || shipmentStatus == "shipping" || shipmentStatus == "completed" || shipmentStatus == "delivered")
+            @if (shipmentStatus == "shipped" || shipmentStatus == "shipping" || shipmentStatus == "completed" || shipmentStatus == "delivered" || shipmentStatus == "deliveryfailed")
             {
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-light py-3">
@@ -418,6 +471,11 @@
                                         case "Delivered":
                                             <span class="badge badge-success px-3 py-2">
                                                 <i class="fas fa-check-circle mr-1"></i>Đã giao
+                                            </span>
+                                            break;
+                                        case "DeliveryFailed":
+                                            <span class="badge badge-danger px-3 py-2">
+                                                <i class="fas fa-exclamation-triangle mr-1"></i>Giao thất bại
                                             </span>
                                             break;
                                         default:
@@ -521,6 +579,19 @@
         </div>
     </div>
 </div>
+
+@functions {
+    private string GetPreOrderStatusText(string? status) => (status ?? string.Empty).ToUpperInvariant() switch
+    {
+        "DEPOSIT_PENDING" => "Chờ thanh toán cọc",
+        "DEPOSIT_PAID" => "Đã thanh toán cọc",
+        "READY_FOR_FINAL_PAYMENT" => "Chờ thanh toán còn lại",
+        "COMPLETED" => "Đã thanh toán đầy đủ",
+        "EXPIRED" => "Quá hạn thanh toán",
+        _ => status ?? "--"
+    };
+}
+
 @section Scripts {
     <script>
         function copyToClipboard(text) {

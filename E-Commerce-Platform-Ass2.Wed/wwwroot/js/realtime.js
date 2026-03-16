@@ -5,6 +5,7 @@
     productChanged: [],
     notification: [],
     cartCountChanged: [],
+    preOrderChanged: [],
     connectionChanged: [],
   };
 
@@ -94,6 +95,33 @@
     );
   });
 
+  function emitPreOrder(eventName, payload) {
+    console.log(`[SignalR] ${eventName} received:`, payload);
+    callbacks.preOrderChanged.forEach((fn) => fn(eventName, payload));
+    document.dispatchEvent(
+      new CustomEvent("rt:preorder-changed", {
+        detail: { eventName, payload },
+        bubbles: true,
+      }),
+    );
+  }
+
+  connection.on("PreOrderCreated", (payload) =>
+    emitPreOrder("PreOrderCreated", payload),
+  );
+  connection.on("PreOrderDepositPaid", (payload) =>
+    emitPreOrder("PreOrderDepositPaid", payload),
+  );
+  connection.on("PreOrderReadyForFinalPayment", (payload) =>
+    emitPreOrder("PreOrderReadyForFinalPayment", payload),
+  );
+  connection.on("PreOrderPaymentCompleted", (payload) =>
+    emitPreOrder("PreOrderPaymentCompleted", payload),
+  );
+  connection.on("PreOrderExpired", (payload) =>
+    emitPreOrder("PreOrderExpired", payload),
+  );
+
   async function start() {
     if (
       connection.state === signalR.HubConnectionState.Connected ||
@@ -131,6 +159,7 @@
     onProductChanged: (fn) => callbacks.productChanged.push(fn),
     onNotification: (fn) => callbacks.notification.push(fn),
     onCartCountChanged: (fn) => callbacks.cartCountChanged.push(fn),
+    onPreOrderChanged: (fn) => callbacks.preOrderChanged.push(fn),
     onConnectionChanged: (fn) => callbacks.connectionChanged.push(fn),
     updateCartCountBadge,
     connection,

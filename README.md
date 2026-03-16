@@ -116,6 +116,7 @@ Hệ thống được xây dựng theo mô hình phân tầng (Layered Architect
 - Duyệt, tìm kiếm, lọc, xem chi tiết sản phẩm
 - Thêm vào giỏ hàng, đặt hàng, thanh toán qua ví hoặc Momo
 - Quản lý đơn hàng, đổi trả, đánh giá sản phẩm
+- Đặt trước (Pre-order) sản phẩm bằng cơ chế đặt cọc và thanh toán phần còn lại
 - Quản lý ví cá nhân, xem lịch sử giao dịch
 
 ### Chủ shop (Seller)
@@ -125,6 +126,7 @@ Hệ thống được xây dựng theo mô hình phân tầng (Layered Architect
 - Quản lý đơn hàng, xác nhận/trả hàng, xử lý đổi trả
 - Thống kê doanh thu, sản phẩm bán chạy
 - Quản lý ví shop, rút tiền, xem lịch sử giao dịch
+- Quản lý danh sách đơn đặt trước, xác nhận hàng về để mở thanh toán phần còn lại
 - Nhận thông báo real-time (SignalR)
 
 ### Quản trị viên (Admin)
@@ -158,6 +160,172 @@ Hệ thống được xây dựng theo mô hình phân tầng (Layered Architect
 
 4. **Admin:**
    - Đăng nhập → Quản lý/phê duyệt → Thống kê → Báo cáo
+
+5. **Khách hàng + Chủ shop (luồng mới): Đặt trước sản phẩm có đặt cọc (Pre-order)**
+   - **Shop:** Tạo sản phẩm/biến thể trạng thái `PreOrder` + cấu hình tỷ lệ cọc + ngày dự kiến có hàng + số lượng nhận đặt trước tối đa
+   - **Customer:** Chọn biến thể pre-order → thanh toán cọc (Wallet/Momo)
+   - **Hệ thống:** Tạo đơn trạng thái `DEPOSIT_PAID` và gửi thông báo real-time cho customer + shop
+   - **Shop:** Xác nhận hàng đã về → đơn chuyển `READY_FOR_FINAL_PAYMENT`
+   - **Customer:** Thanh toán phần còn lại trong thời hạn
+   - **Hệ thống:** Chuyển đơn sang luồng giao hàng chuẩn (`PROCESSING` → `SHIPPING` → `DELIVERED`) hoặc `EXPIRED` nếu quá hạn
+
+### 5.1 Blueprint kỹ thuật cho luồng Pre-order
+
+1. **Trạng thái đơn bổ sung**
+   - `DEPOSIT_PENDING`: Đã tạo yêu cầu đặt trước, chờ thanh toán cọc
+   - `DEPOSIT_PAID`: Đã thanh toán cọc thành công
+   - `READY_FOR_FINAL_PAYMENT`: Shop xác nhận có hàng, chờ khách thanh toán phần còn lại
+   - `EXPIRED`: Quá hạn thanh toán phần còn lại
+
+2. **Đề xuất DTO**
+   - `CreatePreOrderRequest`:
+     - `VariantId`, `Quantity`, `DepositPercent`, `ExpectedAvailableDate`
+   - `PayPreOrderDepositRequest`:
+     - `PreOrderId`, `PaymentMethod`
+   - `FinalizePreOrderPaymentRequest`:
+     - `PreOrderId`, `PaymentMethod`
+   - `PreOrderStatusDto`:
+     - `PreOrderId`, `Status`, `DepositAmount`, `RemainingAmount`, `FinalPaymentDeadline`
+
+3. **Đề xuất API**
+   - `POST /Api/PreOrder/Create`
+   - `POST /Api/PreOrder/PayDeposit`
+   - `POST /Api/PreOrder/MarkReadyForFinalPayment` (Shop)
+   - `POST /Api/PreOrder/PayRemaining`
+   - `GET /Api/PreOrder/MyOrders` (Customer)
+   - `GET /Api/Shop/PreOrders` (Shop)
+
+4. **Realtime events (SignalR)**
+   - `PreOrderCreated`
+   - `PreOrderReadyForFinalPayment`
+   - `PreOrderPaymentCompleted`
+   - `PreOrderExpired`
+
+5. **Rule nghiệp vụ quan trọng**
+   - Không cho tạo pre-order nếu vượt `pre-order max quantity`
+   - Không cho thanh toán phần còn lại khi chưa ở trạng thái `READY_FOR_FINAL_PAYMENT`
+   - Tự động chuyển `EXPIRED` khi quá hạn thanh toán phần còn lại
+   - Chính sách hoàn/khấu trừ cọc cần cấu hình theo shop hoặc policy hệ thống
+
+### 5.2 Thiết kế CSDL & Entity chi tiết cho Pre-order
+
+#### A. Định hướng tương thích hệ thống hiện tại
+
+- Hệ thống đang dùng bảng `orders`, `order_items`, `payments` làm xương sống giao dịch.
+- Để hạn chế refactor lớn, Pre-order sẽ bám theo `orders` (không tạo đơn hàng song song), và thêm bảng metadata cho pre-order.
+- Lưu ý quan trọng: cấu hình hiện tại của `payments` đang unique theo `OrderId` (mỗi order chỉ có 1 payment). Luồng cọc + thanh toán phần còn lại bắt buộc phải hỗ trợ nhiều payment cho 1 order.
+
+#### B. Thay đổi schema đề xuất
+
+1. **Mở rộng bảng orders**
+   - Thêm cột `OrderType` (nvarchar(30), default: `Normal`): `Normal`, `PreOrder`
+   - Thêm cột `FinalPaymentDueAt` (datetime, nullable)
+   - Thêm cột `PreOrderStatus` (nvarchar(50), nullable) để tách trạng thái pre-order khỏi trạng thái fulfillment
+
+2. **Tạo bảng preorder_details**
+   - `Id` (PK, Guid)
+   - `OrderId` (FK -> orders.Id, unique)
+   - `ShopId` (FK -> shops.Id)
+   - `ExpectedAvailableDate` (datetime, not null)
+   - `DepositPercent` (decimal(5,2), not null)
+   - `DepositAmount` (decimal(18,2), not null)
+   - `RemainingAmount` (decimal(18,2), not null)
+   - `FinalPaymentDeadlineHours` (int, not null, default 48)
+   - `ActivatedFinalPaymentAt` (datetime, nullable)
+   - `ExpiredAt` (datetime, nullable)
+   - `CreatedAt` (datetime, default GETDATE())
+   - `UpdatedAt` (datetime, nullable)
+
+3. **Tạo bảng preorder_policy_items** (cấu hình theo biến thể)
+   - `Id` (PK, Guid)
+   - `ProductVariantId` (FK -> product_variants.Id, unique)
+   - `AllowPreOrder` (bit, default 0)
+   - `DepositPercent` (decimal(5,2), nullable)
+   - `MaxPreOrderQty` (int, nullable)
+   - `LeadTimeDays` (int, nullable)
+   - `Status` (nvarchar(30), default `Active`)
+   - `CreatedAt` (datetime, default GETDATE())
+   - `UpdatedAt` (datetime, nullable)
+
+4. **Điều chỉnh bảng payments**
+   - Bỏ unique index `IX_payments_OrderId`
+   - Đổi sang non-unique index `IX_payments_OrderId`
+   - Thêm cột `PaymentStage` (nvarchar(30), not null, default `FULL`): `DEPOSIT`, `FINAL`, `FULL`
+
+#### C. Entity đề xuất (Data layer)
+
+1. **Order (bổ sung)**
+   - `OrderType`, `PreOrderStatus`, `FinalPaymentDueAt`
+   - Navigation: `PreOrderDetail? PreOrderDetail`
+
+2. **Payment (bổ sung)**
+   - `PaymentStage`
+   - Quan hệ đổi từ one-to-one sang one-to-many với `Order`
+
+3. **PreOrderDetail (entity mới)**
+   - 1-1 với `Order`
+   - N-1 với `Shop`
+
+4. **PreOrderPolicyItem (entity mới)**
+   - 1-1 theo `ProductVariant`
+
+#### D. Ràng buộc dữ liệu (constraints)
+
+1. Check constraints
+   - `DepositPercent BETWEEN 1 AND 100`
+   - `DepositAmount >= 0`, `RemainingAmount >= 0`
+   - `MaxPreOrderQty > 0` nếu khác null
+   - `PaymentStage IN ('DEPOSIT','FINAL','FULL')`
+
+2. Quy tắc tổng tiền
+   - `DepositAmount + RemainingAmount = TotalAmount` tại thời điểm tạo pre-order
+
+3. Quy tắc trạng thái
+   - Không cho insert `FINAL` payment nếu `PreOrderStatus <> READY_FOR_FINAL_PAYMENT`
+
+#### E. Indexes hiệu năng
+
+1. `orders(OrderType, PreOrderStatus, CreatedAt DESC)`
+2. `preorder_details(ShopId, CreatedAt DESC)`
+3. `preorder_details(ExpectedAvailableDate)`
+4. `payments(OrderId, PaymentStage, PaidAt DESC)`
+5. `preorder_policy_items(ProductVariantId, Status)`
+
+#### F. Kế hoạch migration theo phase (an toàn)
+
+1. **Phase 1 - Schema additive (không phá vỡ luồng cũ)**
+   - Thêm bảng `preorder_details`, `preorder_policy_items`
+   - Thêm cột mới vào `orders`, `payments`
+   - Giữ code checkout hiện tại chạy bình thường
+
+2. **Phase 2 - Payment model switch**
+   - Đổi mapping `Payment` từ one-to-one thành one-to-many với `Order`
+   - Bỏ unique index `payments.OrderId`
+   - Bổ sung service logic tạo 2 payment stage cho pre-order
+
+3. **Phase 3 - Business enforcement**
+   - Thêm validation pre-order policy theo variant
+   - Thêm job hết hạn (`EXPIRED`) theo `FinalPaymentDueAt`
+   - Bổ sung realtime events cho customer/shop
+
+#### G. Kịch bản dữ liệu mẫu (happy path)
+
+1. Create pre-order order:
+   - `orders.OrderType = PreOrder`
+   - `orders.PreOrderStatus = DEPOSIT_PENDING`
+
+2. Pay deposit:
+   - Insert `payments` với `PaymentStage = DEPOSIT`
+   - Update `orders.PreOrderStatus = DEPOSIT_PAID`
+
+3. Shop mark ready:
+   - Update `orders.PreOrderStatus = READY_FOR_FINAL_PAYMENT`
+   - Set `orders.FinalPaymentDueAt = now + 48h`
+
+4. Pay remaining:
+   - Insert `payments` với `PaymentStage = FINAL`
+   - Update `orders.Status = Paid` (hoặc trạng thái fulfillment tương đương)
+   - Update `orders.PreOrderStatus = COMPLETED`
 
 ## 6. Sơ đồ các tầng layer hệ thống
 

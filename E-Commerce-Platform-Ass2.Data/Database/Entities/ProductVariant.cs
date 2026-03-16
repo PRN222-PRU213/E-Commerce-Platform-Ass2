@@ -28,5 +28,7 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
         public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+        public PreOrderPolicyItem? PreOrderPolicyItem { get; set; }
     }
 }

@@ -20,55 +20,66 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
             builder.HasKey(o => o.Id);
 
             // Columns
-            builder.Property(o => o.UserId)
-                   .IsRequired();
+            builder.Property(o => o.UserId).IsRequired();
 
-            builder.Property(o => o.TotalAmount)
-                   .HasColumnType("decimal(18,2)")
-                   .IsRequired();
+            builder.Property(o => o.TotalAmount).HasColumnType("decimal(18,2)").IsRequired();
 
-            builder.Property(o => o.ShippingAddress)
-                   .HasMaxLength(500)
-                   .IsRequired();
+            builder.Property(o => o.ShippingAddress).HasMaxLength(500).IsRequired();
 
-            builder.Property(o => o.Status)
-                   .HasMaxLength(50)
-                   .IsRequired();
+            builder.Property(o => o.Status).HasMaxLength(50).IsRequired();
 
-            builder.Property(o => o.CreatedAt)
-                   .HasDefaultValueSql("GETDATE()")
-                   .IsRequired();
+            builder.Property(o => o.CreatedAt).HasDefaultValueSql("GETDATE()").IsRequired();
+
+            builder
+                .Property(o => o.OrderType)
+                .HasMaxLength(30)
+                .HasDefaultValue("Normal")
+                .IsRequired();
+
+            builder.Property(o => o.PreOrderStatus).HasMaxLength(50).IsRequired(false);
+
+            builder.Property(o => o.FinalPaymentDueAt).IsRequired(false);
 
             // Indexes
             builder.HasIndex(o => o.UserId);
             builder.HasIndex(o => o.Status);
             builder.HasIndex(o => o.CreatedAt);
+            builder.HasIndex(o => new
+            {
+                o.OrderType,
+                o.PreOrderStatus,
+                o.CreatedAt,
+            });
 
             // Relationships
 
             // Order -> User (N - 1)
-            builder.HasOne(o => o.User)
-                   .WithMany()
-                   .HasForeignKey(o => o.UserId)
-                   .OnDelete(DeleteBehavior.Restrict);
+            builder
+                .HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Order -> OrderItems (1 - N)
-            builder.HasMany(o => o.OrderItems)
-                   .WithOne(oi => oi.Order)
-                   .HasForeignKey(oi => oi.OrderId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder
+                .HasMany(o => o.OrderItems)
+                .WithOne(oi => oi.Order)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Order -> Shipments (1 - N)
-            builder.HasMany(o => o.Shipments)
-                   .WithOne(s => s.Order)
-                   .HasForeignKey(s => s.OrderId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder
+                .HasMany(o => o.Shipments)
+                .WithOne(s => s.Order)
+                .HasForeignKey(s => s.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Order -> Payments (1 - N)
-            builder.HasMany(o => o.Payments)
-                   .WithOne(p => p.Order)
-                   .HasForeignKey(p => p.OrderId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder
+                .HasMany(o => o.Payments)
+                .WithOne(p => p.Order)
+                .HasForeignKey(p => p.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

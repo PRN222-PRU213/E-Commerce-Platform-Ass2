@@ -40,6 +40,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                     TotalAmount = o.TotalAmount,
                     ShippingAddress = o.ShippingAddress,
                     Status = o.Status,
+                    OrderType = o.OrderType,
+                    PreOrderStatus = o.PreOrderStatus,
                     CreatedAt = o.CreatedAt,
                     ItemCount = o.OrderItems.Count,
                     Carrier = o.Shipments?.FirstOrDefault()?.Carrier,
@@ -73,6 +75,21 @@ namespace E_Commerce_Platform_Ass2.Service.Services
 
             var shipment = order.Shipments?.FirstOrDefault();
             var payment = order.Payments?.FirstOrDefault();
+            var payments = order.Payments ?? new List<Payment>();
+            var preOrderDepositedAmount = payments
+                .Where(p =>
+                    string.Equals(p.Status, "Paid", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(p.PaymentStage, "DEPOSIT", StringComparison.OrdinalIgnoreCase)
+                )
+                .Sum(p => p.Amount);
+
+            var preOrderRemainingAmount = string.Equals(
+                order.PreOrderStatus,
+                "COMPLETED",
+                StringComparison.OrdinalIgnoreCase
+            )
+                ? 0m
+                : Math.Max(0m, order.TotalAmount - preOrderDepositedAmount);
 
             var dto = new OrderDetailDto
             {
@@ -83,6 +100,10 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 TotalAmount = order.TotalAmount,
                 ShippingAddress = order.ShippingAddress,
                 Status = order.Status,
+                OrderType = order.OrderType,
+                PreOrderStatus = order.PreOrderStatus,
+                PreOrderDepositedAmount = preOrderDepositedAmount,
+                PreOrderRemainingAmount = preOrderRemainingAmount,
                 CreatedAt = order.CreatedAt,
                 ItemCount = order.OrderItems.Count,
                 Carrier = shipment?.Carrier,
@@ -150,6 +171,12 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return ServiceResult.Failure("Đơn hàng không thuộc shop của bạn.");
             }
 
+            var preorderGuard = EnsurePreOrderCanBeProcessed(order);
+            if (!preorderGuard.IsSuccess)
+            {
+                return preorderGuard;
+            }
+
             // Chấp nhận Pending hoặc PAID (từ checkout cũ)
             var status = order.Status?.Trim().ToLower();
             if (status != "pending" && status != "paid")
@@ -185,6 +212,12 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return ServiceResult.Failure("Đơn hàng không thuộc shop của bạn.");
             }
 
+            var preorderGuard = EnsurePreOrderCanBeProcessed(order);
+            if (!preorderGuard.IsSuccess)
+            {
+                return preorderGuard;
+            }
+
             var status = order.Status?.Trim().ToLower();
             if (status != "processing")
             {
@@ -214,6 +247,12 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             if (!hasShopItem)
             {
                 return ServiceResult.Failure("Đơn hàng không thuộc shop của bạn.");
+            }
+
+            var preorderGuard = EnsurePreOrderCanBeProcessed(order);
+            if (!preorderGuard.IsSuccess)
+            {
+                return preorderGuard;
             }
 
             var statusConfirm = order.Status?.Trim().ToLower();
@@ -254,6 +293,12 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return ServiceResult.Failure("Đơn hàng không thuộc shop của bạn.");
             }
 
+            var preorderGuard = EnsurePreOrderCanBeProcessed(order);
+            if (!preorderGuard.IsSuccess)
+            {
+                return preorderGuard;
+            }
+
             var statusShip = order.Status?.Trim().ToLower();
             if (statusShip != "preparing" && statusShip != "confirmed")
             {
@@ -272,23 +317,58 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return ServiceResult.Failure("Vui lòng nhập mã vận chuyển đơn.");
             }
 
-            var existsCode = await _shipmentRepository.ExistsTrackingCodeAsync(dto.TrackingCode);
-            if (existsCode)
-            {
-                return ServiceResult.Failure("Vui lòng nhập mã vận chuyển khác vì đã bị trùng.");
-            }
+            var carrier = dto.Carrier.Trim();
+            var trackingCode = dto.TrackingCode.Trim();
+            var existingShipment = order.Shipments?.FirstOrDefault();
 
-            // Tạo shipment
-            var shipment = new Shipment
+            if (existingShipment == null)
             {
-                Id = Guid.NewGuid(),
-                OrderId = orderId,
-                Carrier = dto.Carrier,
-                TrackingCode = dto.TrackingCode,
-                Status = "Shipping",
-                UpdatedAt = DateTime.Now,
-            };
-            await _shipmentRepository.AddAsync(shipment);
+                var existsCode = await _shipmentRepository.ExistsTrackingCodeAsync(trackingCode);
+                if (existsCode)
+                {
+                    return ServiceResult.Failure(
+                        "Vui lòng nhập mã vận chuyển khác vì đã bị trùng."
+                    );
+                }
+
+                var shipment = new Shipment
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = orderId,
+                    Carrier = carrier,
+                    TrackingCode = trackingCode,
+                    Status = "Shipping",
+                    UpdatedAt = DateTime.Now,
+                };
+                await _shipmentRepository.AddAsync(shipment);
+            }
+            else
+            {
+                var sameTrackingCode = string.Equals(
+                    existingShipment.TrackingCode,
+                    trackingCode,
+                    StringComparison.OrdinalIgnoreCase
+                );
+
+                if (!sameTrackingCode)
+                {
+                    var existsCode = await _shipmentRepository.ExistsTrackingCodeAsync(
+                        trackingCode
+                    );
+                    if (existsCode)
+                    {
+                        return ServiceResult.Failure(
+                            "Vui lòng nhập mã vận chuyển khác vì đã bị trùng."
+                        );
+                    }
+                }
+
+                existingShipment.Carrier = carrier;
+                existingShipment.TrackingCode = trackingCode;
+                existingShipment.Status = "Shipping";
+                existingShipment.UpdatedAt = DateTime.Now;
+                await _shipmentRepository.UpdateAsync(existingShipment);
+            }
 
             // Cập nhật order status
             order.Status = "Shipped";
@@ -316,6 +396,12 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             if (!hasShopItem)
             {
                 return ServiceResult.Failure("Đơn hàng không thuộc shop của bạn.");
+            }
+
+            var preorderGuard = EnsurePreOrderCanBeProcessed(order);
+            if (!preorderGuard.IsSuccess)
+            {
+                return preorderGuard;
             }
 
             var statusUpdate = order.Status?.Trim().ToLower();
@@ -359,6 +445,12 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return ServiceResult.Failure("Đơn hàng không thuộc shop của bạn.");
             }
 
+            var preorderGuard = EnsurePreOrderCanBeProcessed(order);
+            if (!preorderGuard.IsSuccess)
+            {
+                return preorderGuard;
+            }
+
             // Kiểm tra trạng thái - chỉ cho phép khi đang shipped
             var statusDelivered = order.Status?.Trim().ToLower();
             if (statusDelivered != "shipped" && statusDelivered != "shipping")
@@ -377,6 +469,50 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             if (shipment != null)
             {
                 shipment.Status = "Delivered";
+                shipment.UpdatedAt = DateTime.Now;
+                await _shipmentRepository.UpdateAsync(shipment);
+            }
+
+            return ServiceResult.Success();
+        }
+
+        public async Task<ServiceResult> MarkAsDeliveryFailedAsync(Guid orderId, Guid shopId)
+        {
+            var order = await _orderRepository.GetByIdWithDetailsAsync(orderId);
+            if (order == null)
+            {
+                return ServiceResult.Failure("Đơn hàng không tồn tại.");
+            }
+
+            var hasShopItem = order.OrderItems.Any(oi =>
+                oi.ProductVariant?.Product?.ShopId == shopId
+            );
+            if (!hasShopItem)
+            {
+                return ServiceResult.Failure("Đơn hàng không thuộc shop của bạn.");
+            }
+
+            var preorderGuard = EnsurePreOrderCanBeProcessed(order);
+            if (!preorderGuard.IsSuccess)
+            {
+                return preorderGuard;
+            }
+
+            var status = order.Status?.Trim().ToLower();
+            if (status != "shipped" && status != "shipping")
+            {
+                return ServiceResult.Failure(
+                    $"Chỉ có thể đánh dấu giao hàng thất bại khi đơn đang vận chuyển. Status hiện tại: {order.Status}"
+                );
+            }
+
+            order.Status = "DeliveryFailed";
+            await _orderRepository.UpdateAsync(order);
+
+            var shipment = order.Shipments?.FirstOrDefault();
+            if (shipment != null)
+            {
+                shipment.Status = "DeliveryFailed";
                 shipment.UpdatedAt = DateTime.Now;
                 await _shipmentRepository.UpdateAsync(shipment);
             }
@@ -415,6 +551,25 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             return ServiceResult.Success();
         }
 
+        private static ServiceResult EnsurePreOrderCanBeProcessed(Order order)
+        {
+            if (!string.Equals(order.OrderType, "PreOrder", StringComparison.OrdinalIgnoreCase))
+            {
+                return ServiceResult.Success();
+            }
+
+            if (
+                string.Equals(order.PreOrderStatus, "COMPLETED", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                return ServiceResult.Success();
+            }
+
+            return ServiceResult.Failure(
+                "Đơn pre-order chưa thanh toán đầy đủ. Shop chỉ có thể lên đơn khi khách đã thanh toán đủ (COMPLETED)."
+            );
+        }
+
         public async Task<ShopOrderStatistics> GetOrderStatisticsAsync(Guid shopId)
         {
             var orders = await _orderRepository.GetByShopIdAsync(shopId);
@@ -438,7 +593,9 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                     o.Status?.ToLower() == "completed" || o.Status?.ToLower() == "delivered"
                 ),
                 CancelledOrders = orderList.Count(o =>
-                    o.Status?.ToLower() == "cancelled" || o.Status?.ToLower() == "rejected"
+                    o.Status?.ToLower() == "cancelled"
+                    || o.Status?.ToLower() == "rejected"
+                    || o.Status?.ToLower() == "deliveryfailed"
                 ),
                 TotalRevenue = orderList
                     .Where(o =>
