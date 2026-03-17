@@ -273,17 +273,41 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Shop.Orders
 
             var result = await _shopOrderService.MarkAsDeliveryFailedAsync(id, shopId.Value);
             TempData[result.IsSuccess ? "SuccessMessage" : "ErrorMessage"] = result.IsSuccess
-                ? "Đã đánh dấu giao hàng không thành công."
+                ? "Đã cập nhật trạng thái giao hàng."
                 : result.ErrorMessage;
 
             if (result.IsSuccess && orderResult.IsSuccess && orderResult.Data != null)
             {
-                await NotifyCustomerAsync(
-                    id,
-                    orderResult.Data.UserId,
-                    "warning",
-                    $"Đơn hàng #{id.ToString()[..8].ToUpper()} giao không thành công do khách chưa nhận hàng."
-                );
+                var latestOrderResult = await _shopOrderService.GetOrderDetailAsync(id, shopId.Value);
+                var latestStatus = latestOrderResult.Data?.Status ?? string.Empty;
+
+                if (string.Equals(latestStatus, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                {
+                    TempData["SuccessMessage"] =
+                        "Giao hàng thất bại lần 3. Đơn hàng đã được tự động hủy.";
+
+                    await NotifyCustomerAsync(
+                        id,
+                        orderResult.Data.UserId,
+                        "error",
+                        $"Đơn hàng #{id.ToString()[..8].ToUpper()} đã bị hủy do giao hàng thất bại 3 lần."
+                    );
+                }
+                else
+                {
+                    var attempt = latestOrderResult.Data?.Shipment?.DeliveryAttemptCount ?? 1;
+                    var remaining = Math.Max(0, 3 - attempt);
+
+                    TempData["SuccessMessage"] =
+                        $"Đã đánh dấu giao hàng thất bại lần {attempt}/3. Còn {remaining} lần giao lại.";
+
+                    await NotifyCustomerAsync(
+                        id,
+                        orderResult.Data.UserId,
+                        "warning",
+                        $"Đơn hàng #{id.ToString()[..8].ToUpper()} giao không thành công. Shop sẽ giao lại ({attempt}/3)."
+                    );
+                }
             }
 
             return RedirectToPage("/Shop/Orders/Detail", new { id });

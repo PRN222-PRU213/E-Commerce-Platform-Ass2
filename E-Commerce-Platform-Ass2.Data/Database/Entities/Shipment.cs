@@ -12,6 +12,8 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Entities
 
         public string Status { get; set; } = string.Empty;
 
+        public int DeliveryAttemptCount { get; set; } = 1;
+
         public DateTime UpdatedAt { get; set; }
 
         // Navigation property

@@ -375,6 +375,53 @@
                             </button>
                         </form>
                     }
+                    else if (status == "deliveryfailed")
+                    {
+                        var attempt = Model.Order.Shipment?.DeliveryAttemptCount ?? 1;
+                        var remaining = Math.Max(0, 3 - attempt);
+
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Giao hàng thất bại lần <strong>@attempt/3</strong>.
+                            @if (remaining > 0)
+                            {
+                                <span>Còn <strong>@remaining</strong> lần giao lại.</span>
+                            }
+                        </div>
+
+                        @if (attempt < 3)
+                        {
+                            <form method="post" asp-page-handler="Ship" asp-route-id="@Model.Order.Id">
+                                <div class="form-group">
+                                    <label class="font-weight-bold"><i class="fas fa-truck mr-2"></i>Đơn vị vận chuyển <span class="text-danger">*</span></label>
+                                    <select name="Carrier" class="form-control" required>
+                                        <option value="">-- Chọn đơn vị --</option>
+                                        <option value="Giao Hàng Nhanh">Giao Hàng Nhanh (GHN)</option>
+                                        <option value="Giao Hàng Tiết Kiệm">Giao Hàng Tiết Kiệm (GHTK)</option>
+                                        <option value="Vietnam Post">Vietnam Post (VNPost)</option>
+                                        <option value="J&T Express">J&T Express</option>
+                                        <option value="Shopee Express">Shopee Express</option>
+                                        <option value="Viettel Post">Viettel Post</option>
+                                        <option value="Ninja Van">Ninja Van</option>
+                                        <option value="Best Express">Best Express</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold"><i class="fas fa-barcode mr-2"></i>Mã vận đơn mới <span class="text-danger">*</span></label>
+                                    <input type="text" name="TrackingCode" class="form-control" placeholder="VD: GHN123456789" required>
+                                </div>
+                                <button type="submit" class="btn btn-warning btn-block">
+                                    <i class="fas fa-redo mr-2"></i>Giao lại lần @(attempt + 1)
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger text-center mb-0">
+                                <i class="fas fa-ban mr-2"></i>Đã vượt quá 3 lần giao. Hệ thống sẽ tự động hủy đơn.
+                            </div>
+                        }
+                    }
                     else if (status == "shipped" || status == "shipping")
                     {
                         <div class="alert alert-primary mb-3">
@@ -493,6 +540,13 @@
                                 <small class="text-muted">Cập nhật lúc</small>
                                 <p class="mb-0">
                                     <i class="fas fa-clock text-muted mr-1"></i>@Model.Order.Shipment.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </p>
+                            </div>
+
+                            <div class="mt-3 mb-0">
+                                <small class="text-muted">Lần giao hiện tại</small>
+                                <p class="mb-0 font-weight-bold text-primary">
+                                    @Model.Order.Shipment.DeliveryAttemptCount / 3
                                 </p>
                             </div>
 
