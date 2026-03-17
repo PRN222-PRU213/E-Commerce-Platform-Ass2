@@ -47,8 +47,8 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return ServiceResult<ReturnRequestDto>.Failure("Bạn không có quyền yêu cầu hoàn trả đơn hàng này.");
             }
 
-            // Check order status - only allow for Completed or Shipped
-            if (order.Status != "Completed" && order.Status != "Shipped")
+            // Check order status - only allow for Completed, Delivered or Shipped
+            if (order.Status != "Completed" && order.Status != "Delivered" && order.Status != "Shipped")
             {
                 return ServiceResult<ReturnRequestDto>.Failure($"Không thể yêu cầu hoàn trả cho đơn hàng ở trạng thái '{order.Status}'.");
             }
@@ -138,7 +138,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return false;
             }
 
-            if (order.Status != "Completed" && order.Status != "Shipped")
+            if (order.Status != "Completed" && order.Status != "Delivered" && order.Status != "Shipped")
             {
                 return false;
             }

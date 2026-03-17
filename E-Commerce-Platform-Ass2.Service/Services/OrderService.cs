@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using E_Commerce_Platform_Ass2.Data.Database.Entities;
 using E_Commerce_Platform_Ass2.Data.Repositories.Interfaces;
 using E_Commerce_Platform_Ass2.Service.DTOs;
+using E_Commerce_Platform_Ass2.Service.Models;
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
 
 namespace E_Commerce_Platform_Ass2.Service.Services
@@ -98,6 +99,30 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 .Select(oi => oi.ProductVariant.Product.ShopId)
                 .Distinct()
                 .ToList();
+        }
+
+        public async Task<ServiceResult> ConfirmReceivedAsync(Guid orderId, Guid userId)
+        {
+            var order = await _orderRepository.GetByIdWithDetailsAsync(orderId);
+            if (order == null)
+            {
+                return ServiceResult.Failure("Không tìm thấy đơn hàng.");
+            }
+
+            if (order.UserId != userId)
+            {
+                return ServiceResult.Failure("Bạn không có quyền xác nhận đơn hàng này.");
+            }
+
+            if (!string.Equals(order.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+            {
+                return ServiceResult.Failure("Chỉ có thể xác nhận nhận hàng khi đơn đang ở trạng thái Hoàn thành.");
+            }
+
+            order.Status = "Delivered";
+            await _orderRepository.UpdateAsync(order);
+
+            return ServiceResult.Success();
         }
     }
 }

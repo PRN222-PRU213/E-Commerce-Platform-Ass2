@@ -272,6 +272,7 @@
                           Model.ViewModel.Status == "Preparing" ? "bg-purple" :
                           Model.ViewModel.Status == "Shipped" ? "bg-primary" :
                           Model.ViewModel.Status == "Completed" ? "bg-success" :
+                                                    Model.ViewModel.Status == "Delivered" ? "bg-success" :
                           "bg-secondary")">
                         @(Model.ViewModel.Status == "Paid" ? "Đã thanh toán" :
                           Model.ViewModel.Status == "Pending" ? "Chờ xử lý" :
@@ -281,6 +282,7 @@
                           Model.ViewModel.Status == "Preparing" ? "Chuẩn bị hàng" :
                           Model.ViewModel.Status == "Shipped" ? "Vận chuyển" :
                           Model.ViewModel.Status == "Completed" ? "Hoàn thành" :
+                                                    Model.ViewModel.Status == "Delivered" ? "Đã nhận hàng" :
                           Model.ViewModel.Status)
                     </span>
                 </div>
