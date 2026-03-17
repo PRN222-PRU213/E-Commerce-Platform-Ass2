@@ -35,6 +35,10 @@ namespace E_Commerce_Platform_Ass2.Data.Database.Configurations
                    .HasMaxLength(50)
                    .IsRequired();
 
+            builder.Property(s => s.DeliveryAttemptCount)
+                   .HasDefaultValue(1)
+                   .IsRequired();
+
             builder.Property(s => s.UpdatedAt)
                    .HasDefaultValueSql("GETDATE()")
                    .IsRequired();

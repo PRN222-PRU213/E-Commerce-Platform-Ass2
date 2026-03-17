@@ -143,6 +143,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                             Carrier = shipment.Carrier,
                             TrackingCode = shipment.TrackingCode,
                             Status = shipment.Status,
+                            DeliveryAttemptCount = shipment.DeliveryAttemptCount,
                             UpdatedAt = shipment.UpdatedAt,
                         }
                         : null,
@@ -300,10 +301,14 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             }
 
             var statusShip = order.Status?.Trim().ToLower();
-            if (statusShip != "preparing" && statusShip != "confirmed")
+            if (
+                statusShip != "preparing"
+                && statusShip != "confirmed"
+                && statusShip != "deliveryfailed"
+            )
             {
                 return ServiceResult.Failure(
-                    $"Chỉ có thể gửi hàng khi đơn đang chuẩn bị. Status hiện tại: {order.Status}"
+                    $"Chỉ có thể gửi hàng khi đơn đang chuẩn bị hoặc sau khi giao thất bại. Status hiện tại: {order.Status}"
                 );
             }
 
@@ -338,6 +343,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                     Carrier = carrier,
                     TrackingCode = trackingCode,
                     Status = "Shipping",
+                    DeliveryAttemptCount = 1,
                     UpdatedAt = DateTime.Now,
                 };
                 await _shipmentRepository.AddAsync(shipment);
@@ -361,6 +367,23 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                             "Vui lòng nhập mã vận chuyển khác vì đã bị trùng."
                         );
                     }
+                }
+
+                if (statusShip == "deliveryfailed")
+                {
+                    if (existingShipment.DeliveryAttemptCount >= 3)
+                    {
+                        return ServiceResult.Failure(
+                            "Đơn hàng đã vượt quá 3 lần giao. Không thể giao lại."
+                        );
+                    }
+
+                    existingShipment.DeliveryAttemptCount += 1;
+                }
+
+                if (existingShipment.DeliveryAttemptCount <= 0)
+                {
+                    existingShipment.DeliveryAttemptCount = 1;
                 }
 
                 existingShipment.Carrier = carrier;
@@ -506,16 +529,33 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 );
             }
 
-            order.Status = "DeliveryFailed";
-            await _orderRepository.UpdateAsync(order);
-
             var shipment = order.Shipments?.FirstOrDefault();
             if (shipment != null)
             {
+                if (shipment.DeliveryAttemptCount <= 0)
+                {
+                    shipment.DeliveryAttemptCount = 1;
+                }
+
                 shipment.Status = "DeliveryFailed";
                 shipment.UpdatedAt = DateTime.Now;
                 await _shipmentRepository.UpdateAsync(shipment);
+
+                if (shipment.DeliveryAttemptCount >= 3)
+                {
+                    order.Status = "Cancelled";
+                }
+                else
+                {
+                    order.Status = "DeliveryFailed";
+                }
             }
+            else
+            {
+                order.Status = "DeliveryFailed";
+            }
+
+            await _orderRepository.UpdateAsync(order);
 
             return ServiceResult.Success();
         }

@@ -74,6 +74,7 @@ namespace E_Commerce_Platform_Ass2.Service.DTOs
         public string Carrier { get; set; } = string.Empty;
         public string TrackingCode { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public int DeliveryAttemptCount { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
 
