@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using E_Commerce_Platform_Ass2.Data.Database.Entities;
 using E_Commerce_Platform_Ass2.Service.DTOs;
+using E_Commerce_Platform_Ass2.Service.Models;
 
 namespace E_Commerce_Platform_Ass2.Service.Services.IServices
 {
@@ -14,5 +15,6 @@ namespace E_Commerce_Platform_Ass2.Service.Services.IServices
         Task<OrderDetailDto?> GetOrderItemAsync(Guid orderId);
         Task<IEnumerable<Guid>> GetShopIdsByOrderAsync(Guid orderId);
         Task<bool> ExistsOrderAsync(Guid userId, Guid productId);
+        Task<ServiceResult> ConfirmReceivedAsync(Guid orderId, Guid userId);
     }
 }

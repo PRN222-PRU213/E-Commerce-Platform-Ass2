@@ -74,6 +74,11 @@
                                 <i class="fas fa-check-circle mr-1"></i>Đã hoàn thành
                             </span>
                             break;
+                        case "Delivered":
+                            <span class="badge badge-success px-3 py-2">
+                                <i class="fas fa-check-circle mr-1"></i>Khách đã nhận hàng
+                            </span>
+                            break;
                         case "DeliveryFailed":
                             <span class="badge badge-danger px-3 py-2">
                                 <i class="fas fa-exclamation-triangle mr-1"></i>Giao hàng thất bại
@@ -175,13 +180,13 @@
                     <!-- Timeline -->
                     <div class="timeline">
                         <!-- Step 1: Pending -->
-                        <div class="timeline-item @(Model.Order.Status == "Pending" ? "active" : (new[] { "Processing", "Preparing", "Shipped", "Completed" }.Contains(Model.Order.Status) ? "completed" : ""))">
+                        <div class="timeline-item @(Model.Order.Status == "Pending" ? "active" : (new[] { "Processing", "Preparing", "Shipped", "Completed", "Delivered" }.Contains(Model.Order.Status) ? "completed" : ""))">
                             <div class="timeline-marker">
                                 @if (Model.Order.Status == "Pending")
                                 {
                                     <i class="fas fa-circle text-warning"></i>
                                 }
-                                else if (new[] { "Processing", "Preparing", "Shipped", "Completed" }.Contains(Model.Order.Status))
+                                else if (new[] { "Processing", "Preparing", "Shipped", "Completed", "Delivered" }.Contains(Model.Order.Status))
                                 {
                                     <i class="fas fa-check-circle text-success"></i>
                                 }
@@ -197,13 +202,13 @@
                         </div>
 
                         <!-- Step 2: Processing -->
-                        <div class="timeline-item @(Model.Order.Status == "Processing" ? "active" : (new[] { "Preparing", "Shipped", "Completed" }.Contains(Model.Order.Status) ? "completed" : ""))">
+                        <div class="timeline-item @(Model.Order.Status == "Processing" ? "active" : (new[] { "Preparing", "Shipped", "Completed", "Delivered" }.Contains(Model.Order.Status) ? "completed" : ""))">
                             <div class="timeline-marker">
                                 @if (Model.Order.Status == "Processing")
                                 {
                                     <i class="fas fa-circle text-info"></i>
                                 }
-                                else if (new[] { "Preparing", "Shipped", "Completed" }.Contains(Model.Order.Status))
+                                else if (new[] { "Preparing", "Shipped", "Completed", "Delivered" }.Contains(Model.Order.Status))
                                 {
                                     <i class="fas fa-check-circle text-success"></i>
                                 }
@@ -219,13 +224,13 @@
                         </div>
 
                         <!-- Step 3: Preparing -->
-                        <div class="timeline-item @(Model.Order.Status == "Preparing" ? "active" : (new[] { "Shipped", "Completed" }.Contains(Model.Order.Status) ? "completed" : ""))">
+                        <div class="timeline-item @(Model.Order.Status == "Preparing" ? "active" : (new[] { "Shipped", "Completed", "Delivered" }.Contains(Model.Order.Status) ? "completed" : ""))">
                             <div class="timeline-marker">
                                 @if (Model.Order.Status == "Preparing")
                                 {
                                     <i class="fas fa-circle text-primary"></i>
                                 }
-                                else if (new[] { "Shipped", "Completed" }.Contains(Model.Order.Status))
+                                else if (new[] { "Shipped", "Completed", "Delivered" }.Contains(Model.Order.Status))
                                 {
                                     <i class="fas fa-check-circle text-success"></i>
                                 }
@@ -241,13 +246,13 @@
                         </div>
 
                         <!-- Step 4: Shipped -->
-                        <div class="timeline-item @(Model.Order.Status == "Shipped" ? "active" : (Model.Order.Status == "Completed" ? "completed" : ""))">
+                        <div class="timeline-item @(Model.Order.Status == "Shipped" ? "active" : ((Model.Order.Status == "Completed" || Model.Order.Status == "Delivered") ? "completed" : ""))">
                             <div class="timeline-marker">
                                 @if (Model.Order.Status == "Shipped")
                                 {
                                     <i class="fas fa-circle text-primary"></i>
                                 }
-                                else if (Model.Order.Status == "Completed")
+                                else if (Model.Order.Status == "Completed" || Model.Order.Status == "Delivered")
                                 {
                                     <i class="fas fa-check-circle text-success"></i>
                                 }
@@ -263,9 +268,9 @@
                         </div>
 
                         <!-- Step 5: Completed -->
-                        <div class="timeline-item @(Model.Order.Status == "Completed" ? "completed" : "")">
+                        <div class="timeline-item @((Model.Order.Status == "Completed" || Model.Order.Status == "Delivered") ? "completed" : "")">
                             <div class="timeline-marker">
-                                @if (Model.Order.Status == "Completed")
+                                @if (Model.Order.Status == "Completed" || Model.Order.Status == "Delivered")
                                 {
                                     <i class="fas fa-check-circle text-success"></i>
                                 }
@@ -276,7 +281,7 @@
                             </div>
                             <div class="timeline-content">
                                 <h6 class="mb-0">Hoàn thành</h6>
-                                <small class="text-muted">Giao hàng thành công</small>
+                                <small class="text-muted">Khách xác nhận đã nhận hàng</small>
                             </div>
                         </div>
                     </div>

@@ -90,8 +90,8 @@
     }
 
     .action-btn {
-        padding: 0.5rem 0.85rem;
-        border-radius: 6px;
+        padding: 0.55rem 0.95rem;
+        border-radius: 10px;
         font-weight: 500;
         font-size: 0.85rem;
         transition: all 0.3s ease;
@@ -101,7 +101,22 @@
         justify-content: center;
         gap: 0.4rem;
         white-space: nowrap;
-        width: 110px;
+        min-width: 130px;
+        width: auto;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .action-group {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
     }
 
     .btn-detail {
@@ -111,7 +126,6 @@
 
     .btn-detail:hover {
         background: #5a52e0;
-        transform: scale(1.05);
         box-shadow: 0 3px 10px rgba(108, 99, 255, 0.4);
         color: white;
     }
@@ -123,7 +137,6 @@
 
     .btn-reorder:hover {
         background: #c82333;
-        transform: scale(1.05);
         box-shadow: 0 3px 10px rgba(220, 53, 69, 0.4);
         color: white;
     }
@@ -135,8 +148,18 @@
 
     .btn-refund:hover {
         background: #c82333;
-        transform: scale(1.05);
         box-shadow: 0 3px 10px rgba(220, 53, 69, 0.4);
+        color: white;
+    }
+
+    .btn-confirm-received {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-confirm-received:hover {
+        background: #218838;
+        box-shadow: 0 3px 10px rgba(40, 167, 69, 0.4);
         color: white;
     }
 
@@ -273,6 +296,7 @@
                                       item.Status == "Preparing" ? "bg-purple" :
                                       item.Status == "Shipped" ? "bg-primary" :
                                       item.Status == "Completed" ? "bg-success" :
+                                                                            item.Status == "Delivered" ? "bg-success" :
                                       "bg-secondary")">
                                     @(item.Status == "Paid" ? "Đã thanh toán" :
                                       item.Status == "Pending" ? "Chờ xử lý" :
@@ -282,6 +306,7 @@
                                       item.Status == "Preparing" ? "Chuẩn bị hàng" :
                                       item.Status == "Shipped" ? "Vận chuyển" :
                                       item.Status == "Completed" ? "Hoàn thành" :
+                                                                            item.Status == "Delivered" ? "Đã nhận hàng" :
                                       item.Status)
                                 </span>
                             </div>
@@ -300,10 +325,10 @@
 
                             <!-- Actions -->
                             <div class="col-3 order-cell" style="justify-content: center;">
-                                <div class="d-flex justify-content-center flex-nowrap">
+                                <div class="action-group">
                                     <a asp-page="/Order/Detail"
                                        asp-route-orderId="@item.OrderId"
-                                       class="action-btn btn-detail mr-3"
+                                       class="action-btn btn-detail"
                                        title="Xem chi tiết">
                                         <i class="fas fa-eye"></i>
                                         <span>Chi tiết</span>
@@ -332,6 +357,19 @@
                                             <i class="fas fa-undo"></i>
                                             <span>Hoàn tiền</span>
                                         </button>
+                                    }
+
+                                    @if (item.Status == "Completed")
+                                    {
+                                        <form method="post" asp-page-handler="ConfirmReceived" class="d-inline" onsubmit="return confirm('Bạn xác nhận đã nhận hàng từ shipper?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@item.OrderId" />
+                                            <input type="hidden" name="pageIndex" value="@Model.ViewModel.CurrentPage" />
+                                            <button type="submit" class="action-btn btn-confirm-received" title="Xác nhận đã nhận hàng">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Đã nhận hàng</span>
+                                            </button>
+                                        </form>
                                     }
                                 </div>
                             </div>
