@@ -68,16 +68,7 @@
                         <input type="hidden" asp-for="Input.OrderId" />
                         <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
 
-                        <div class="mb-3">
-                            <label asp-for="Input.RequestType" class="form-label">Loại yêu cầu <span class="text-danger">*</span></label>
-                            <select asp-for="Input.RequestType" class="form-select">
-                                @foreach (var option in CreateReturnRequestViewModel.RequestTypeOptions)
-                                {
-                                    <option value="@option.Value">@option.Text</option>
-                                }
-                            </select>
-                            <span asp-validation-for="Input.RequestType" class="text-danger"></span>
-                        </div>
+                        <input type="hidden" asp-for="Input.RequestType" value="Return" />
 
                         <div class="mb-3">
                             <label asp-for="Input.Reason" class="form-label">Lý do <span class="text-danger">*</span></label>
@@ -101,9 +92,9 @@
                         <input type="hidden" asp-for="Input.RequestedAmount" value="@Model.Input.TotalAmount" />
 
                         <div class="mb-4">
-                            <label class="form-label">Hình ảnh bằng chứng (tối đa 5 ảnh)</label>
+                            <label class="form-label">Hình ảnh bằng chứng <span class="text-danger">*</span> (tối đa 5 ảnh)</label>
                             <input type="file" name="evidenceImages" class="form-control" multiple accept="image/*" />
-                            <small class="text-muted">Chụp ảnh sản phẩm bị lỗi, hóa đơn, hoặc bằng chứng liên quan</small>
+                            <small class="text-muted">Bắt buộc: chụp ảnh sản phẩm bị lỗi, hóa đơn, hoặc bằng chứng liên quan để shop xác nhận</small>
                         </div>
 
                         <div class="d-flex gap-2">

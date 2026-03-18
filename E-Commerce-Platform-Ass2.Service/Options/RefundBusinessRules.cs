@@ -33,6 +33,11 @@ namespace E_Commerce_Platform_Ass2.Service.Options
         /// </summary>
         public decimal ShopFaultFeePercent { get; set; } = 0;
 
+        /// <summary>
+        /// Chiết khấu nền tảng trừ từ ví shop khi duyệt hoàn tiền, chuyển vào ví admin
+        /// </summary>
+        public decimal ShopRefundCommissionPercent { get; set; } = 10;
+
         #endregion
 
         #region Limits

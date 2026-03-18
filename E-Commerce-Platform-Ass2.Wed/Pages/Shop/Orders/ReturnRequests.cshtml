@@ -4,6 +4,14 @@
 @{
     ViewData["Title"] = "Yêu cầu đổi trả";
     Layout = "~/Pages/Shared/_ShopDashboardLayout.cshtml";
+
+    string GetReturnRequestStatusText(string? status) => status switch
+    {
+        "Pending" => "Chờ xử lý",
+        "Approved" => "Đã duyệt",
+        "Rejected" => "Đã từ chối",
+        _ => status ?? "Không xác định"
+    };
 }
 
 <div class="container-fluid py-4">
@@ -16,6 +24,12 @@
                     </h4>
                 </div>
                 <div class="card-body p-4">
+                    <div class="d-flex justify-content-end mb-3">
+                        <a asp-page="./Index" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left mr-1"></i> Quay lại quản lý đơn hàng
+                        </a>
+                    </div>
+
                     <!-- Status Filter -->
                     <div class="mb-4">
                         <div class="btn-group" role="group">
@@ -65,7 +79,7 @@
                                             <td>@request.RequestedAmount.ToString("N0") đ</td>
                                             <td>
                                                 <span class="badge @(request.Status == "Approved" ? "badge-success" : request.Status == "Rejected" ? "badge-danger" : "badge-warning")">
-                                                    @request.Status
+                                                    @GetReturnRequestStatusText(request.Status)
                                                 </span>
                                             </td>
                                             <td>@request.CreatedAt.ToString("dd/MM/yyyy")</td>

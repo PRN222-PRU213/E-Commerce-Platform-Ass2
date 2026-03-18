@@ -94,59 +94,48 @@
     <!-- Filter Buttons -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
+            <form method="get" asp-page="./Index" class="mb-3">
+                <div class="form-row align-items-end">
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <label class="small text-muted mb-1">Loại đơn</label>
+                        <select name="orderType" class="form-control form-control-sm">
+                            <option value="" selected="@(string.IsNullOrEmpty(currentOrderType))">Mọi loại đơn</option>
+                            <option value="Normal" selected="@(currentOrderType == "Normal")">Đơn thường</option>
+                            <option value="PreOrder" selected="@(currentOrderType == "PreOrder")">Đơn cọc trước</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <label class="small text-muted mb-1">Trạng thái</label>
+                        <select name="status" class="form-control form-control-sm">
+                            <option value="" selected="@(string.IsNullOrEmpty(currentStatus))">Tất cả trạng thái</option>
+                            <option value="Paid" selected="@(currentStatus == "Paid")">Đã thanh toán</option>
+                            <option value="Pending" selected="@(currentStatus == "Pending")">Chờ xử lý</option>
+                            <option value="Processing" selected="@(currentStatus == "Processing")">Đang xử lý</option>
+                            <option value="Preparing" selected="@(currentStatus == "Preparing")">Chuẩn bị hàng</option>
+                            <option value="Shipped" selected="@(currentStatus == "Shipped")">Vận chuyển</option>
+                            <option value="Completed" selected="@(currentStatus == "Completed")">Hoàn thành</option>
+                            <option value="Delivered" selected="@(currentStatus == "Delivered")">Khách đã nhận hàng</option>
+                            <option value="DeliveryFailed" selected="@(currentStatus == "DeliveryFailed")">Giao thất bại</option>
+                            <option value="Cancelled" selected="@(currentStatus == "Cancelled")">Đã hủy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-sm-12 mb-2 d-flex align-items-center gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary mr-2">
+                            <i class="fas fa-filter mr-1"></i> Áp dụng lọc
+                        </button>
+                        <a asp-page="./Index" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-undo mr-1"></i> Xóa lọc
+                        </a>
+                    </div>
+                </div>
+            </form>
+
             <div class="d-flex flex-wrap gap-2">
-                <a asp-page="./Index" class="btn @(string.IsNullOrEmpty(currentStatus) ? "btn-primary" : "btn-outline-primary")">
-                    <i class="fas fa-list"></i> Tất cả
+                <a asp-page="/Shop/PreOrders" class="btn btn-sm btn-outline-info mr-2">
+                    <i class="fas fa-hourglass-half mr-1"></i> Đơn đặt trước
                 </a>
-                <a asp-page="./Index"
-                   asp-route-orderType="Normal"
-                   asp-route-status="@currentStatus"
-                   class="btn @(currentOrderType == "Normal" ? "btn-dark" : "btn-outline-dark")">
-                    <i class="fas fa-shopping-bag"></i> Đơn thường
-                </a>
-                <a asp-page="./Index"
-                   asp-route-orderType="PreOrder"
-                   asp-route-status="@currentStatus"
-                   class="btn @(currentOrderType == "PreOrder" ? "btn-info" : "btn-outline-info")">
-                    <i class="fas fa-hourglass-half"></i> Đơn cọc trước
-                </a>
-                <a asp-page="./Index"
-                   asp-route-orderType=""
-                   asp-route-status="@currentStatus"
-                   class="btn @(string.IsNullOrEmpty(currentOrderType) ? "btn-primary" : "btn-outline-primary")">
-                    <i class="fas fa-layer-group"></i> Mọi loại đơn
-                </a>
-                <span class="border-start mx-2"></span>
-                <a asp-page="./Index" asp-route-status="Paid" class="btn @(currentStatus == "Paid" ? "bg-success-dark text-white" : "btn-outline-success")">
-                    <i class="fas fa-check-double"></i> Đã thanh toán
-                </a>
-                <a asp-page="./Index" asp-route-status="Pending" class="btn @(currentStatus == "Pending" ? "btn-warning" : "btn-outline-warning")">
-                    <i class="fas fa-clock"></i> Chờ xử lý
-                </a>
-                <a asp-page="./Index" asp-route-status="Processing" class="btn @(currentStatus == "Processing" ? "btn-info" : "btn-outline-info")">
-                    <i class="fas fa-cog"></i> Đang xử lý
-                </a>
-                <a asp-page="./Index" asp-route-status="Preparing" class="btn @(currentStatus == "Preparing" ? "btn-primary" : "btn-outline-primary")">
-                    <i class="fas fa-box-open"></i> Chuẩn bị hàng
-                </a>
-                <a asp-page="./Index" asp-route-status="Shipped" class="btn @(currentStatus == "Shipped" ? "btn-primary" : "btn-outline-primary")">
-                    <i class="fas fa-shipping-fast"></i> Vận chuyển
-                </a>
-                <a asp-page="./Index" asp-route-status="Completed" class="btn @(currentStatus == "Completed" ? "btn-success" : "btn-outline-success")">
-                    <i class="fas fa-check-circle"></i> Hoàn thành
-                </a>
-                <a asp-page="./Index" asp-route-status="DeliveryFailed" class="btn @(currentStatus == "DeliveryFailed" ? "btn-danger" : "btn-outline-danger")">
-                    <i class="fas fa-exclamation-triangle"></i> Giao thất bại
-                </a>
-                <a asp-page="./Index" asp-route-status="Cancelled" class="btn @(currentStatus == "Cancelled" ? "btn-danger" : "btn-outline-danger")">
-                    <i class="fas fa-times-circle"></i> Đã hủy
-                </a>
-                <span class="border-start mx-2"></span>
-                <a asp-page="/Shop/PreOrders" class="btn btn-outline-info">
-                    <i class="fas fa-hourglass-half"></i> Đơn đặt trước
-                </a>
-                <a asp-page="./ReturnRequests" class="btn btn-outline-warning">
-                    <i class="fas fa-exchange-alt"></i> Yêu cầu hoàn trả
+                <a asp-page="./ReturnRequests" class="btn btn-sm btn-outline-warning">
+                    <i class="fas fa-exchange-alt mr-1"></i> Yêu cầu hoàn trả
                 </a>
             </div>
         </div>

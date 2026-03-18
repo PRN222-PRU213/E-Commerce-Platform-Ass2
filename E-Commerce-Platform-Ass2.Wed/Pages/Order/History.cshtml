@@ -152,6 +152,17 @@
         color: white;
     }
 
+    .btn-return {
+        background: #fd7e14;
+        color: white;
+    }
+
+    .btn-return:hover {
+        background: #e36b05;
+        box-shadow: 0 3px 10px rgba(253, 126, 20, 0.4);
+        color: white;
+    }
+
     .btn-confirm-received {
         background: #28a745;
         color: white;
@@ -370,6 +381,17 @@
                                                 <span>Đã nhận hàng</span>
                                             </button>
                                         </form>
+                                    }
+
+                                    @if (item.Status == "Delivered" && item.CanReturnRequest)
+                                    {
+                                        <a asp-page="/ReturnRequest/Create"
+                                           asp-route-orderId="@item.OrderId"
+                                           class="action-btn btn-return"
+                                           title="Hoàn hàng">
+                                            <i class="fas fa-undo-alt"></i>
+                                            <span>Hoàn hàng</span>
+                                        </a>
                                     }
                                 </div>
                             </div>

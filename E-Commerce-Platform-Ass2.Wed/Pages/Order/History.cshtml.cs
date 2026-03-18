@@ -15,6 +15,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Order
     {
         private readonly IOrderService _orderService;
         private readonly IRefundService _refundService;
+        private readonly IReturnRequestService _returnRequestService;
         private readonly INotificationService _notificationService;
         private readonly IShopService _shopService;
         private readonly IHubContext<NotificationHub, INotificationClient> _hubContext;
@@ -22,12 +23,14 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Order
         public HistoryModel(
             IOrderService orderService,
             IRefundService refundService,
+            IReturnRequestService returnRequestService,
             INotificationService notificationService,
             IShopService shopService,
             IHubContext<NotificationHub, INotificationClient> hubContext)
         {
             _orderService = orderService;
             _refundService = refundService;
+            _returnRequestService = returnRequestService;
             _notificationService = notificationService;
             _shopService = shopService;
             _hubContext = hubContext;
@@ -58,7 +61,8 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.Order
                     TotalAmount = o.TotalAmount,
                     Status = o.Status,
                     ShippingAddress = o.ShippingAddress,
-                    IsRefunded = await _refundService.IsRefundedAsync(o.Id)
+                    IsRefunded = await _refundService.IsRefundedAsync(o.Id),
+                    CanReturnRequest = await _returnRequestService.CanCreateRequestAsync(o.Id, userId)
                 });
             }
 

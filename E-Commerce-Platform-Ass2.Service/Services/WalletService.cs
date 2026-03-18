@@ -112,6 +112,35 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             await _walletRepository.UpdateAsync(wallet);
         }
 
+        public async Task CreditAdminCommissionAsync(Guid orderId, decimal amount, string description)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            var adminWallet = await _walletRepository.GetOrCreateAdminWalletAsync();
+
+            adminWallet.Balance += amount;
+            adminWallet.LastChangeAmount = amount;
+            adminWallet.LastChangeType = "RefundCommission";
+            adminWallet.UpdatedAt = DateTime.UtcNow;
+
+            await _walletRepository.UpdateAsync(adminWallet);
+
+            await _transactionRepository.AddAsync(new WalletTransaction
+            {
+                Id = Guid.NewGuid(),
+                WalletId = adminWallet.WalletId,
+                TransactionType = "RefundCommission",
+                Amount = amount,
+                BalanceAfter = adminWallet.Balance,
+                Description = description,
+                ReferenceId = orderId.ToString(),
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
         /// <summary>
         /// Nạp tiền vào ví
         /// </summary>

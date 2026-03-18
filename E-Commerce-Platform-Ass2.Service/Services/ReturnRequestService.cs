@@ -15,6 +15,11 @@ namespace E_Commerce_Platform_Ass2.Service.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IRefundService _refundService;
         private readonly IShopWalletService _shopWalletService;
+        private readonly IWalletService _walletService;
+        private readonly IShopWalletRepository _shopWalletRepository;
+        private readonly IShopRepository _shopRepository;
+        private readonly IWalletRepository _walletRepository;
+        private readonly IWalletTransactionRepository _walletTransactionRepository;
         private readonly RefundBusinessRules _rules;
 
         public ReturnRequestService(
@@ -22,12 +27,22 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             IOrderRepository orderRepository,
             IRefundService refundService,
             IShopWalletService shopWalletService,
+            IWalletService walletService,
+            IShopWalletRepository shopWalletRepository,
+            IShopRepository shopRepository,
+            IWalletRepository walletRepository,
+            IWalletTransactionRepository walletTransactionRepository,
             IOptions<RefundBusinessRules> rulesOptions)
         {
             _returnRequestRepository = returnRequestRepository;
             _orderRepository = orderRepository;
             _refundService = refundService;
             _shopWalletService = shopWalletService;
+            _walletService = walletService;
+            _shopWalletRepository = shopWalletRepository;
+            _shopRepository = shopRepository;
+            _walletRepository = walletRepository;
+            _walletTransactionRepository = walletTransactionRepository;
             _rules = rulesOptions.Value;
         }
 
@@ -47,20 +62,29 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return ServiceResult<ReturnRequestDto>.Failure("Bạn không có quyền yêu cầu hoàn trả đơn hàng này.");
             }
 
-            // Check order status - only allow for Completed, Delivered or Shipped
-            if (order.Status != "Completed" && order.Status != "Delivered" && order.Status != "Shipped")
+            // Chỉ cho phép khi khách đã xác nhận nhận hàng
+            if (!string.Equals(order.Status, "Delivered", StringComparison.OrdinalIgnoreCase))
             {
-                return ServiceResult<ReturnRequestDto>.Failure($"Không thể yêu cầu hoàn trả cho đơn hàng ở trạng thái '{order.Status}'.");
+                return ServiceResult<ReturnRequestDto>.Failure("Chỉ có thể yêu cầu hoàn hàng sau khi bạn đã nhận hàng.");
             }
 
-            // ⭐ BUSINESS RULE: Kiểm tra thời hạn hoàn tiền
-            var completedDate = order.CompletedAt ?? order.CreatedAt;
-            var daysSinceCompleted = (DateTime.UtcNow - completedDate).Days;
-            var deadlineDays = dto.RequestType == "Return" ? _rules.ReturnDeadlineDays : _rules.RefundDeadlineDays;
-            if (daysSinceCompleted > deadlineDays)
+            // ⭐ BUSINESS RULE: Kiểm tra thời hạn hoàn hàng trong 7 ngày kể từ thời điểm nhận hàng
+            var receivedAt = order.CompletedAt ?? order.CreatedAt;
+            var daysSinceReceived = (DateTime.UtcNow - receivedAt).TotalDays;
+            if (daysSinceReceived > 7)
             {
                 return ServiceResult<ReturnRequestDto>.Failure(
-                    $"Đã quá thời hạn {deadlineDays} ngày để yêu cầu {(dto.RequestType == "Return" ? "đổi trả" : "hoàn tiền")}. Bạn không thể thực hiện yêu cầu này nữa.");
+                    "Đã quá thời hạn 7 ngày kể từ khi nhận hàng. Bạn không thể gửi yêu cầu hoàn hàng nữa.");
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.Reason))
+            {
+                return ServiceResult<ReturnRequestDto>.Failure("Vui lòng nhập lý do hoàn hàng.");
+            }
+
+            if (dto.EvidenceImageUrls == null || !dto.EvidenceImageUrls.Any())
+            {
+                return ServiceResult<ReturnRequestDto>.Failure("Vui lòng cung cấp ít nhất 1 hình ảnh bằng chứng để shop xác nhận.");
             }
 
             // ⭐ BUSINESS RULE: Kiểm tra số lần yêu cầu trên đơn hàng
@@ -138,7 +162,14 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return false;
             }
 
-            if (order.Status != "Completed" && order.Status != "Delivered" && order.Status != "Shipped")
+            if (!string.Equals(order.Status, "Delivered", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            var receivedAt = order.CompletedAt ?? order.CreatedAt;
+            var daysSinceReceived = (DateTime.UtcNow - receivedAt).TotalDays;
+            if (daysSinceReceived > 7)
             {
                 return false;
             }
@@ -199,37 +230,112 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 return ServiceResult.Failure("Bạn không có quyền xử lý yêu cầu này.");
             }
 
-            var refundAmount = approvedAmount ?? request.RequestedAmount;
+            // ⭐ BUSINESS RULE THỰC TẾ:
+            // - Nếu lỗi shop: khách nhận đủ 100%, shop trả thêm chiết khấu nền tảng
+            // - Nếu lỗi khách: khách nhận tiền sau khi trừ phí, không tính chiết khấu shop
+            var isShopFault = _rules.IsShopFault(request.Reason);
+            var baseAmount = request.Order.TotalAmount;
+            var refundFee = _rules.CalculateFee(baseAmount, request.Reason);
+            var customerRefundAmount = isShopFault ? baseAmount : Math.Max(0, baseAmount - refundFee);
+            var commissionAmount = isShopFault
+                ? customerRefundAmount * _rules.ShopRefundCommissionPercent / 100
+                : 0;
+            var totalShopDeduction = customerRefundAmount + commissionAmount;
+            var alreadyRefunded = await _refundService.IsRefundedAsync(request.OrderId);
 
-            // Validate amount
-            if (refundAmount <= 0 || refundAmount > request.Order.TotalAmount)
+            var shop = await _shopRepository.GetByIdAsync(shopId);
+            if (shop == null)
             {
-                return ServiceResult.Failure("Số tiền hoàn trả không hợp lệ.");
+                return ServiceResult.Failure("Không tìm thấy thông tin shop.");
             }
 
-            // ⭐ BUSINESS RULE: Tính phí hoàn tiền dựa trên lý do
-            var isShopFault = _rules.IsShopFault(request.Reason);
-            var refundFee = _rules.CalculateFee(refundAmount, request.Reason);
-            var finalRefundAmount = refundAmount - refundFee;
+            var ownerWallet = await _walletRepository.GetByUserIdAsync(shop.UserId);
+            if (ownerWallet == null)
+            {
+                ownerWallet = new Wallet
+                {
+                    WalletId = Guid.NewGuid(),
+                    UserId = shop.UserId,
+                    Balance = 0,
+                    LastChangeAmount = 0,
+                    LastChangeType = "Init",
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _walletRepository.AddAsync(ownerWallet);
+            }
+
+            // Chặn sớm trường hợp tổng số dư không đủ để tránh hoàn tiền trước rồi mới thất bại ở bước trừ ví
+            var shopWallet = await _shopWalletRepository.GetOrCreateAsync(shopId);
+            var combinedBalance = ownerWallet.Balance + shopWallet.Balance;
+            if (combinedBalance < totalShopDeduction)
+            {
+                return ServiceResult.Failure(
+                    $"Số dư ví không đủ để hoàn tiền và chiết khấu. " +
+                    $"Ví shop owner: {ownerWallet.Balance:N0} đ, ví shop hệ thống: {shopWallet.Balance:N0} đ, cần: {totalShopDeduction:N0} đ."
+                );
+            }
 
             try
             {
-                // Gọi RefundService để hoàn tiền về ví khách hàng (TÁI SỬ DỤNG)
-                // Hoàn số tiền sau khi trừ phí
-                await _refundService.RefundAsync(
-                    request.OrderId,
-                    finalRefundAmount,
-                    $"Hoàn tiền theo yêu cầu #{request.Id}: {request.Reason}" + 
-                    (refundFee > 0 ? $" (Phí: {refundFee:N0} VNĐ)" : "")
-                );
+                // Nếu đơn chưa hoàn tiền thì thực hiện hoàn tiền; nếu đã hoàn rồi thì bỏ qua để tránh gọi hoàn tiền lần 2
+                if (!alreadyRefunded)
+                {
+                    await _refundService.RefundAsync(
+                        request.OrderId,
+                        customerRefundAmount,
+                        $"Hoàn tiền theo yêu cầu #{request.Id}: {request.Reason}" +
+                        (!isShopFault && refundFee > 0 ? $" (Phí: {refundFee:N0} VNĐ)" : "")
+                    );
+                }
 
-                // ⭐ TRỪ TIỀN TỪ VÍ SHOP (toàn bộ số tiền, không trừ phí)
-                // Phí hoàn tiền do shop giữ lại
-                await _shopWalletService.RefundOrderPaymentAsync(shopId, request.OrderId, finalRefundAmount);
+                // ⭐ TRỪ TIỀN TỪ VÍ SHOP OWNER trước, thiếu thì trừ tiếp từ ví shop hệ thống
+                var remainingDeduction = totalShopDeduction;
+
+                if (ownerWallet.Balance > 0)
+                {
+                    var deductFromOwnerWallet = Math.Min(ownerWallet.Balance, remainingDeduction);
+                    ownerWallet.Balance -= deductFromOwnerWallet;
+                    ownerWallet.LastChangeAmount = -deductFromOwnerWallet;
+                    ownerWallet.LastChangeType = "ShopRefund";
+                    ownerWallet.UpdatedAt = DateTime.UtcNow;
+                    await _walletRepository.UpdateAsync(ownerWallet);
+
+                    await _walletTransactionRepository.AddAsync(new WalletTransaction
+                    {
+                        Id = Guid.NewGuid(),
+                        WalletId = ownerWallet.WalletId,
+                        TransactionType = "ShopRefund",
+                        Amount = -deductFromOwnerWallet,
+                        BalanceAfter = ownerWallet.Balance,
+                        Description = $"Trừ ví shop owner để hoàn tiền đơn #{request.OrderId.ToString()[..8].ToUpper()}",
+                        ReferenceId = request.OrderId.ToString(),
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                    remainingDeduction -= deductFromOwnerWallet;
+                }
+
+                if (remainingDeduction > 0)
+                {
+                    var shopRefundResult = await _shopWalletService.RefundOrderPaymentAsync(shopId, request.OrderId, remainingDeduction);
+                    if (!shopRefundResult.IsSuccess)
+                    {
+                        throw new Exception(shopRefundResult.ErrorMessage ?? "Không thể trừ tiền từ ví shop.");
+                    }
+                }
+
+                if (commissionAmount > 0)
+                {
+                    await _walletService.CreditAdminCommissionAsync(
+                        request.OrderId,
+                        commissionAmount,
+                        $"Chiết khấu {_rules.ShopRefundCommissionPercent}% từ hoàn tiền đơn #{request.OrderId.ToString()[..8].ToUpper()}"
+                    );
+                }
 
                 // Cập nhật trạng thái request
                 request.Status = "Approved";
-                request.ApprovedAmount = refundAmount;
+                request.ApprovedAmount = customerRefundAmount;
                 request.ShopResponse = response;
                 request.ProcessedByShopId = shopId;
                 request.ProcessedAt = DateTime.UtcNow;
