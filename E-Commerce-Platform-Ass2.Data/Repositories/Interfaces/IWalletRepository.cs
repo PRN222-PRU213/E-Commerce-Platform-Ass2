@@ -10,6 +10,7 @@ namespace E_Commerce_Platform_Ass2.Data.Repositories.Interfaces
     public interface IWalletRepository
     {
         Task<Wallet> GetByUserIdAsync(Guid userId);
+        Task<Wallet> GetOrCreateAdminWalletAsync();
         Task AddAsync(Wallet wallet);
         Task UpdateAsync(Wallet wallet);
     }

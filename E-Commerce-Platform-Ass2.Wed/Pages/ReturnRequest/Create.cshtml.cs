@@ -17,17 +17,23 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.ReturnRequest
         private readonly IReturnRequestService _returnRequestService;
         private readonly IOrderService _orderService;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IShopService _shopService;
+        private readonly INotificationService _notificationService;
         private readonly IHubContext<NotificationHub, INotificationClient> _hubContext;
 
         public CreateModel(
             IReturnRequestService returnRequestService,
             IOrderService orderService,
             ICloudinaryService cloudinaryService,
+            IShopService shopService,
+            INotificationService notificationService,
             IHubContext<NotificationHub, INotificationClient> hubContext)
         {
             _returnRequestService = returnRequestService;
             _orderService = orderService;
             _cloudinaryService = cloudinaryService;
+            _shopService = shopService;
+            _notificationService = notificationService;
             _hubContext = hubContext;
         }
 
@@ -55,6 +61,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.ReturnRequest
             Input = new CreateReturnRequestViewModel
             {
                 OrderId = OrderId,
+                RequestType = "Return",
                 OrderDate = order.CreatedAt,
                 TotalAmount = order.TotalAmount,
                 RequestedAmount = order.TotalAmount,
@@ -75,6 +82,11 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.ReturnRequest
         public async Task<IActionResult> OnPostAsync(List<IFormFile>? evidenceImages)
         {
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            if (evidenceImages == null || !evidenceImages.Any(f => f.Length > 0))
+            {
+                ModelState.AddModelError(string.Empty, "Vui lòng tải lên ít nhất 1 hình ảnh bằng chứng để shop xác nhận.");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -116,7 +128,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.ReturnRequest
             {
                 OrderId = Input.OrderId,
                 UserId = userId,
-                RequestType = Input.RequestType,
+                RequestType = "Return",
                 Reason = Input.Reason,
                 ReasonDetail = Input.ReasonDetail,
                 EvidenceImageUrls = imageUrls,
@@ -127,9 +139,33 @@ namespace E_Commerce_Platform_Ass2.Wed.Pages.ReturnRequest
 
             if (result.IsSuccess)
             {
-                // Send real-time notification to admins about new return request
+                // Notify related shops + admins about new return request
                 try
                 {
+                    var shopIds = await _orderService.GetShopIdsByOrderAsync(Input.OrderId);
+                    foreach (var shopId in shopIds)
+                    {
+                        var shop = await _shopService.GetShopByIdAsync(shopId);
+                        if (shop == null)
+                        {
+                            continue;
+                        }
+
+                        var shopMessage =
+                            $"Khách hàng đã gửi yêu cầu hoàn hàng cho đơn #{Input.OrderId.ToString()[..8].ToUpper()}";
+                        var shopLink = $"/Shop/Orders/ReturnRequestDetail?id={result.Data?.Id}";
+
+                        await _notificationService.CreateNotificationAsync(shop.UserId, "warning", shopMessage, shopLink);
+
+                        await _hubContext.Clients.Group($"shop-{shopId}").NotificationReceived(new NotificationMessage
+                        {
+                            Type = "warning",
+                            Message = shopMessage,
+                            Link = shopLink,
+                            UserId = userId
+                        });
+                    }
+
                     var notification = new NotificationMessage
                     {
                         Type = "warning",

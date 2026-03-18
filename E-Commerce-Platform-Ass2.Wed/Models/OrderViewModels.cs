@@ -8,6 +8,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Models
         public string Status { get; set; } = string.Empty;
         public string ShippingAddress { get; set; } = string.Empty;
         public bool IsRefunded { get; set; }
+        public bool CanReturnRequest { get; set; }
     }
 
     public class OrderDetailViewModel

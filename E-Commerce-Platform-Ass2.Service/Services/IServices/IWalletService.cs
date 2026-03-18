@@ -13,6 +13,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services.IServices
         Task<WalletDto> GetOrCreateAsync(Guid userId);
         Task RefundAsync(Guid userId, decimal amount);
         Task<WalletPaymentResultDto> PayAsync(Guid userId, decimal amount);
+        Task CreditAdminCommissionAsync(Guid orderId, decimal amount, string description);
         
         /// <summary>
         /// Nạp tiền vào ví

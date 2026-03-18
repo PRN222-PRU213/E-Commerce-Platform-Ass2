@@ -120,6 +120,7 @@ namespace E_Commerce_Platform_Ass2.Service.Services
             }
 
             order.Status = "Delivered";
+            order.CompletedAt = DateTime.UtcNow;
             await _orderRepository.UpdateAsync(order);
 
             return ServiceResult.Success();
