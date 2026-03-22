@@ -1,0 +1,99 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Ticket.CreateModel
+
+@{
+    ViewData["Title"] = "Tạo Ticket hỗ trợ";
+    var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "Customer";
+    Layout = role == "Admin" ? "_AdminLayout" : role == "Seller" ? "_ShopDashboardLayout" : "_EShopperLayout";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-ticket-alt me-2"></i>Tạo Ticket hỗ trợ
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                        </div>
+                    }
+
+                    <form method="post">
+                        <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Subject" class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                            <input asp-for="Input.Subject" class="form-control" placeholder="Mô tả ngắn gọn vấn đề của bạn..." />
+                            <span asp-validation-for="Input.Subject" class="text-danger"></span>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Input.Category" class="form-label">Danh mục <span class="text-danger">*</span></label>
+                                <select asp-for="Input.Category" class="form-select">
+                                    <option value="Kỹ thuật">Kỹ thuật</option>
+                                    <option value="Thanh toán">Thanh toán</option>
+                                    <option value="Khiếu nại">Khiếu nại</option>
+                                    <option value="Góp ý">Góp ý</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                                <span asp-validation-for="Input.Category" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Input.Priority" class="form-label">Mức ưu tiên <span class="text-danger">*</span></label>
+                                <select asp-for="Input.Priority" class="form-select">
+                                    <option value="Low">Thấp</option>
+                                    <option value="Medium" selected>Trung bình</option>
+                                    <option value="High">Cao</option>
+                                    <option value="Urgent">Khẩn cấp</option>
+                                </select>
+                                <span asp-validation-for="Input.Priority" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        @if (Model.RecentOrders.Any())
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Liên kết đơn hàng (tùy chọn)</label>
+                                <select asp-for="Input.RelatedOrderId" class="form-select">
+                                    <option value="">-- Không liên kết đơn hàng --</option>
+                                    @foreach (var order in Model.RecentOrders)
+                                    {
+                                        <option value="@order.Id">#@order.Id.ToString().Substring(0, 8).ToUpper() - @order.TotalAmount.ToString("N0") VNĐ - @order.CreatedAt.ToString("dd/MM/yyyy")</option>
+                                    }
+                                </select>
+                                <small class="text-muted">Chọn đơn hàng liên quan nếu vấn đề của bạn gắn với một đơn hàng cụ thể.</small>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Description" class="form-label">Mô tả chi tiết <span class="text-danger">*</span></label>
+                            <textarea asp-for="Input.Description" class="form-control" rows="5" 
+                                      placeholder="Mô tả chi tiết vấn đề bạn gặp phải..."></textarea>
+                            <span asp-validation-for="Input.Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i> Gửi Ticket
+                            </button>
+                            <a asp-page="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

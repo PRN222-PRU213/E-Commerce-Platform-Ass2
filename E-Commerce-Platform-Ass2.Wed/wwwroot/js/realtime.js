@@ -122,6 +122,27 @@
     emitPreOrder("PreOrderExpired", payload),
   );
 
+  connection.on("TicketCreated", (message) => {
+    console.log("[SignalR] TicketCreated received:", message);
+    document.dispatchEvent(
+      new CustomEvent("rt:ticket-created", { detail: message, bubbles: true }),
+    );
+  });
+
+  connection.on("TicketUpdated", (message) => {
+    console.log("[SignalR] TicketUpdated received:", message);
+    document.dispatchEvent(
+      new CustomEvent("rt:ticket-updated", { detail: message, bubbles: true }),
+    );
+  });
+
+  connection.on("TicketReplied", (message) => {
+    console.log("[SignalR] TicketReplied received:", message);
+    document.dispatchEvent(
+      new CustomEvent("rt:ticket-replied", { detail: message, bubbles: true }),
+    );
+  });
+
   async function start() {
     if (
       connection.state === signalR.HubConnectionState.Connected ||

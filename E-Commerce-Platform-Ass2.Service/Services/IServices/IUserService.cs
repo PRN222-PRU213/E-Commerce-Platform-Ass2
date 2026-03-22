@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using E_Commerce_Platform_Ass2.Service.Services;
 
@@ -31,6 +32,11 @@ namespace E_Commerce_Platform_Ass2.Service.Services.IServices
         /// Kiểm tra email đã được xác thực chưa
         /// </summary>
         Task<bool> IsEmailVerifiedAsync(string email);
+
+        /// <summary>
+        /// Lấy danh sách tất cả người dùng
+        /// </summary>
+        Task<List<AuthenticatedUser>> GetAllUsersAsync();
     }
 
     public class RegisterResult

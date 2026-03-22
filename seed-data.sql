@@ -315,6 +315,9 @@ SET PasswordHash = '123456'
 UPDATE products SET Status = 'active' WHERE Status = 'Active';
 UPDATE product_variants SET Status = 'active' WHERE Status = 'Active';
 
+SELECT * FROM users
+Update users SET EmailVerified = 1
+
 
 Update users SET PasswordHash = '123456' WHERE Email = 'seller1@example.com';
 Update users SET PasswordHash = '123456' WHERE Email = 'seller2@example.com';

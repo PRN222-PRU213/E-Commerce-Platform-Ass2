@@ -1,0 +1,281 @@
+@page "{id:guid}"
+@model E_Commerce_Platform_Ass2.Wed.Pages.Ticket.DetailModel
+
+@{
+    ViewData["Title"] = $"Ticket {Model.Ticket?.Ticket.TicketCode}";
+    var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "Customer";
+    Layout = role == "Admin" ? "_AdminLayout" : role == "Seller" ? "_ShopDashboardLayout" : "_EShopperLayout";
+}
+
+<div class="container py-4">
+    @if (Model.Ticket == null)
+    {
+        <div class="alert alert-danger">Ticket không tồn tại.</div>
+        return;
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-light text-dark me-2">@Model.Ticket.Ticket.TicketCode</span>
+                        <span>@Model.Ticket.Ticket.Subject</span>
+                    </div>
+                    @if (Model.Ticket.Ticket.Status != "Closed")
+                    {
+                        <form method="post" asp-page-handler="Close">
+                            <button type="submit" class="btn btn-sm btn-outline-light"
+                                    onclick="return confirm('Bạn có chắc muốn đóng ticket này?');">
+                                <i class="fas fa-times me-1"></i> Đóng Ticket
+                            </button>
+                        </form>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Trạng thái:</strong>
+                            @if (Model.Ticket.Ticket.Status == "Open")
+                            {
+                                <span class="badge bg-primary">Mở</span>
+                            }
+                            else if (Model.Ticket.Ticket.Status == "InProgress")
+                            {
+                                <span class="badge bg-info">Đang xử lý</span>
+                            }
+                            else if (Model.Ticket.Ticket.Status == "Pending")
+                            {
+                                <span class="badge bg-warning">Chờ phản hồi</span>
+                            }
+                            else if (Model.Ticket.Ticket.Status == "Resolved")
+                            {
+                                <span class="badge bg-success">Đã giải quyết</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Đã đóng</span>
+                            }
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Danh mục:</strong> @Model.Ticket.Ticket.Category
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Ưu tiên:</strong>
+                            @if (Model.Ticket.Ticket.Priority == "Urgent")
+                            {
+                                <span class="badge bg-danger">Khẩn cấp</span>
+                            }
+                            else if (Model.Ticket.Ticket.Priority == "High")
+                            {
+                                <span class="badge bg-warning">Cao</span>
+                            }
+                            else if (Model.Ticket.Ticket.Priority == "Medium")
+                            {
+                                <span class="badge bg-info">Trung bình</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Thấp</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Người tạo:</strong> @Model.Ticket.Ticket.CustomerName (@Model.Ticket.Ticket.CustomerEmail)
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Ticket.Ticket.RelatedShopName))
+                    {
+                        <div class="mb-3">
+                            <strong>Shop liên quan:</strong> @Model.Ticket.Ticket.RelatedShopName
+                        </div>
+                    }
+
+                    <div class="mb-0">
+                        <strong>Mô tả:</strong>
+                        <div class="p-3 bg-light rounded mt-2">
+                            @Model.Ticket.Ticket.Description
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="mb-3">
+                <i class="fas fa-comments me-2"></i>Phản hồi (@Model.Ticket.Replies.Count)
+            </h5>
+
+            @if (Model.Ticket.Replies.Any())
+            {
+                <div class="mb-4">
+                    @foreach (var reply in Model.Ticket.Replies)
+                    {
+                        <div class="card mb-3 @(reply.SenderRole == "Customer" ? "border-primary" : reply.SenderRole == "Admin" ? "border-danger" : "border-warning")">
+                            <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    @if (reply.SenderRole == "Customer")
+                                    {
+                                        <span class="badge bg-primary me-2">Khách hàng</span>
+                                    }
+                                    else if (reply.SenderRole == "Admin")
+                                    {
+                                        <span class="badge bg-danger me-2">Admin</span>
+                                    }
+                                    else if (reply.SenderRole == "Seller")
+                                    {
+                                        <span class="badge bg-warning me-2">Shop</span>
+                                    }
+                                    <strong>@reply.SenderName</strong>
+                                </div>
+                                <small class="text-muted">@reply.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                            </div>
+                            <div class="card-body py-2">
+                                <p class="mb-0">@reply.Content</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-secondary mb-4">
+                    <i class="fas fa-comment-slash me-2"></i>Chưa có phản hồi nào.
+                </div>
+            }
+
+            @if (Model.Ticket.Ticket.Status != "Closed" && (role == "Admin" || role == "Seller" || role == "Customer"))
+            {
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-reply me-2"></i>Gửi phản hồi</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.CannedResponses.Any())
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-copy me-1"></i>Chọn template có sẵn (tùy chọn)
+                                </label>
+                                <select id="templateSelect" class="form-select" onchange="applyTemplate()">
+                                    <option value="">-- Chọn template --</option>
+                                    @foreach (var template in Model.CannedResponses)
+                                    {
+                                        <option value="@template.Content">@template.Title (@template.Category)</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+
+                        <form method="post">
+                            <div class="mb-3">
+                                <textarea asp-for="Input.Content" id="replyContent" class="form-control" rows="4"
+                                          placeholder="Nhập nội dung phản hồi..."></textarea>
+                                <span asp-validation-for="Input.Content" class="text-danger"></span>
+                            </div>
+
+                            @if (role == "Admin" || role == "Seller")
+                            {
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" asp-for="Input.IsInternal" />
+                                    <label class="form-check-label" asp-for="Input.IsInternal">
+                                        Ghi chú nội bộ (chỉ Admin/Shop thấy)
+                                    </label>
+                                </div>
+                            }
+
+                            <button type="submit" class="btn btn-primary" asp-page-handler="Reply">
+                                <i class="fas fa-paper-plane me-1"></i> Gửi phản hồi
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin Ticket</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Ngày tạo</small>
+                        <div>@Model.Ticket.Ticket.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+
+                    @if (Model.Ticket.Ticket.UpdatedAt.HasValue)
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted">Cập nhật cuối</small>
+                            <div>@Model.Ticket.Ticket.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    }
+
+                    @if (Model.Ticket.Ticket.ResolvedAt.HasValue)
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted">Đã giải quyết</small>
+                            <div>@Model.Ticket.Ticket.ResolvedAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Ticket.Ticket.AssignedToName))
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted">Người xử lý</small>
+                            <div>@Model.Ticket.Ticket.AssignedToName</div>
+                        </div>
+                    }
+
+                    <div class="mb-0">
+                        <small class="text-muted">Số phản hồi</small>
+                        <div>@Model.Ticket.Ticket.ResponseCount</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a asp-page="Index" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function applyTemplate() {
+            var templateSelect = document.getElementById('templateSelect');
+            var replyContent = document.getElementById('replyContent');
+
+            if (templateSelect && replyContent && templateSelect.value) {
+                // If textarea has existing content, append with a line break
+                if (replyContent.value.trim()) {
+                    replyContent.value += '\n\n' + templateSelect.value;
+                } else {
+                    replyContent.value = templateSelect.value;
+                }
+                // Reset the select
+                templateSelect.value = '';
+                // Focus on textarea
+                replyContent.focus();
+            }
+        }
+    </script>
+}

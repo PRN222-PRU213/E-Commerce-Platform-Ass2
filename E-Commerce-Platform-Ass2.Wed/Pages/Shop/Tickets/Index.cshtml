@@ -1,0 +1,125 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Shop.Tickets.IndexModel
+
+@{
+    ViewData["Title"] = "Ticket hỗ trợ";
+    Layout = "_ShopDashboardLayout";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-ticket-alt me-2 text-primary"></i>Ticket hỗ trợ
+        </h2>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <select class="form-select" onchange="window.location.href='?Status=' + this.value">
+                        <option value="All">Tất cả trạng thái</option>
+                        <option value="Open" selected="@(Model.Status == "Open")">Mở</option>
+                        <option value="InProgress" selected="@(Model.Status == "InProgress")">Đang xử lý</option>
+                        <option value="Pending" selected="@(Model.Status == "Pending")">Chờ phản hồi</option>
+                        <option value="Resolved" selected="@(Model.Status == "Resolved")">Đã giải quyết</option>
+                        <option value="Closed" selected="@(Model.Status == "Closed")">Đã đóng</option>
+                    </select>
+                </div>
+            </div>
+
+            @if (Model.Tickets.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã Ticket</th>
+                                <th>Tiêu đề</th>
+                                <th>Khách hàng</th>
+                                <th>Danh mục</th>
+                                <th>Ưu tiên</th>
+                                <th>Trạng thái</th>
+                                <th>Phản hồi</th>
+                                <th>Ngày tạo</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in Model.Tickets)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@ticket.TicketCode</span></td>
+                                    <td>@ticket.Subject</td>
+                                    <td>@ticket.CustomerName</td>
+                                    <td>@ticket.Category</td>
+                                    <td>
+                                        @if (ticket.Priority == "Urgent")
+                                        {
+                                            <span class="badge bg-danger">Khẩn cấp</span>
+                                        }
+                                        else if (ticket.Priority == "High")
+                                        {
+                                            <span class="badge bg-warning">Cao</span>
+                                        }
+                                        else if (ticket.Priority == "Medium")
+                                        {
+                                            <span class="badge bg-info">Trung bình</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Thấp</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (ticket.Status == "Open")
+                                        {
+                                            <span class="badge bg-primary">Mở</span>
+                                        }
+                                        else if (ticket.Status == "InProgress")
+                                        {
+                                            <span class="badge bg-info">Đang xử lý</span>
+                                        }
+                                        else if (ticket.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning">Chờ phản hồi</span>
+                                        }
+                                        else if (ticket.Status == "Resolved")
+                                        {
+                                            <span class="badge bg-success">Đã giải quyết</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Đã đóng</span>
+                                        }
+                                    </td>
+                                    <td>@ticket.ResponseCount</td>
+                                    <td>@ticket.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <a asp-page="/Ticket/Detail" asp-route-id="@ticket.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <p class="text-muted">Bạn chưa có ticket hỗ trợ nào liên quan đến shop.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

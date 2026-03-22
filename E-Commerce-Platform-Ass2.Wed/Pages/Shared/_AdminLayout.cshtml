@@ -204,6 +204,24 @@
                     </a>
                 </li>
             </ul>
+
+            <div class="menu-header">Hỗ trợ</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Admin/Tickets") ? "active" : "")"
+                       asp-page="/Admin/Tickets/Index">
+                        <i class="fas fa-headset"></i>
+                        <span>Ticket hỗ trợ</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Admin/Tickets/Templates") ? "active" : "")"
+                       asp-page="/Admin/Tickets/Templates">
+                        <i class="fas fa-cogs"></i>
+                        <span>Quản lý Templates</span>
+                    </a>
+                </li>
+            </ul>
         </nav>
     </aside>
 

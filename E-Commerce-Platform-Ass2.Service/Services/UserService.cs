@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using E_Commerce_Platform_Ass2.Data.Database.Entities;
@@ -282,6 +283,18 @@ namespace E_Commerce_Platform_Ass2.Service.Services
                 Email = user.Email,
                 Role = user.Role?.Name ?? "Unknown"
             };
+        }
+
+        public async Task<List<AuthenticatedUser>> GetAllUsersAsync()
+        {
+            var users = await _userRepository.GetAllAsync();
+            return users.Select(u => new AuthenticatedUser
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Email = u.Email,
+                Role = u.Role?.Name ?? "Unknown"
+            }).ToList();
         }
 
         private static string GenerateVerificationToken()

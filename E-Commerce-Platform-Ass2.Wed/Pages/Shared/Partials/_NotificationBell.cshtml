@@ -216,6 +216,27 @@
         addItem('info', msg, null, 'Vừa xong', false);
     });
 
+    document.addEventListener('rt:ticket-created', function (e) {
+        var d = e.detail;
+        var msg = 'Ticket mới: <strong>' + (d.ticketCode || '') + '</strong> - ' + (d.subject || '');
+        var link = '/Admin/Tickets/Index?id=' + (d.ticketId || '');
+        addItem('warning', msg, link, 'Vừa xong', false);
+    });
+
+    document.addEventListener('rt:ticket-updated', function (e) {
+        var d = e.detail;
+        var msg = 'Ticket <strong>' + (d.ticketCode || '') + '</strong>: Cập nhật trạng thái - ' + (d.status || '');
+        var link = '/Ticket/Detail?id=' + (d.ticketId || '');
+        addItem('info', msg, link, 'Vừa xong', false);
+    });
+
+    document.addEventListener('rt:ticket-replied', function (e) {
+        var d = e.detail;
+        var msg = 'Phản hồi mới từ ' + (d.senderName || '') + ' [' + (d.senderRole || '') + ']: ' + (d.preview || '');
+        var link = '/Ticket/Detail?id=' + (d.ticketId || '');
+        addItem('info', msg, link, 'Vừa xong', false);
+    });
+
     // Helper to get CSRF token
     function getCsrfToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value;

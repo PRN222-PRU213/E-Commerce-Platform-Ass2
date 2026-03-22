@@ -11,5 +11,8 @@ namespace E_Commerce_Platform_Ass2.Wed.Models.SignalR
         Task NotificationReceived(NotificationMessage message);
         Task ReviewApproved(E_Commerce_Platform_Ass2.Service.DTOs.ReviewDto review);
         Task ReviewSubmitted(E_Commerce_Platform_Ass2.Service.DTOs.ReviewDto review);
+        Task TicketCreated(TicketNotificationMessage message);
+        Task TicketUpdated(TicketNotificationMessage message);
+        Task TicketReplied(TicketReplyNotificationMessage message);
     }
 }

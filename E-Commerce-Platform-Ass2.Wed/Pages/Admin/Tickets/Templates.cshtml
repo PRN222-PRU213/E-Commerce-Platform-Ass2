@@ -1,0 +1,289 @@
+@page
+@model E_Commerce_Platform_Ass2.Wed.Pages.Admin.Tickets.TemplatesModel
+
+@{
+    ViewData["Title"] = "Quản lý Templates & Rules";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-cogs me-2 text-primary"></i>Quản lý Templates & Rules
+        </h2>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+        </div>
+    }
+
+    <div class="row">
+        <!-- Canned Responses Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-reply me-2"></i>Template phản hồi có sẵn
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Create Template Form -->
+                    <form method="post" asp-page-handler="CreateTemplate" class="mb-4 p-3 bg-light rounded">
+                        <h6 class="mb-3">Tạo template mới</h6>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <input type="text" name="Title" class="form-control" placeholder="Tiêu đề template" required />
+                            </div>
+                            <div class="col-md-3">
+                                <select name="Category" class="form-select">
+                                    <option value="Kỹ thuật">Kỹ thuật</option>
+                                    <option value="Thanh toán">Thanh toán</option>
+                                    <option value="Khiếu nại">Khiếu nại</option>
+                                    <option value="Góp ý">Góp ý</option>
+                                    <option value="General" selected>Chung</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="Priority" class="form-select">
+                                    <option value="All" selected>Tất cả</option>
+                                    <option value="Urgent">Khẩn cấp</option>
+                                    <option value="High">Cao</option>
+                                    <option value="Medium">Trung bình</option>
+                                    <option value="Low">Thấp</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <textarea name="Content" class="form-control" rows="3" placeholder="Nội dung template..." required></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="number" name="SortOrder" class="form-control" placeholder="Thứ tự" value="0" />
+                            </div>
+                            <div class="col-md-8 text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i> Tạo Template
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Filter -->
+                    <div class="mb-3">
+                        <select class="form-select" onchange="window.location.href='?FilterCategory=' + this.value">
+                            <option value="">Tất cả danh mục</option>
+                            <option value="Kỹ thuật">Kỹ thuật</option>
+                            <option value="Thanh toán">Thanh toán</option>
+                            <option value="Khiếu nại">Khiếu nại</option>
+                            <option value="Góp ý">Góp ý</option>
+                            <option value="General">Chung</option>
+                        </select>
+                    </div>
+
+                    <!-- Templates List -->
+                    @if (Model.CannedResponses.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var template in Model.CannedResponses)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">
+                                                @template.Title
+                                                <span class="badge bg-secondary ms-2">@template.Category</span>
+                                                @if (template.Priority != "All")
+                                                {
+                                                    <span class="badge bg-info ms-1">@template.Priority</span>
+                                                }
+                                            </h6>
+                                            <p class="mb-1 text-muted small">@template.Content</p>
+                                            <small class="text-muted">Sắp xếp: @template.SortOrder</small>
+                                        </div>
+                                        <form method="post" asp-page-handler="DeleteTemplate">
+                                            <input type="hidden" name="id" value="@template.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Bạn có chắc muốn xóa template này?');">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>Chưa có template nào.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignment Rules Section -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-route me-2"></i>Quy tắc tự động phân công
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Create Rule Form -->
+                    <form method="post" asp-page-handler="CreateRule" class="mb-4 p-3 bg-light rounded">
+                        <h6 class="mb-3">Tạo rule mới</h6>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <input type="text" name="RuleName" class="form-control" placeholder="Tên rule" required />
+                            </div>
+                            <div class="col-md-3">
+                                <select name="RuleCategory" class="form-select">
+                                    <option value="All" selected>Tất cả</option>
+                                    <option value="Kỹ thuật">Kỹ thuật</option>
+                                    <option value="Thanh toán">Thanh toán</option>
+                                    <option value="Khiếu nại">Khiếu nại</option>
+                                    <option value="Góp ý">Góp ý</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="RulePriority" class="form-select">
+                                    <option value="All" selected>Tất cả</option>
+                                    <option value="Urgent">Khẩn cấp</option>
+                                    <option value="High">Cao</option>
+                                    <option value="Medium">Trung bình</option>
+                                    <option value="Low">Thấp</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Phân công cho User (tùy chọn)</label>
+                                <input type="text" name="AssignedToId" class="form-control" placeholder="User ID" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Phân công theo Role (tùy chọn)</label>
+                                <select name="AssignedToRoleId" class="form-select">
+                                    <option value="">-- Chọn Role --</option>
+                                    <option value="">Không phân theo role</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="number" name="RulePriorityOrder" class="form-control" placeholder="Độ ưu tiên" value="0" />
+                            </div>
+                            <div class="col-md-8 text-end">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-plus me-1"></i> Tạo Rule
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Rules List -->
+                    @if (Model.AssignmentRules.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var rule in Model.AssignmentRules)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">
+                                                @rule.RuleName
+                                                <span class="badge bg-secondary ms-2">@rule.Category</span>
+                                                @if (rule.Priority != "All")
+                                                {
+                                                    <span class="badge bg-warning ms-1">@rule.Priority</span>
+                                                }
+                                            </h6>
+                                            <p class="mb-1 text-muted small">
+                                                @if (!string.IsNullOrEmpty(rule.AssignedToName))
+                                                {
+                                                    <span>Phân công cho: <strong>@rule.AssignedToName</strong></span>
+                                                }
+                                                else if (!string.IsNullOrEmpty(rule.AssignedToRoleName))
+                                                {
+                                                    <span>Phân công role: <strong>@rule.AssignedToRoleName</strong></span>
+                                                }
+                                                else
+                                                {
+                                                    <span>Chưa phân công</span>
+                                                }
+                                            </p>
+                                            <small class="text-muted">Ưu tiên: @rule.PriorityOrder</small>
+                                        </div>
+                                        <form method="post" asp-page-handler="DeleteRule">
+                                            <input type="hidden" name="id" value="@rule.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Bạn có chắc muốn xóa rule này?');">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-route fa-3x mb-3"></i>
+                            <p>Chưa có rule nào.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- SLA Configuration Info -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>Cấu hình SLA
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Mức ưu tiên</th>
+                                <th>Thời gian phản hồi</th>
+                                <th>Thời gian giải quyết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-danger">
+                                <td><span class="badge bg-danger">Khẩn cấp</span></td>
+                                <td>1 giờ</td>
+                                <td>4 giờ</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><span class="badge bg-warning">Cao</span></td>
+                                <td>4 giờ</td>
+                                <td>24 giờ</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><span class="badge bg-info">Trung bình</span></td>
+                                <td>8 giờ</td>
+                                <td>48 giờ</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-secondary">Thấp</span></td>
+                                <td>24 giờ</td>
+                                <td>72 giờ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

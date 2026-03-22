@@ -34,6 +34,10 @@ namespace E_Commerce_Platform_Ass2.Data.Database
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
         public DbSet<PreOrderDetail> PreOrderDetails { get; set; } = null!;
         public DbSet<PreOrderPolicyItem> PreOrderPolicyItems { get; set; } = null!;
+        public DbSet<SupportTicket> SupportTickets { get; set; } = null!;
+        public DbSet<SupportTicketReply> SupportTicketReplies { get; set; } = null!;
+        public DbSet<CannedResponse> CannedResponses { get; set; } = null!;
+        public DbSet<TicketAssignmentRule> TicketAssignmentRules { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,6 +68,10 @@ namespace E_Commerce_Platform_Ass2.Data.Database
             modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
             modelBuilder.ApplyConfiguration(new PreOrderDetailConfiguration());
             modelBuilder.ApplyConfiguration(new PreOrderPolicyItemConfiguration());
+            modelBuilder.ApplyConfiguration(new SupportTicketConfiguration());
+            modelBuilder.ApplyConfiguration(new SupportTicketReplyConfiguration());
+            modelBuilder.ApplyConfiguration(new CannedResponseConfiguration());
+            modelBuilder.ApplyConfiguration(new TicketAssignmentRuleConfiguration());
         }
     }
 }

@@ -50,6 +50,10 @@ namespace E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions
                 IPreOrderPolicyItemRepository,
                 PreOrderPolicyItemRepository
             >();
+            serviceCollection.AddScoped<ISupportTicketRepository, SupportTicketRepository>();
+            serviceCollection.AddScoped<ISupportTicketReplyRepository, SupportTicketReplyRepository>();
+            serviceCollection.AddScoped<ICannedResponseRepository, CannedResponseRepository>();
+            serviceCollection.AddScoped<ITicketAssignmentRuleRepository, TicketAssignmentRuleRepository>();
 
             // Register Services
             serviceCollection.AddScoped<IEmailService, EmailService>();
@@ -77,6 +81,7 @@ namespace E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions
             serviceCollection.AddScoped<IChatService, ChatService>();
             serviceCollection.AddScoped<IPersonalShopperService, PersonalShopperService>();
             serviceCollection.AddScoped<IPreOrderService, PreOrderService>();
+            serviceCollection.AddScoped<ISupportTicketService, SupportTicketService>();
 
             // Register External APIs
             serviceCollection.AddScoped<IMomoApi, MomoApi>();
