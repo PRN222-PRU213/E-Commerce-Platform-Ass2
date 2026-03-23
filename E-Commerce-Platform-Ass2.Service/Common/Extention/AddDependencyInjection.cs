@@ -1,18 +1,18 @@
-using E_Commerce_Platform_Ass2.Data.Repositories;
+﻿using E_Commerce_Platform_Ass2.Data.Repositories;
 using E_Commerce_Platform_Ass2.Data.Repositories.Interfaces;
 using E_Commerce_Platform_Ass2.Service.Services;
 using E_Commerce_Platform_Ass2.Service.Services.IServices;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace E_Commerce_Platform_Ass2.Wed.Infrastructure.Extensions
+namespace E_Commerce_Platform_Ass2.Service.Common.Extention
 {
-    /// <summary>
-    /// Dependency injection extension method to centrally manage all service and repository registrations
-    /// </summary>
     public static class AddDependencyInjection
     {
-        /// <summary>
-        /// Register all services and repositories to the dependency injection container
-        /// </summary>
         public static void AddService(this IServiceCollection serviceCollection)
         {
             // Register Repositories
